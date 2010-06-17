@@ -108,7 +108,7 @@ main()
 	printf("SSL_write()...\n");
 	char *buf = "GET / HTTP/1.0\r\nHost: blog.habets.pp.se\r\n\r\n";
 	SSL_write(ssl, buf, strlen(buf));
-
+	SSL_shutdown(ssl);
 	printf("done\n");
 
 	//BIO_free_all(bio);
