@@ -55,18 +55,36 @@ SSLSocket::shutdown()
 	ctx = 0;
 	printf("SSL_shutdown() done\n");
 }
+
+void
+SSLSocket::ssl_connect()
+{
+	ctx = SSL_CTX_new(TLSv1_client_method());
+        if (!(ssl = SSL_new(ctx))) {
+		throw ErrSSL("SSL_new");
+	}
+
+	int err;
+	if (!SSL_set_fd(ssl, fd.get())) {
+		throw ErrSSL("SSL_set_fd", ssl, err);
+	}
+	err = SSL_connect(ssl);
+	if (err == -1) {
+		perror("ffoo");
+		throw ErrSSL("SSL_connect", ssl, err);
+	}
+}
+
 void
 SSLSocket::ssl_accept(const std::string &certfile,
 		      const std::string &keyfile)
 {
 	int err;
 	ctx = SSL_CTX_new(TLSv1_server_method());
-	printf("Loading cert...\n");
 	if (1 != SSL_CTX_use_certificate_chain_file(ctx,
 						    certfile.c_str())){
 		perror("certchain");
 	}
-	printf("Loading key...\n");
 	if (1 != SSL_CTX_use_PrivateKey_file(ctx,
 					     keyfile.c_str(),
 					     SSL_FILETYPE_PEM)) {
@@ -88,6 +106,15 @@ SSLSocket::ssl_accept(const std::string &certfile,
 		throw ErrSSL("SSL_accept()", ssl, err);
 	}
 }
+
+void
+SSLSocket::write(const std::string &buf)
+{
+	const char *p;
+	p = buf.data();
+	SSL_write(ssl, p, buf.length());
+}
+
 std::string
 SSLSocket::read()
 {

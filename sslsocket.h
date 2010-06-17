@@ -18,10 +18,14 @@ public:
 	class ErrSSL: public Socket::ErrBase {
 		std::string sslmsg;
 	public:
-		ErrSSL(const std::string &s, SSL *ssl, int err)
-			:ErrBase(s),
-			 sslmsg(SSLSocket::ssl_errstr(SSL_get_error(ssl, err)))
+		ErrSSL(const std::string &s, SSL *ssl = 0, int err = 0)
+			:ErrBase(s)
 		{
+			if (ssl) {
+				sslmsg = SSLSocket
+					::ssl_errstr(
+						     SSL_get_error(ssl, err));
+			}
 			msg = msg + ": " + sslmsg;
 		}
 		~ErrSSL() throw() {};
@@ -37,5 +41,7 @@ public:
 	void shutdown();
 	void ssl_accept(const std::string &certfile,
 			const std::string &keyfile);
+	void ssl_connect();
 	std::string read();
+	void write(const std::string &);
 };

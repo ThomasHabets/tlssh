@@ -14,31 +14,8 @@
 #include <netdb.h>
 
 #include<string>
-const std::string
-SSL_errstr(int err)
-{
-	switch (err) {
-	case SSL_ERROR_NONE:
-		return "None";
-	case SSL_ERROR_ZERO_RETURN:
-		return "zero return";
-	case SSL_ERROR_WANT_READ:
-		return "want read";
-	case SSL_ERROR_WANT_WRITE:
-		return "want write";
-	case SSL_ERROR_WANT_CONNECT:
-		return "want connect";
-	case SSL_ERROR_WANT_ACCEPT:
-		return "want accept";
-	case SSL_ERROR_WANT_X509_LOOKUP:
-		return "x509 lookup";
-	case SSL_ERROR_SYSCALL:
-		return "syscall";
-	case SSL_ERROR_SSL:
-		return "ssl";
- 	}
-	return "uhh.. what?";
-}
+
+#include"sslsocket.h"
 
 int
 main()
@@ -51,20 +28,15 @@ main()
 	OpenSSL_add_all_algorithms();
 
 	printf("ctx\n");
-	SSL_CTX * ctx = SSL_CTX_new(TLSv1_client_method());
 	printf("load\n");
+	/*
 	if(!SSL_CTX_load_verify_locations(ctx,
 					  "class3.crt",
 					  NULL)) {
 		perror("load_verify");
 		return 1;
 	}
-	printf("new\n");
-	SSL * ssl;
-	if (!(ssl = SSL_new(ctx))) {
-		perror("SSL_new()");
-		return 1;
-	}
+	*/
 
 
 	printf("socket()...\n");
@@ -89,28 +61,10 @@ main()
 		return 1;
 	}
 
-	printf("SSL_set_fd()...\n");
-	if (!SSL_set_fd(ssl, sd)) {
-		perror("SSL_set_fd()");
-		return 1;
-	}
-
-	printf("SSL_connect()...\n");
-	err = SSL_connect(ssl);
-	if (err == -1) {
-		err = SSL_get_error(ssl, err);
-		printf("SSL_connect() %d %s\n",
-		       err,
-		       SSL_errstr(err).c_str());
-		return 1;
-	}
-
-	printf("SSL_write()...\n");
-	char *buf = "GET / HTTP/1.0\r\nHost: blog.habets.pp.se\r\n\r\n";
-	SSL_write(ssl, buf, strlen(buf));
-	SSL_shutdown(ssl);
-	printf("done\n");
-
-	//BIO_free_all(bio);
+	printf("SSL magic()...\n");
+	SSLSocket sock(sd);
+	sock.ssl_connect();
+	const char *buf = "GET / HTTP/1.0\r\nHost: blog.habets.pp.se\r\n\r\n";
+	sock.write(buf);
 }
 
