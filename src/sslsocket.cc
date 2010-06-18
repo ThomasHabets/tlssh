@@ -2,6 +2,8 @@
 #include "config.h"
 #endif
 
+#include<iostream>
+
 #include"sslsocket.h"
 
 SSLSocket::SSLSocket(int fd)
@@ -68,6 +70,116 @@ SSLSocket::ssl_attach(Socket &sock)
 	sock.forget();
 }
 
+class X509Wrap {
+	X509 *x509;
+public:
+	X509Wrap(X509 *x509)
+		:x509(x509)
+	{
+		if (!x509) {
+			throw "x509 init failed FIXME";
+		}
+	}
+
+	bool
+	check_hostname(const std::string &host)
+	{
+		int extcount;
+		int i, j;
+
+		// check X509v3 extensions
+		extcount = X509_get_ext_count(x509);
+		for (i = 0; i < extcount; i++) {
+			X509_EXTENSION *ext;
+			const char *extstr;
+
+			// FIXME: this code segfaults!
+			continue;
+
+			ext = X509_get_ext(x509, i);
+			extstr = OBJ_nid2sn(OBJ_obj2nid(X509_EXTENSION_get_object(ext)));
+			if (!strcmp(extstr, "subjectAltName")) {
+				X509V3_EXT_METHOD *meth;
+				const unsigned char *data;
+				STACK_OF(CONF_VALUE) *val;
+				CONF_VALUE *nval;
+
+				printf("alt1!\n");
+
+				meth = X509V3_EXT_get(ext);
+				if (!meth) {
+					break; // FIXME: why?
+				}
+				printf("alt2!\n");
+				data = ext->value->data;
+				printf("alt3 %p!\n", ext->value->data);
+				printf("fa %p\n", 
+				       meth->d2i(NULL,
+						 &data,
+						 ext->value->length));
+				printf("alt4\n");
+				val = meth->i2v(meth,
+						meth->d2i(NULL,
+							  &data,
+							  ext->value->length),
+						NULL);
+				printf("alt4!\n");
+				for (j = 0; j < sk_CONF_VALUE_num(val); j++) {
+					nval = sk_CONF_VALUE_value(val, j);
+					if (!strcmp(nval->name, "DNS")
+					    && !strcmp(nval->value,
+						       host.c_str())) {
+						return true;
+					}
+				}
+			}
+		}
+
+		// check subject name
+		X509_NAME *subj;
+		char sdata[256];
+		subj = X509_get_subject_name(x509);
+		if (!subj) {
+			return false;
+		}
+		if (!X509_NAME_get_text_by_NID(subj, NID_commonName, sdata,
+					      sizeof(sdata))) {
+			return false;
+		}
+		if (!strcmp(sdata, host.c_str())) {
+			return true;
+		}
+		return false;
+	}
+
+	std::string
+	get_issuer()
+	{
+		char buf[1024];
+		X509_NAME_oneline(X509_get_issuer_name(x509),
+				  buf, sizeof(buf));
+		return std::string(buf);
+	}
+
+	std::string
+	get_subject()
+	{
+		char buf[1024];
+		X509_NAME_oneline(X509_get_subject_name(x509),
+				  buf, sizeof(buf));
+		return std::string(buf);
+	}
+
+	~X509Wrap()
+	{
+		if (x509) {
+			X509_free(x509);
+			x509 = 0;
+		}
+	}
+};
+
+
 void
 SSLSocket::ssl_connect()
 {
@@ -102,19 +214,12 @@ SSLSocket::ssl_connect()
 	printf("verified: %d (should be %d)\n",
 	       SSL_get_verify_result(ssl), X509_V_OK);
 
-	X509 *x;
-	char buf[1024];
-	x = SSL_get_peer_certificate(ssl);
-	if (!x) {
-		throw ErrSSL("SSL_get_peer_certificate", ssl);
+	X509Wrap x(SSL_get_peer_certificate(ssl));
+	std::cout << "  Issuer:  " << x.get_issuer() << std::endl
+		  << "  Subject: " << x.get_subject() << std::endl;
+	if (!x.check_hostname("green.crap.retrofitta.se")) {
+		throw ErrSSL("cert does not match hostname");
 	}
-	if (1) {
-		X509_NAME_oneline(X509_get_issuer_name(x), buf, sizeof(buf));
-		printf("  issuer name: %s\n", buf);
-		X509_NAME_oneline(X509_get_subject_name(x), buf, sizeof(buf));
-		printf("  subject name: %s\n", buf);
-	}
-	X509_free(x);
 }
 
 void
