@@ -83,6 +83,7 @@ SSLSocket::ssl_connect()
         }
 
 	SSL_set_verify(ssl, SSL_VERIFY_PEER, NULL);
+	SSL_set_verify_depth(ssl, 5);
 	/* FIXME, make verify work */
 	SSL_set_verify(ssl, SSL_VERIFY_NONE, NULL);
 
@@ -100,6 +101,13 @@ SSLSocket::ssl_connect()
 	       SSL_CTX_get_verify_depth(ctx));
 	printf("verified: %d (should be %d)\n",
 	       SSL_get_verify_result(ssl), X509_V_OK);
+
+	X509 *x;
+	x = SSL_get_peer_certificate(ssl);
+	if (!x) {
+		throw ErrSSL("SSL_get_peer_certificate", ssl);
+	}
+	X509_free(x);
 }
 
 void
@@ -131,6 +139,15 @@ SSLSocket::ssl_accept(const std::string &certfile,
 	printf("\t%d\n", err);
 	if (err == -1) {
 		throw ErrSSL("SSL_accept()", ssl, err);
+	}
+
+	X509 *x;
+        x = SSL_get_peer_certificate(ssl);
+	if (!x){
+		// FIXME
+		//throw ErrSSL("SSL_get_peer_certificate", ssl);
+        } else {
+		X509_free(x);
 	}
 }
 
