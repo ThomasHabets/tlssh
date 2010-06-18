@@ -33,8 +33,10 @@ public:
 
 	static const std::string ssl_errstr(int err);
 
-	SSLSocket(int fd);
+	SSLSocket(int fd = -1);
 	~SSLSocket();
+
+	void ssl_attach(Socket&sock);
 
 	void release();
 

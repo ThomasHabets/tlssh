@@ -1,4 +1,15 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include"sslsocket.h"
+
+SSLSocket::SSLSocket(int fd)
+	:Socket(fd)
+{
+	SSL_library_init();
+	SSL_load_error_strings();
+}
 
 const std::string
 SSLSocket::ssl_errstr(int err)
@@ -27,12 +38,6 @@ SSLSocket::ssl_errstr(int err)
 }
 
 
-SSLSocket::SSLSocket(int fd)
-	:Socket(fd)
-{
-	SSL_library_init();
-	SSL_load_error_strings();
-}
 SSLSocket::~SSLSocket()
 {
 	shutdown();
@@ -54,6 +59,13 @@ SSLSocket::shutdown()
 	}
 	ctx = 0;
 	printf("SSL_shutdown() done\n");
+}
+
+void
+SSLSocket::ssl_attach(Socket &sock)
+{
+	fd.set(sock.getfd());
+	sock.forget();
 }
 
 void

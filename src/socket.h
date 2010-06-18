@@ -29,8 +29,10 @@ public:
 	Socket(int infd = -1);
 
 	int getfd() const;
+	void forget(); 
 
 	int setsockopt_reuseaddr();
-	int listen_any(int port);
+	int listen_any(int port); /* FIXME: change to string and GAI */
+	void connect(const std::string &host, const std::string &port);
 };
 

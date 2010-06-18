@@ -1,0 +1,3 @@
+# sslsh/Makefile.am.common
+AUTOMAKE_OPTIONS = foreign
+DISTCLEANFILES = *~

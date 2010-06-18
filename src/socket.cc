@@ -1,10 +1,23 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include<sys/types.h>
 #include<sys/socket.h>
 #include<netinet/in.h>
 #include<unistd.h>
 #include<string.h>
+#include<fcntl.h>
 
 #include"socket.h"
+#include"gaiwrap.h"
+
+
+Socket::Socket(int infd)
+{
+	fd.set(infd);
+}
+
 int
 Socket::create_socket()
 {
@@ -16,12 +29,18 @@ Socket::create_socket()
 	fd.set(s);
 }
 
-Socket::Socket(int infd)
+
+int
+Socket::getfd() const
 {
-	fd.set(infd);
+	return fd.get();
 }
 
-int Socket::getfd() const { return fd.get(); }
+void
+Socket::forget()
+{
+	fd.forget();
+}
 
 int
 Socket::setsockopt_reuseaddr()
@@ -34,6 +53,30 @@ Socket::setsockopt_reuseaddr()
 		throw ErrSys("reuse");
 	}
 }
+
+void
+Socket::connect(const std::string &host, const std::string &port)
+{
+	struct addrinfo hints;
+	struct addrinfo *p;
+	int err;
+
+
+	memset(&hints, 0, sizeof(hints));
+        hints.ai_flags = AI_ADDRCONFIG;
+        hints.ai_socktype = SOCK_STREAM;
+
+	GetAddrInfo gai(host, port, &hints);
+	p = gai.fixme();
+	if (!fd.valid()) {
+		create_socket();
+	}
+	err = ::connect(fd.get(), p->ai_addr, p->ai_addrlen);
+	if (0 > err) {
+		throw ErrSys("connect");
+	}
+}
+
 int
 Socket::listen_any(int port)
 {

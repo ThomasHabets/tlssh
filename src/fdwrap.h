@@ -31,4 +31,9 @@ public:
 	{
 		fd = -1;
 	}
+
+	bool valid()
+	{
+		return fd != -1;
+	}
 };
