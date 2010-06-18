@@ -103,9 +103,16 @@ SSLSocket::ssl_connect()
 	       SSL_get_verify_result(ssl), X509_V_OK);
 
 	X509 *x;
+	char buf[1024];
 	x = SSL_get_peer_certificate(ssl);
 	if (!x) {
 		throw ErrSSL("SSL_get_peer_certificate", ssl);
+	}
+	if (1) {
+		X509_NAME_oneline(X509_get_issuer_name(x), buf, sizeof(buf));
+		printf("  issuer name: %s\n", buf);
+		X509_NAME_oneline(X509_get_subject_name(x), buf, sizeof(buf));
+		printf("  subject name: %s\n", buf);
 	}
 	X509_free(x);
 }
