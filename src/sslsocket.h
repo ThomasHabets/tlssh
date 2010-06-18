@@ -5,8 +5,27 @@
 #include<openssl/rand.h>
 #include<string>
 #include<exception>
+#include<memory>
 
 #include"socket.h"
+
+class X509Wrap {
+	X509 *x509;
+	X509Wrap(const X509Wrap&);
+	X509Wrap operator=(const X509Wrap&);
+public:
+	X509Wrap(X509 *x509);
+
+	bool check_hostname(const std::string &host);
+
+	std::string get_issuer();
+
+	std::string get_subject();
+
+	~X509Wrap();
+};
+
+
 
 class SSLSocket: public Socket {
 	SSL_CTX *ctx;
@@ -37,6 +56,8 @@ public:
 	~SSLSocket();
 
 	void ssl_attach(Socket&sock);
+
+	std::auto_ptr<X509Wrap> get_cert();
 
 	void release();
 

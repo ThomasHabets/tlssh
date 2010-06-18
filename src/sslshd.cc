@@ -56,6 +56,13 @@ Socket listen;
 void
 new_ssl_connection(SSLSocket &sock)
 {
+	std::auto_ptr<X509Wrap> cert = sock.get_cert();
+	if (!cert.get()) {
+		std::cerr << "Client provided no cert.";
+		sock.write("No cert provided.");
+		return;
+	}
+
 	std::string username = "thompa";
 	std::auto_ptr<struct passwd> pw = xgetpwnam(username);
 	std::cout << pw->pw_name << std::endl
@@ -79,8 +86,12 @@ new_connection(FDWrap&fd)
 	} catch (const std::exception &e) {
 		std::cerr << "std::exception: " << std::endl
 			  << e.what() << std::endl;
+	} catch (const char *e) {
+		std::cerr << "FIXME: " << std::endl
+			  << e << std::endl;
 	} catch (...) {
 		std::cerr << "Unknown exception happened\n";
+		throw;
 	}
 }
 
