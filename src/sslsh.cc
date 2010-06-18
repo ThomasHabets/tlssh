@@ -43,7 +43,7 @@ new_connection()
 	std::cout << sock.read() << std::endl;
 }
 
-END_NAMESPACE(ssl_shd);
+END_NAMESPACE(sslsh);
 
 
 BEGIN_LOCAL_NAMESPACE()
