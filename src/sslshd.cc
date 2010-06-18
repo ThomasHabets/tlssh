@@ -58,7 +58,7 @@ new_ssl_connection(SSLSocket &sock)
 {
 	std::auto_ptr<X509Wrap> cert = sock.get_cert();
 	if (!cert.get()) {
-		std::cerr << "Client provided no cert.";
+		std::cerr << "Client provided no cert.\n";
 		sock.write("No cert provided.");
 		return;
 	}
