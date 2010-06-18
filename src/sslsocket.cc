@@ -76,6 +76,16 @@ SSLSocket::ssl_connect()
 		throw ErrSSL("SSL_new");
 	}
 
+	if(!SSL_CTX_load_verify_locations(ctx,
+                                          "class3.crt",
+                                          NULL)) {
+                throw ErrSSL("load_verify");
+        }
+
+	SSL_set_verify(ssl, SSL_VERIFY_PEER, NULL);
+	/* FIXME, make verify work */
+	SSL_set_verify(ssl, SSL_VERIFY_NONE, NULL);
+
 	int err;
 	if (!SSL_set_fd(ssl, fd.get())) {
 		throw ErrSSL("SSL_set_fd", ssl, err);
@@ -85,6 +95,11 @@ SSLSocket::ssl_connect()
 		perror("ffoo");
 		throw ErrSSL("SSL_connect", ssl, err);
 	}
+        printf("verify mode & depth: %d %d\n",
+	       SSL_CTX_get_verify_mode(ctx),
+	       SSL_CTX_get_verify_depth(ctx));
+	printf("verified: %d (should be %d)\n",
+	       SSL_get_verify_result(ssl), X509_V_OK);
 }
 
 void
