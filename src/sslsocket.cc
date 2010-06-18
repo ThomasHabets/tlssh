@@ -146,6 +146,7 @@ public:
 					      sizeof(sdata))) {
 			return false;
 		}
+		sdata[sizeof(sdata) - 1] = 0;
 		if (!strcmp(sdata, host.c_str())) {
 			return true;
 		}
