@@ -1,4 +1,4 @@
-# sslsh/Makefile.am
+# tlssh/Makefile.am
 
 # Don't complain about "missing" standard GNU files
 include $(top_srcdir)/Makefile.am.common

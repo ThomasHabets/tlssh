@@ -1,4 +1,4 @@
-// sslshd/src/sslshd.cc
+// tlsshd/src/tlsshd.cc
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -20,7 +20,7 @@
 #include<vector>
 
 
-#include"sslsh.h"
+#include"tlssh.h"
 #include"sslsocket.h"
 #include"xgetpwnam.h"
 
@@ -42,7 +42,7 @@ xgetpwnam(const std::string &name, std::vector<char> &buffer)
 	return pw;
 }
 
-BEGIN_NAMESPACE(sslshd);
+BEGIN_NAMESPACE(tlsshd);
 
 // constants
 
@@ -376,15 +376,15 @@ parse_options(int argc, char * const *argv)
 	}
 }
 
-END_NAMESPACE(sslshd);
+END_NAMESPACE(tlsshd);
 
 BEGIN_LOCAL_NAMESPACE()
-using namespace sslshd;
+using namespace tlsshd;
 int
 main2(int argc, char * const argv[])
 {
 	parse_options(argc, argv);
-	sslshd::listen.listen_any(atoi(options.port.c_str()));
+	tlsshd::listen.listen_any(atoi(options.port.c_str()));
 
 	return listen_loop();
 }

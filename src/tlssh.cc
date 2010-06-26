@@ -9,7 +9,7 @@
 
 #include<iostream>
 
-#include"sslsh.h"
+#include"tlssh.h"
 #include"sslsocket.h"
 #if 0
 	char *randfile = "random.seed";
@@ -25,7 +25,7 @@
 
 
 
-BEGIN_NAMESPACE(sslsh);
+BEGIN_NAMESPACE(tlssh);
 
 // Constants
 
@@ -171,11 +171,11 @@ wordexp_options()
 	options.keyfile = wordexp_option(options.keyfile);
 }
 
-END_NAMESPACE(sslsh);
+END_NAMESPACE(tlssh);
 
 
 BEGIN_LOCAL_NAMESPACE()
-using namespace sslsh;
+using namespace tlssh;
 int
 main2(int argc, char * const argv[])
 {

@@ -1,13 +1,13 @@
 # -*- Autoconf -*-
-# sslsh/configure.ac
+# tlssh/configure.ac
 #
 
 AC_PREREQ(2.61)
-AC_INIT([sslsh], [0.01], [thomas@habets.pp.se])
+AC_INIT([tlssh], [0.01], [thomas@habets.pp.se])
 AC_CONFIG_AUX_DIR([config])
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE
-AC_CONFIG_SRCDIR([src/sslsh.cc])
+AC_CONFIG_SRCDIR([src/tlssh.cc])
 AC_CONFIG_HEADER(config.h)
 
 # Checks for programs.

@@ -1,7 +1,7 @@
-# sslsh/src/Makefile.am
+# tlssh/src/Makefile.am
 
 include $(top_srcdir)/Makefile.am.common
 
-bin_PROGRAMS = sslsh sslshd
-sslsh_SOURCES = sslsh.cc sslsocket.cc socket.cc fdwrap.cc
-sslshd_SOURCES = sslshd.cc sslsocket.cc socket.cc xgetpwnam.c fdwrap.cc
+bin_PROGRAMS = tlssh tlsshd
+tlssh_SOURCES = tlssh.cc sslsocket.cc socket.cc fdwrap.cc
+tlsshd_SOURCES = tlsshd.cc sslsocket.cc socket.cc xgetpwnam.c fdwrap.cc
