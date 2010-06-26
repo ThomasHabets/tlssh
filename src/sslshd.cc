@@ -44,14 +44,24 @@ xgetpwnam(const std::string &name, std::vector<char> &buffer)
 
 BEGIN_NAMESPACE(sslshd);
 
+// constants
+
+const std::string DEFAULT_PORT         = "12345";
+const std::string DEFAULT_CERTFILE     = "/etc/tlssh/tlsshd.crt";
+const std::string DEFAULT_KEYFILE      = "/etc/tlssh/tlsshd.key";
+const std::string DEFAULT_CLIENTCAFILE = "/etc/tlssh/ClientCA.crt";
+const std::string DEFAULT_CLIENTCAPATH = "";
+const std::string DEFAULT_CONFIG       = "/etc/tlssh/tlsshd.conf";
+
 //  Structs
 
 struct Options {
 	std::string port;
 	std::string certfile;
 	std::string keyfile;
-	std::string cafile;
-	std::string capath;
+	std::string clientcafile;
+	std::string clientcapath;
+	std::string config;
 };
 
 // Process-wide variables
@@ -59,10 +69,11 @@ struct Options {
 Socket listen;
 
 Options options = {
- port:           "12345",
- certfile:       "green.crap.retrofitta.se.crt",
- keyfile:        "green.crap.retrofitta.se.key",
- cafile:         "client-ca.crt",
+ port:           DEFAULT_PORT,
+ certfile:       DEFAULT_CERTFILE,
+ keyfile:        DEFAULT_KEYFILE,
+ clientcafile:   DEFAULT_CLIENTCAFILE,
+ clientcapath:   DEFAULT_CLIENTCAPATH,
 };
 	
 
@@ -284,8 +295,8 @@ forkmain_new_connection(FDWrap&fd)
 		fd.forget();
 		sock.ssl_accept(options.certfile,
 				options.keyfile,
-				options.cafile,
-				options.capath
+				options.clientcafile,
+				options.clientcapath
 				);
 		new_ssl_connection(sock);
 	} catch (const std::exception &e) {
@@ -320,6 +331,51 @@ listen_loop()
 	}
 }
 
+void
+usage(int err)
+{
+}
+
+/**
+ *
+ */
+void
+read_config_file(const std::string &fn)
+{
+	// FIXME: write me
+}
+
+/**
+ * FIXME: this is just a skeleton
+ */
+void
+parse_options(int argc, char * const *argv)
+{
+	int c;
+
+	/* special options */
+	for (c = 1; c < argc - 1; c++) {
+		if (!strcmp(argv[c], "--")) {
+			break;
+		} else if (!strcmp(argv[c], "--help")) {
+		} else if (!strcmp(argv[c], "--version")) {
+		} else if (!strcmp(argv[c], "-c")) {
+			read_config_file(argv[c+1]);
+		}
+	}
+
+	int opt;
+	while ((opt = getopt(argc, argv, "c:hv")) != -1) {
+		switch (opt) {
+		case 'c':
+			// already handled above
+			break;
+		default:
+			usage(1);
+		}
+	}
+}
+
 END_NAMESPACE(sslshd);
 
 BEGIN_LOCAL_NAMESPACE()
@@ -327,7 +383,9 @@ using namespace sslshd;
 int
 main2(int argc, char * const argv[])
 {
+	parse_options(argc, argv);
 	sslshd::listen.listen_any(atoi(options.port.c_str()));
+
 	return listen_loop();
 }
 END_LOCAL_NAMESPACE()

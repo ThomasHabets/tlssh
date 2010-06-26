@@ -5,6 +5,7 @@
 #include<poll.h>
 #include<termios.h>
 #include<unistd.h>
+#include<wordexp.h>
 
 #include<iostream>
 
@@ -26,18 +27,31 @@
 
 BEGIN_NAMESPACE(sslsh);
 
+// Constants
+
+const std::string DEFAULT_PORT         = "12345";
+const std::string DEFAULT_CERTFILE     = "~/.tlssh/keys/default.crt";
+const std::string DEFAULT_KEYFILE      = "~/.tlssh/keys/default.key";
+const std::string DEFAULT_SERVERCAFILE = "/etc/tlssh/ServerCA.crt";
+const std::string DEFAULT_SERVERCAPATH = "";
+const std::string DEFAULT_CONFIG       = "/etc/tlssh/tlssh.conf";
+
+
 struct Options {
-	std::string port;       // port to connect to
+	std::string port;
 	std::string certfile;
 	std::string keyfile;
-	std::string cafile;
-	std::string capath;
+	std::string servercafile;
+	std::string servercapath;
+	std::string config;
 };
 Options options = {
- port: "12345",
- certfile: "client-marvin.pem",
- keyfile: "client-marvin.pem",
- cafile: "class3.crt",
+ port:         DEFAULT_PORT,
+ certfile:     DEFAULT_CERTFILE,
+ keyfile:      DEFAULT_KEYFILE,
+ servercafile: DEFAULT_SERVERCAFILE,
+ servercapath: DEFAULT_SERVERCAPATH,
+ config:       DEFAULT_CONFIG,
 };
 	
 SSLSocket sock;
@@ -114,8 +128,8 @@ new_connection()
 {
 	sock.ssl_connect(options.certfile,
 			 options.keyfile,
-			 options.cafile,
-			 options.capath);
+			 options.servercafile,
+			 options.servercapath);
 
 	FDWrap terminal(0);
 
@@ -130,6 +144,33 @@ new_connection()
 	terminal.forget();
 }
 
+std::string
+wordexp_option(const std::string &in)
+{
+	wordexp_t p;
+	char **w;
+	int i;
+
+	if (wordexp(in.c_str(), &p, 0)) {
+		throw "FIXME: wordexp()";
+	}
+
+	if (p.we_wordc != 1) {
+		throw "FIXME: wordexp() nmatch != 1";
+	}
+
+	std::string ret(p.we_wordv[0]);
+	wordfree(&p);
+	return ret;
+}
+
+void
+wordexp_options()
+{
+	options.certfile = wordexp_option(options.certfile);
+	options.keyfile = wordexp_option(options.keyfile);
+}
+
 END_NAMESPACE(sslsh);
 
 
@@ -139,6 +180,9 @@ int
 main2(int argc, char * const argv[])
 {
 	Socket rawsock;
+
+	wordexp_options();
+
 	rawsock.connect("127.0.0.1", options.port);
 	sock.ssl_attach(rawsock);
 	return new_connection();
