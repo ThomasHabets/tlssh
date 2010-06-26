@@ -26,7 +26,7 @@
 
 
 /**
- * FIXME; make reentrant
+ *
  */
 struct passwd
 xgetpwnam(const std::string &name, std::vector<char> &buffer)
@@ -44,6 +44,8 @@ xgetpwnam(const std::string &name, std::vector<char> &buffer)
 
 BEGIN_NAMESPACE(sslshd);
 
+//  Structs
+
 struct Options {
 	std::string port;
 	std::string certfile;
@@ -51,15 +53,22 @@ struct Options {
 	std::string cafile;
 	std::string capath;
 };
-Options options = {
- port: "12345",
- certfile: "green.crap.retrofitta.se.crt",
- keyfile: "green.crap.retrofitta.se.key",
- cafile: "client-ca.crt",
-};
-	
+
+// Process-wide variables
+
 Socket listen;
 
+Options options = {
+ port:           "12345",
+ certfile:       "green.crap.retrofitta.se.crt",
+ keyfile:        "green.crap.retrofitta.se.key",
+ cafile:         "client-ca.crt",
+};
+	
+
+/**
+ *
+ */
 void
 drop_privs(const struct passwd *pw)
 {
@@ -178,24 +187,58 @@ user_loop(FDWrap &terminal, SSLSocket &sock)
 	}
 }
 
+/**
+ *
+ */
 void
-spawn_shell(const struct passwd *pw,
+forkmain_child(const struct passwd *pw)
+{
+	if (fchmod(0, 0600)) {
+		perror("fchmod(0, 0600)");
+		exit(1);
+	}
+
+	if (fchown(0, pw->pw_uid, -1)) {
+		perror("fchown(0, pw->pw_uid, -1)");
+		exit(1);
+	}
+
+	if (clearenv()) {
+		perror("clearenv()");
+		exit(1);
+	}
+
+	if (setenv("HOME", pw->pw_dir, 1)) {
+		perror("setenv(HOME, pw->pw_dir, 1)");
+		exit(1);
+	}
+
+	if (chdir(pw->pw_dir)) {
+		perror("chdir(user home directory)");
+		exit(1);
+	}
+
+	drop_privs(pw);
+
+	execl(pw->pw_shell, pw->pw_shell, "-i", NULL);
+
+	// Should never be reached
+
+	perror("execl()");
+	exit(1);
+}
+
+void
+spawn_child(const struct passwd *pw,
 	    pid_t *pid,
 	    int *fdm)
 {
 	*pid = forkpty(fdm, NULL, NULL, NULL);
 
 	if (!*pid) {
-		fchmod(0, 0600);
-		fchown(0, pw->pw_uid, -1);
-		clearenv();
-		setenv("HOME", pw->pw_dir, 1);
-		chdir(pw->pw_dir);
-		drop_privs(pw);
-		execl(pw->pw_shell, pw->pw_shell, "-i", NULL);
-		perror("execl()");
-		exit(1);
+		forkmain_child(pw);
 	}
+	drop_privs(pw);
 }
 
 /**
@@ -223,18 +266,18 @@ new_ssl_connection(SSLSocket &sock)
 
 	pid_t pid;
 	int termfd;
-	spawn_shell(&pw, &pid, &termfd);
+	spawn_child(&pw, &pid, &termfd);
 	FDWrap terminal(termfd);
 	user_loop(terminal, sock);
-	printf("---------\n");
 }
 
 /**
+ *
  * input: newly connected fd, and newly forked process
  * output: calls new_ssl_connection() with up-and-running SSL connection
  */
-void
-new_connection(FDWrap&fd)
+int
+forkmain_new_connection(FDWrap&fd)
 {
 	try {
 		SSLSocket sock(fd.get());
@@ -252,8 +295,8 @@ new_connection(FDWrap&fd)
 			  << e << std::endl;
 	} catch (...) {
 		std::cerr << "Unknown exception happened\n";
-		throw;
 	}
+	return 0;
 }
 
 int
@@ -270,8 +313,7 @@ listen_loop()
 			continue;
 		}
 		if (!fork()) {
-			new_connection(clifd);
-			exit(0);
+			exit(forkmain_new_connection(clifd));
 		} else {
 			clifd.close();
 		}
