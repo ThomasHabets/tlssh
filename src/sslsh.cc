@@ -3,6 +3,8 @@
 #endif
 
 #include<poll.h>
+#include<termios.h>
+#include<unistd.h>
 
 #include<iostream>
 
@@ -96,6 +98,14 @@ mainloop(FDWrap &terminal)
 	}
 }
 
+
+struct termios old_tio;
+void
+reset_tio(void)
+{
+	tcsetattr(0, TCSADRAIN, &old_tio);
+}
+
 /**
  *
  */
@@ -106,9 +116,16 @@ new_connection()
 			 options.keyfile,
 			 options.cafile,
 			 options.capath);
-	sock.write("Client says HI\n");
 
 	FDWrap terminal(0);
+
+	tcgetattr(terminal.get(), &old_tio);
+	atexit(reset_tio);
+
+	struct termios tio;
+	cfmakeraw(&tio);
+	tcsetattr(terminal.get(), TCSADRAIN, &tio);
+
 	mainloop(terminal);
 	terminal.forget();
 }

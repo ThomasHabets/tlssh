@@ -9,10 +9,12 @@
 #include <sys/socket.h>
 
 #include<poll.h>
+#include<pty.h>
 
 #include<memory>
 #include<iostream>
 #include<vector>
+
 
 #include"sslsh.h"
 #include"sslsocket.h"
@@ -130,24 +132,15 @@ user_loop(FDWrap &terminal, SSLSocket &sock)
 void
 spawn_shell(const std::string &shell,
 	    pid_t *pid,
-	    int *fd)
+	    int *fdm)
 {
-	int fds[2];
-	if (socketpair(AF_UNIX, SOCK_STREAM, 0, fds)) {
-		throw "socketpair()";
-	}
-	if (!(*pid = fork())) {
-		close(fds[0]);
-		dup2(fds[1], 0);
-		dup2(fds[1], 1);
-		dup2(fds[1], 2);
-		close(fds[1]);
+	*pid = forkpty(fdm, NULL, NULL, NULL);
+
+	if (!*pid) {
 		execl(shell.c_str(), shell.c_str(), "-i", NULL);
 		perror("execl()");
 		exit(1);
 	}
-	close(fds[1]);
-	*fd = fds[0];
 }
 
 /**

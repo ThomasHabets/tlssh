@@ -16,10 +16,11 @@ AC_PROG_INSTALL
 
 # Checks for libraries.
 AC_CHECK_LIB([m], [sqrt])
+AC_CHECK_LIB([util], [openpty])
+AC_CHECK_LIB([ssl], [SSL_new])
 AC_SEARCH_LIBS([socket], [socket])
 AC_SEARCH_LIBS([recv], [socket])
 AC_SEARCH_LIBS([send], [socket])
-AC_CHECK_LIB([ssl], [SSL_new])
 
 # Checks for header files.
 AC_HEADER_STDC

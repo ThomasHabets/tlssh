@@ -341,7 +341,6 @@ SSLSocket::ssl_accept(const std::string &certfile,
 			throw ErrSSL("load_verify");
 		}
 		SSL_CTX_set_verify_depth(ctx, 5);
-		SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, NULL);
 		SSL_CTX_set_verify(ctx,
 				   SSL_VERIFY_PEER
 				   | SSL_VERIFY_FAIL_IF_NO_PEER_CERT,
