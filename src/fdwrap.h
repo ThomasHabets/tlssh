@@ -1,3 +1,4 @@
+// -*- c++ -*-
 class FDWrap {
 	int fd;
 public:
@@ -36,4 +37,15 @@ public:
 	{
 		return fd != -1;
 	}
+
+	class ErrBase: public std::exception {
+		std::string msg;
+	public:
+		ErrBase(const std::string &e):msg(e){}
+		~ErrBase() throw() {}
+	};
+	
+	std::string read(size_t m = 4096);
+	size_t write(const std::string &);
 };
+

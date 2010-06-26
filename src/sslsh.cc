@@ -2,7 +2,7 @@
 #include "config.h"
 #endif
 
-
+#include<poll.h>
 
 #include<iostream>
 
@@ -33,12 +33,68 @@ struct Options {
 };
 Options options = {
  port: "12345",
- certfile: "client.pem",
- keyfile: "client.pem",
+ certfile: "client-marvin.pem",
+ keyfile: "client-marvin.pem",
  cafile: "class3.crt",
 };
 	
 SSLSocket sock;
+
+int
+mainloop(FDWrap &terminal)
+{
+	struct pollfd fds[2];
+	int err;
+	std::string to_server;
+	std::string to_terminal;
+	for (;;) {
+		fds[0].fd = sock.getfd();
+		fds[0].events = POLLIN;
+		if (!to_server.empty()) {
+			fds[0].events |= POLLOUT;
+		}
+
+		fds[1].fd = terminal.get();
+		fds[1].events = POLLIN;
+		if (!to_terminal.empty()) {
+			fds[1].events |= POLLOUT;
+		}
+
+		err = poll(fds, 2, -1);
+		if (!err) { // timeout
+			continue;
+		}
+		if (0 > err) { // error
+			continue;
+		}
+
+		// from client
+		if (fds[0].revents & POLLIN) {
+			do {
+				to_terminal += sock.read();
+			} while (sock.ssl_pending());
+		}
+
+		// from terminal
+		if (fds[1].revents & POLLIN) {
+			to_server += terminal.read();
+		}
+
+		if ((fds[0].revents & POLLOUT)
+		    && !to_server.empty()) {
+			size_t n;
+			n = sock.write(to_server);
+			to_server = to_server.substr(n);
+		}
+
+		if ((fds[1].revents & POLLOUT)
+		    && !to_terminal.empty()) {
+			size_t n;
+			n = terminal.write(to_terminal);
+			to_terminal = to_terminal.substr(n);
+		}
+	}
+}
 
 /**
  *
@@ -50,7 +106,11 @@ new_connection()
 			 options.keyfile,
 			 options.cafile,
 			 options.capath);
-	std::cout << "Message from server> " << sock.read() << std::endl;
+	sock.write("Client says HI\n");
+
+	FDWrap terminal(0);
+	mainloop(terminal);
+	terminal.forget();
 }
 
 END_NAMESPACE(sslsh);
@@ -75,8 +135,7 @@ main(int argc, char **argv)
 	try {
 		return main2(argc, argv);
 	} catch (const std::exception &e) {
-		std::cout << "std::exception: " << std::endl
-                          << e.what() << std::endl;
+		std::cout << "std::exception: " << e.what() << std::endl;
 	} catch (const char *e) {
 		std::cerr << "FIXME: " << std::endl
 			  << e << std::endl;

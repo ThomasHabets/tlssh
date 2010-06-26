@@ -368,12 +368,12 @@ SSLSocket::ssl_accept(const std::string &certfile,
 		  << "  Subject: " << x.get_subject() << std::endl;
 }
 
-void
+size_t
 SSLSocket::write(const std::string &buf)
 {
-	const char *p;
-	p = buf.data();
-	SSL_write(ssl, p, buf.length());
+	size_t ret;
+	ret = SSL_write(ssl, buf.data(), buf.length());
+	return ret;
 }
 
 std::string
@@ -382,9 +382,7 @@ SSLSocket::read()
 	char buf[1024];
 	int err, sslerr;
 		
-	printf("SSL_read()...\n");
 	err = SSL_read(ssl, buf, sizeof(buf));
-	printf("\t%d\n", err);
 	if (err > 0) {
 		return std::string(buf, buf+err);
 	}
@@ -395,3 +393,8 @@ SSLSocket::read()
 	throw ErrSSL("SSL_read", ssl, err);
 }
 	
+bool
+SSLSocket::ssl_pending()
+{
+	return SSL_pending(ssl);
+}

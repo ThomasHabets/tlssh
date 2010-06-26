@@ -69,6 +69,8 @@ public:
 
 	void ssl_attach(Socket&sock);
 
+	bool ssl_pending();
+
 	std::auto_ptr<X509Wrap> get_cert();
 
 	void release();
@@ -82,6 +84,6 @@ public:
 			 const std::string &keyfile = "",
 			 const std::string &cafile = "",
 			 const std::string &capath = "");
-	std::string read();
-	void write(const std::string &);
+	virtual std::string read();
+	virtual size_t write(const std::string &);
 };

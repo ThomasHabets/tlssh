@@ -99,3 +99,19 @@ Socket::listen_any(int port)
 	}
 }
 	
+
+Socket::~Socket()
+{
+}
+
+std::string
+Socket::read(size_t m)
+{
+	return fd.read(m);
+}
+
+size_t
+Socket::write(const std::string &data)
+{
+	return fd.write(data);
+}

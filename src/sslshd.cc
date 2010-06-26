@@ -8,8 +8,11 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
+#include<poll.h>
+
 #include<memory>
 #include<iostream>
+#include<vector>
 
 #include"sslsh.h"
 #include"sslsocket.h"
@@ -19,21 +22,18 @@
 /**
  * FIXME; make reentrant
  */
-std::auto_ptr<struct passwd>
-xgetpwnam(const std::string &name)
+struct passwd
+xgetpwnam(const std::string &name, std::vector<char> &buffer)
 {
-	char pwbuf[1024];
+	buffer.reserve(1024);
 	struct passwd pw;
-	struct passwd *npw;
 	struct passwd *ppw = 0;
-	if (xgetpwnam_r(name.c_str(), &pw, pwbuf, sizeof(pwbuf), &ppw)
+	if (xgetpwnam_r(name.c_str(), &pw, &buffer[0], buffer.capacity(), &ppw)
 	    || !ppw) {
 		throw "FIXME";
 	}
-	npw = new struct passwd;
-	memcpy(npw, &pw, sizeof(pw));
 
-	return std::auto_ptr<struct passwd>(npw);
+	return pw;
 }
 
 BEGIN_NAMESPACE(sslshd);
@@ -53,6 +53,102 @@ Options options = {
 };
 	
 Socket listen;
+
+void
+drop_privs(const struct passwd *pw)
+{
+	setresgid(pw->pw_gid, pw->pw_gid, pw->pw_gid);
+	setresuid(pw->pw_uid, pw->pw_uid, pw->pw_uid);
+}
+
+void
+connect_fd_sock(FDWrap &fd,
+		SSLSocket &sock,
+		std::string &to_fd,
+		std::string &to_sock)
+{
+	struct pollfd fds[2];
+	int err;
+	fds[0].fd = sock.getfd();
+	fds[0].events = POLLIN;
+	if (!to_sock.empty()) {
+		fds[0].events |= POLLOUT;
+	}
+	fds[1].fd = fd.get();
+	fds[1].events = POLLIN;
+	if (!to_fd.empty()) {
+		fds[1].events |= POLLOUT;
+	}
+
+	err = poll(fds, 2, -1);
+	if (!err) { // timeout
+		return;
+	}
+	if (0 > err) { // error
+		return;
+	}
+
+	// from client
+	if (fds[0].revents & POLLIN) {
+		do {
+			to_fd += sock.read();
+		} while (sock.ssl_pending());
+	}
+
+	// from fd
+	if (fds[1].revents & POLLIN) {
+		to_sock += fd.read();
+	}
+
+	// output
+
+	if ((fds[0].revents & POLLOUT)
+	    && !to_sock.empty()) {
+		size_t n;
+		n = sock.write(to_sock);
+		to_sock = to_sock.substr(n);
+	}
+
+	if ((fds[1].revents & POLLOUT)
+	    && !to_fd.empty()) {
+		size_t n;
+		n = fd.write(to_fd);
+		to_fd = to_fd.substr(n);
+	}
+}
+
+void
+user_loop(FDWrap &terminal, SSLSocket &sock)
+{
+	std::string to_client;
+	std::string to_terminal;
+	for (;;) {
+		connect_fd_sock(terminal, sock, to_client, to_terminal);
+	}
+}
+
+void
+spawn_shell(const std::string &shell,
+	    pid_t *pid,
+	    int *fd)
+{
+	int fds[2];
+	if (socketpair(AF_UNIX, SOCK_STREAM, 0, fds)) {
+		throw "socketpair()";
+	}
+	if (!(*pid = fork())) {
+		close(fds[0]);
+		dup2(fds[1], 0);
+		dup2(fds[1], 1);
+		dup2(fds[1], 2);
+		close(fds[1]);
+		execl(shell.c_str(), shell.c_str(), "-i", NULL);
+		perror("execl()");
+		exit(1);
+	}
+	close(fds[1]);
+	*fd = fds[0];
+}
 
 /**
  * verify cert information
@@ -74,10 +170,16 @@ new_ssl_connection(SSLSocket &sock)
 	username = username.substr(0,username.find('.'));
 	std::cout << "  username " << username << std::endl;
 
-	std::auto_ptr<struct passwd> pw = xgetpwnam(username);
-	std::cout << pw->pw_name << std::endl
-		  << pw->pw_shell << std::endl;
-	sock.write(pw->pw_shell);
+	std::vector<char> pwbuf;
+	struct passwd pw = xgetpwnam(username, pwbuf);
+
+	drop_privs(&pw);
+
+	pid_t pid;
+	int termfd;
+	spawn_shell(pw.pw_shell, &pid, &termfd);
+	FDWrap terminal(termfd);
+	user_loop(terminal, sock);
 }
 
 /**
