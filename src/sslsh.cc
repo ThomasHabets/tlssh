@@ -25,10 +25,17 @@
 BEGIN_NAMESPACE(sslsh);
 
 struct Options {
-	std::string port;
+	std::string port;       // port to connect to
+	std::string certfile;
+	std::string keyfile;
+	std::string cafile;
+	std::string capath;
 };
 Options options = {
  port: "12345",
+ certfile: "client.pem",
+ keyfile: "client.pem",
+ cafile: "class3.crt",
 };
 	
 SSLSocket sock;
@@ -39,8 +46,11 @@ SSLSocket sock;
 int
 new_connection()
 {
-	sock.ssl_connect();
-	std::cout << sock.read() << std::endl;
+	sock.ssl_connect(options.certfile,
+			 options.keyfile,
+			 options.cafile,
+			 options.capath);
+	std::cout << "Message from server> " << sock.read() << std::endl;
 }
 
 END_NAMESPACE(sslsh);
@@ -67,6 +77,9 @@ main(int argc, char **argv)
 	} catch (const std::exception &e) {
 		std::cout << "std::exception: " << std::endl
                           << e.what() << std::endl;
+	} catch (const char *e) {
+		std::cerr << "FIXME: " << std::endl
+			  << e << std::endl;
 	}
 
 }

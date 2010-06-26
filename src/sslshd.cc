@@ -1,10 +1,11 @@
+// sslshd/src/sslshd.cc
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 
 #include <sys/types.h>
 #include <pwd.h>
-#include <sys/types.h>          /* See NOTES */
+#include <sys/types.h>
 #include <sys/socket.h>
 
 #include<memory>
@@ -41,11 +42,14 @@ struct Options {
 	std::string port;
 	std::string certfile;
 	std::string keyfile;
+	std::string cafile;
+	std::string capath;
 };
 Options options = {
  port: "12345",
  certfile: "green.crap.retrofitta.se.crt",
  keyfile: "green.crap.retrofitta.se.key",
+ cafile: "client-ca.crt",
 };
 	
 Socket listen;
@@ -63,7 +67,13 @@ new_ssl_connection(SSLSocket &sock)
 		return;
 	}
 
-	std::string username = "thompa";
+	std::cout << "Client cert: " << cert->get_subject() << std::endl;
+
+	std::string username = cert->get_common_name();
+	std::cout << "  Logged in using cert " << username << std::endl;
+	username = username.substr(0,username.find('.'));
+	std::cout << "  username " << username << std::endl;
+
 	std::auto_ptr<struct passwd> pw = xgetpwnam(username);
 	std::cout << pw->pw_name << std::endl
 		  << pw->pw_shell << std::endl;
@@ -81,11 +91,13 @@ new_connection(FDWrap&fd)
 		SSLSocket sock(fd.get());
 		fd.forget();
 		sock.ssl_accept(options.certfile,
-				options.keyfile);
+				options.keyfile,
+				options.cafile,
+				options.capath
+				);
 		new_ssl_connection(sock);
 	} catch (const std::exception &e) {
-		std::cerr << "std::exception: " << std::endl
-			  << e.what() << std::endl;
+		std::cerr << "std::exception: " << e.what() << std::endl;
 	} catch (const char *e) {
 		std::cerr << "FIXME: " << std::endl
 			  << e << std::endl;

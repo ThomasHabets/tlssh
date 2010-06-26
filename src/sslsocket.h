@@ -14,18 +14,30 @@ class X509Wrap {
 	X509Wrap(const X509Wrap&);
 	X509Wrap operator=(const X509Wrap&);
 public:
+	class ErrBase: public std::exception {
+	protected:
+		std::string msg;
+	public:
+		ErrBase(const std::string &s):msg(s){}
+		~ErrBase() throw() {}
+		const char *what() const throw() { return msg.c_str(); }
+	};
+	class ErrSSL: public ErrBase {
+		std::string sslmsg;
+	public:
+		ErrSSL(const std::string &s, SSL *ssl = 0, int err = 0);
+		~ErrSSL() throw() {};
+	};
 	X509Wrap(X509 *x509);
 
 	bool check_hostname(const std::string &host);
 
-	std::string get_issuer();
-
-	std::string get_subject();
+	std::string get_issuer() const;
+	std::string get_common_name() const;
+	std::string get_subject() const;
 
 	~X509Wrap();
 };
-
-
 
 class SSLSocket: public Socket {
 	SSL_CTX *ctx;
@@ -63,8 +75,13 @@ public:
 
 	void shutdown();
 	void ssl_accept(const std::string &certfile,
-			const std::string &keyfile);
-	void ssl_connect();
+			const std::string &keyfile,
+			const std::string &cafile = "",
+			const std::string &capath = "");
+	void ssl_connect(const std::string &certfile = "",
+			 const std::string &keyfile = "",
+			 const std::string &cafile = "",
+			 const std::string &capath = "");
 	std::string read();
 	void write(const std::string &);
 };
