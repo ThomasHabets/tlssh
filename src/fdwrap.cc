@@ -24,5 +24,8 @@ FDWrap::write(const std::string &data)
 	if (n < 0) {
 		throw ErrBase("write");
 	}
+	if (!n) {
+		throw ErrEOF();
+	}
 	return n;
 }

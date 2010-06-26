@@ -3,10 +3,14 @@
 #include "config.h"
 #endif
 
-#include <sys/types.h>
-#include <pwd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
+#include<sys/types.h>
+#include<pwd.h>
+#include<sys/types.h>
+#include<sys/stat.h>
+#include<sys/socket.h>
+#include<unistd.h>
+#include<grp.h>
+
 
 #include<poll.h>
 #include<pty.h>
@@ -59,35 +63,66 @@ Socket listen;
 void
 drop_privs(const struct passwd *pw)
 {
-	setresgid(pw->pw_gid, pw->pw_gid, pw->pw_gid);
-	setresuid(pw->pw_uid, pw->pw_uid, pw->pw_uid);
+	if (setgroups(0, NULL)) {
+		throw "FIXME: setgroups()";
+	}
+	if (setresgid(pw->pw_gid, pw->pw_gid, pw->pw_gid)) {
+		throw "FIXME: setresgid()";
+	}
+	if (setresuid(pw->pw_uid, pw->pw_uid, pw->pw_uid)) {
+		throw "FIXME: setresuid()";
+	}
 }
 
-void
+bool
 connect_fd_sock(FDWrap &fd,
 		SSLSocket &sock,
 		std::string &to_fd,
 		std::string &to_sock)
 {
 	struct pollfd fds[2];
+	bool active[2] = {true, true};
 	int err;
+
 	fds[0].fd = sock.getfd();
 	fds[0].events = POLLIN;
+	fds[0].revents = 0;
 	if (!to_sock.empty()) {
 		fds[0].events |= POLLOUT;
 	}
+	if (fds[0].fd < 0) {
+		active[0] = false;
+	}
+
 	fds[1].fd = fd.get();
 	fds[1].events = POLLIN;
+	fds[0].revents = 1;
 	if (!to_fd.empty()) {
 		fds[1].events |= POLLOUT;
 	}
+	if (fds[1].fd < 0) {
+		active[1] = false;
+	}
 
-	err = poll(fds, 2, -1);
+	// if both sockets closed, return done
+	if (!active[0]
+	    && !active[1]) {
+		return true;
+	}
+
+	if (!active[0]) {
+		err = poll(&fds[1], 1, 1000);
+	} if (!active[1]) {
+		err = poll(fds, 1, 1000);
+	} else {
+		err = poll(fds, 2, 1000);
+	}
+
 	if (!err) { // timeout
-		return;
+		return false;
 	}
 	if (0 > err) { // error
-		return;
+		return false;
 	}
 
 	// from client
@@ -97,13 +132,23 @@ connect_fd_sock(FDWrap &fd,
 		} while (sock.ssl_pending());
 	}
 
-	// from fd
+	// from shell
 	if (fds[1].revents & POLLIN) {
 		to_sock += fd.read();
 	}
 
-	// output
+	// shell exited
+	if (fds[1].revents & POLLHUP) {
+		fd.close();
+		fds[1].revents = 0;
+		active[1] = false;
+	}
+	// if shell has exited and 
+	if (!active[1] && to_sock.empty()) {
+		return true;
+	}
 
+	// output
 	if ((fds[0].revents & POLLOUT)
 	    && !to_sock.empty()) {
 		size_t n;
@@ -117,6 +162,8 @@ connect_fd_sock(FDWrap &fd,
 		n = fd.write(to_fd);
 		to_fd = to_fd.substr(n);
 	}
+
+	return false;
 }
 
 void
@@ -125,19 +172,27 @@ user_loop(FDWrap &terminal, SSLSocket &sock)
 	std::string to_client;
 	std::string to_terminal;
 	for (;;) {
-		connect_fd_sock(terminal, sock, to_client, to_terminal);
+		if (connect_fd_sock(terminal, sock, to_client, to_terminal)) {
+			break;
+		}
 	}
 }
 
 void
-spawn_shell(const std::string &shell,
+spawn_shell(const struct passwd *pw,
 	    pid_t *pid,
 	    int *fdm)
 {
 	*pid = forkpty(fdm, NULL, NULL, NULL);
 
 	if (!*pid) {
-		execl(shell.c_str(), shell.c_str(), "-i", NULL);
+		fchmod(0, 0600);
+		fchown(0, pw->pw_uid, -1);
+		clearenv();
+		setenv("HOME", pw->pw_dir, 1);
+		chdir(pw->pw_dir);
+		drop_privs(pw);
+		execl(pw->pw_shell, pw->pw_shell, "-i", NULL);
 		perror("execl()");
 		exit(1);
 	}
@@ -166,13 +221,12 @@ new_ssl_connection(SSLSocket &sock)
 	std::vector<char> pwbuf;
 	struct passwd pw = xgetpwnam(username, pwbuf);
 
-	drop_privs(&pw);
-
 	pid_t pid;
 	int termfd;
-	spawn_shell(pw.pw_shell, &pid, &termfd);
+	spawn_shell(&pw, &pid, &termfd);
 	FDWrap terminal(termfd);
 	user_loop(terminal, sock);
+	printf("---------\n");
 }
 
 /**

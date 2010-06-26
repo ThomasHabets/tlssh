@@ -44,6 +44,10 @@ public:
 		ErrBase(const std::string &e):msg(e){}
 		~ErrBase() throw() {}
 	};
+	class ErrEOF: public ErrBase {
+	public:
+		ErrEOF(): ErrBase("EOF") {}
+	};
 	
 	std::string read(size_t m = 4096);
 	size_t write(const std::string &);
