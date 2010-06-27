@@ -265,12 +265,14 @@ new_ssl_connection(SSLSocket &sock)
 		return;
 	}
 
-	std::cout << "Client cert: " << cert->get_subject() << std::endl;
+	if (0) {
+		std::cout << "Client cert: " << cert->get_subject()
+			  << std::endl;
+	}
 
 	std::string username = cert->get_common_name();
-	std::cout << "  Logged in using cert " << username << std::endl;
+	std::cout << "Logged in using cert " << username << std::endl;
 	username = username.substr(0,username.find('.'));
-	std::cout << "  username " << username << std::endl;
 
 	std::vector<char> pwbuf;
 	struct passwd pw = xgetpwnam(username, pwbuf);

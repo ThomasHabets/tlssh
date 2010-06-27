@@ -299,12 +299,15 @@ SSLSocket::ssl_connect(const std::string &certfile,
 	       SSL_get_verify_result(ssl), X509_V_OK);
 
 	X509Wrap x(SSL_get_peer_certificate(ssl));
-	std::cout << "  Issuer:  " << x.get_issuer() << std::endl
-		  << "  Subject: " << x.get_subject() << std::endl;
+	if (0) {
+		std::cout << "  Issuer:  " << x.get_issuer() << std::endl
+			  << "  Subject: " << x.get_subject() << std::endl;
+	}
 	if (!x.check_hostname("green.crap.retrofitta.se")) {
 		throw ErrSSL("cert does not match hostname");
 	}
 }
+
 void
 SSLSocket::ssl_accept(const std::string &certfile,
 		      const std::string &keyfile,
@@ -333,7 +336,6 @@ SSLSocket::ssl_accept(const std::string &certfile,
 		ccapath = NULL;
 	}
 	if (ccafile || ccapath) {
-		printf("Loading CA verification stuff...\n");
 		if (!SSL_CTX_load_verify_locations(ctx,
 						   ccafile,
 						   ccapath)) {
@@ -349,21 +351,20 @@ SSLSocket::ssl_accept(const std::string &certfile,
 	if (!(ssl = SSL_new(ctx))) {
 		perror("SSL_new()");
 	}
-	printf("connecting SSL to socket...\n");
 	if (!SSL_set_fd(ssl, fd.get())) {
 		perror("SSL_set_fd()");
 	}
-	printf("SSL_accept()...\n");
 	err = SSL_accept(ssl);
-	printf("\tAccept status: %d\n", err);
 	if (err == -1) {
 		ssl_print_err_queue();
 		throw ErrSSL("SSL_accept()", ssl, err);
 	}
 
 	X509Wrap x(SSL_get_peer_certificate(ssl));
-	std::cout << "  Issuer:  " << x.get_issuer() << std::endl
-		  << "  Subject: " << x.get_subject() << std::endl;
+	if (0) {
+		std::cout << "  Issuer:  " << x.get_issuer() << std::endl
+			  << "  Subject: " << x.get_subject() << std::endl;
+	}
 }
 
 size_t
