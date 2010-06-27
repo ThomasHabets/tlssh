@@ -23,7 +23,7 @@ public:
 	};
 	class ErrPeerClosed: public ErrBase {
 	public:
-		ErrPeerClosed():ErrBase(""){}
+		ErrPeerClosed():ErrBase("Peer closed"){}
 	};
 
 	Socket(int infd = -1);

@@ -300,7 +300,8 @@ forkmain_new_connection(FDWrap&fd)
 				);
 		new_ssl_connection(sock);
 	} catch (const std::exception &e) {
-		std::cerr << "std::exception: " << e.what() << std::endl;
+		std::cerr << "forkmain_new_connection std::exception: "
+			  << e.what() << std::endl;
 	} catch (const char *e) {
 		std::cerr << "FIXME: " << std::endl
 			  << e << std::endl;
@@ -396,7 +397,7 @@ main(int argc, char **argv)
 	try {
 		return main2(argc, argv);
 	} catch (const std::exception &e) {
-		std::cout << "std::exception: " << std::endl
-			  << "\t" << e.what() << std::endl;
+		std::cout << "tlsshd::main() std::exception: "
+			  << e.what() << std::endl;
 	}
 }

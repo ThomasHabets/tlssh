@@ -221,13 +221,12 @@ SSLSocket::release()
 void
 SSLSocket::shutdown()
 {
-	printf("SSL_shutdown()...\n");
 	if (ssl) {
 		SSL_shutdown(ssl);
+		SSL_free(ssl);
 		ssl = 0;
 	}
 	ctx = 0;
-	printf("SSL_shutdown() done\n");
 }
 
 void

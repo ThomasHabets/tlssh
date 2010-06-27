@@ -56,7 +56,7 @@ Options options = {
 	
 SSLSocket sock;
 
-int
+void
 mainloop(FDWrap &terminal)
 {
 	struct pollfd fds[2];
@@ -86,9 +86,13 @@ mainloop(FDWrap &terminal)
 
 		// from client
 		if (fds[0].revents & POLLIN) {
-			do {
-				to_terminal += sock.read();
-			} while (sock.ssl_pending());
+			try {
+				do {
+					to_terminal += sock.read();
+				} while (sock.ssl_pending());
+			} catch(const Socket::ErrPeerClosed &e) {
+				return;
+			}
 		}
 
 		// from terminal
@@ -196,7 +200,8 @@ main(int argc, char **argv)
 	try {
 		return main2(argc, argv);
 	} catch (const std::exception &e) {
-		std::cout << "std::exception: " << e.what() << std::endl;
+		std::cout << "tlssh::main() std::exception: "
+			  << e.what() << std::endl;
 	} catch (const char *e) {
 		std::cerr << "FIXME: " << std::endl
 			  << e << std::endl;
