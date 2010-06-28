@@ -277,6 +277,11 @@ SSLSocket::ssl_connect(const std::string &certfile,
 		SSL_CTX_set_verify_depth(ctx, 5);
 		SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, NULL);
 	}
+	if (!cipher_list.empty()) {
+		if (!SSL_CTX_set_cipher_list(ctx, cipher_list.c_str())) {
+			throw ErrSSL("SSL_CTX_set_cipher_list");
+		}
+	}
         if (!(ssl = SSL_new(ctx))) {
 		throw ErrSSL("SSL_new");
 	}
@@ -285,17 +290,28 @@ SSLSocket::ssl_connect(const std::string &certfile,
 	if (!SSL_set_fd(ssl, fd.get())) {
 		throw ErrSSL("SSL_set_fd", ssl, err);
 	}
-	err = SSL_connect(ssl);
-	if (err == -1) {
-		perror("ffoo");
-		throw ErrSSL("SSL_connect", ssl, err);
-	}
-	if (0) {
+
+	// debug
+	if (1) {
+		std::cout << "Cipher possible: " << SSL_get_cipher_list(ssl,0)
+			  << std::endl;
 		printf("verify mode & depth: %d %d\n",
 		       SSL_CTX_get_verify_mode(ctx),
 		       SSL_CTX_get_verify_depth(ctx));
+	}
+
+	err = SSL_connect(ssl);
+	if (err == -1) {
+		perror("SSL_connect fail");
+		throw ErrSSL("SSL_connect", ssl, err);
+	}
+
+	// debug
+	if (1) {
 		printf("verified: %d (should be %d)\n",
 		       SSL_get_verify_result(ssl), X509_V_OK);
+		std::cout << "Cipher chosen: " << SSL_get_cipher(ssl)
+			  << std::endl;
 	}
 
 	X509Wrap x(SSL_get_peer_certificate(ssl));
@@ -348,6 +364,21 @@ SSLSocket::ssl_accept(const std::string &certfile,
 				   NULL);
 	}
 
+	// FIXME: why can't I set allowed ciphers on the server?
+	if (0 && !cipher_list.empty()) {
+		std::cout << "Setting cipher list: " << cipher_list
+			  << std::endl;
+		if (!SSL_CTX_set_cipher_list(ctx, cipher_list.c_str())) {
+			throw ErrSSL("SSL_CTX_set_cipher_list");
+		}
+	}
+
+	// debug
+	if (0) {
+		std::cout << "Cipher possible: " << SSL_get_cipher_list(ssl,0)
+			  << std::endl;
+	}
+
 	if (!(ssl = SSL_new(ctx))) {
 		perror("SSL_new()");
 	}
@@ -358,6 +389,12 @@ SSLSocket::ssl_accept(const std::string &certfile,
 	if (err == -1) {
 		ssl_print_err_queue();
 		throw ErrSSL("SSL_accept()", ssl, err);
+	}
+
+	// debug
+	if (0) {
+		std::cout << "Cipher chosen: " << SSL_get_cipher(ssl)
+			  << std::endl;
 	}
 
 	X509Wrap x(SSL_get_peer_certificate(ssl));
@@ -396,4 +433,10 @@ bool
 SSLSocket::ssl_pending()
 {
 	return SSL_pending(ssl);
+}
+
+void
+SSLSocket::ssl_set_cipher_list(const std::string &lst)
+{
+	cipher_list = lst;
 }

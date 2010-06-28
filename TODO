@@ -1,6 +1,6 @@
 TODO before 0.02
 -----------------
-* Enforce crypto algs and key lengths
+* Enforce crypto algs and key lengths - Done
 * Config file parsing
 * Option parsing
 

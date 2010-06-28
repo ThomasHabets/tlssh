@@ -42,6 +42,7 @@ public:
 class SSLSocket: public Socket {
 	SSL_CTX *ctx;
 	SSL *ssl;
+	std::string cipher_list;
 
 	SSLSocket &operator=(const SSLSocket&);
 	SSLSocket(const SSLSocket&);
@@ -70,6 +71,7 @@ public:
 	void ssl_attach(Socket&sock);
 
 	bool ssl_pending();
+	void ssl_set_cipher_list(const std::string &lst);
 
 	std::auto_ptr<X509Wrap> get_cert();
 

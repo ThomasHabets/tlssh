@@ -35,6 +35,7 @@ const std::string DEFAULT_KEYFILE      = "~/.tlssh/keys/default.key";
 const std::string DEFAULT_SERVERCAFILE = "/etc/tlssh/ServerCA.crt";
 const std::string DEFAULT_SERVERCAPATH = "";
 const std::string DEFAULT_CONFIG       = "/etc/tlssh/tlssh.conf";
+const std::string DEFAULT_CIPHER_LIST  = "HIGH";
 
 
 struct Options {
@@ -44,6 +45,7 @@ struct Options {
 	std::string servercafile;
 	std::string servercapath;
 	std::string config;
+	std::string cipher_list;
 };
 Options options = {
  port:         DEFAULT_PORT,
@@ -52,6 +54,7 @@ Options options = {
  servercafile: DEFAULT_SERVERCAFILE,
  servercapath: DEFAULT_SERVERCAPATH,
  config:       DEFAULT_CONFIG,
+ cipher_list:  DEFAULT_CIPHER_LIST,
 };
 	
 SSLSocket sock;
@@ -200,10 +203,13 @@ parse_options(int argc, char * const *argv)
 	}
 
 	int opt;
-	while ((opt = getopt(argc, argv, "c:hvp:")) != -1) {
+	while ((opt = getopt(argc, argv, "c:C:hvp:")) != -1) {
 		switch (opt) {
 		case 'c':
 			// already handled above
+			break;
+		case 'C':
+			options.cipher_list = optarg;
 			break;
 		case 'p':
 			options.certfile = optarg;
@@ -225,6 +231,7 @@ int
 main2(int argc, char * const argv[])
 {
 	parse_options(argc, argv);
+	sock.ssl_set_cipher_list(options.cipher_list);
 
 	Socket rawsock;
 

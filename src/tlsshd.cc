@@ -52,6 +52,7 @@ const std::string DEFAULT_KEYFILE      = "/etc/tlssh/tlsshd.key";
 const std::string DEFAULT_CLIENTCAFILE = "/etc/tlssh/ClientCA.crt";
 const std::string DEFAULT_CLIENTCAPATH = "";
 const std::string DEFAULT_CONFIG       = "/etc/tlssh/tlsshd.conf";
+const std::string DEFAULT_CIPHER_LIST  = "DHE-RSA-AES256-SHA";
 
 //  Structs
 
@@ -62,6 +63,7 @@ struct Options {
 	std::string clientcafile;
 	std::string clientcapath;
 	std::string config;
+	std::string cipher_list;
 };
 
 // Process-wide variables
@@ -74,6 +76,8 @@ Options options = {
  keyfile:        DEFAULT_KEYFILE,
  clientcafile:   DEFAULT_CLIENTCAFILE,
  clientcapath:   DEFAULT_CLIENTCAPATH,
+ config:         DEFAULT_CONFIG,
+ cipher_list:    DEFAULT_CIPHER_LIST
 };
 	
 
@@ -295,6 +299,7 @@ forkmain_new_connection(FDWrap&fd)
 	try {
 		SSLSocket sock(fd.get());
 		fd.forget();
+		sock.ssl_set_cipher_list(options.cipher_list);
 		sock.ssl_accept(options.certfile,
 				options.keyfile,
 				options.clientcafile,
