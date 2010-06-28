@@ -149,7 +149,7 @@ new_connection()
 }
 
 std::string
-wordexp_option(const std::string &in)
+xwordexp(const std::string &in)
 {
 	wordexp_t p;
 	char **w;
@@ -169,11 +169,52 @@ wordexp_option(const std::string &in)
 }
 
 void
-wordexp_options()
+usage(int err)
 {
-	options.certfile = wordexp_option(options.certfile);
-	options.keyfile = wordexp_option(options.keyfile);
+	exit(err);
 }
+
+/**
+ * FIXME: this is just a skeleton
+ */
+void
+parse_options(int argc, char * const *argv)
+{
+	int c;
+
+	// expand default options
+	options.certfile = xwordexp(options.certfile);
+	options.keyfile = xwordexp(options.keyfile);
+
+	// special options
+	for (c = 1; c < argc - 1; c++) {
+		if (!strcmp(argv[c], "--")) {
+			break;
+		} else if (!strcmp(argv[c], "--help")) {
+			usage(0);
+		} else if (!strcmp(argv[c], "--version")) {
+			// FIXME
+		} else if (!strcmp(argv[c], "-c")) {
+			//read_config_file(argv[c+1]);
+		}
+	}
+
+	int opt;
+	while ((opt = getopt(argc, argv, "c:hvp:")) != -1) {
+		switch (opt) {
+		case 'c':
+			// already handled above
+			break;
+		case 'p':
+			options.certfile = optarg;
+			options.keyfile = optarg;
+			break;
+		default:
+			usage(1);
+		}
+	}
+}
+
 
 END_NAMESPACE(tlssh);
 
@@ -183,9 +224,9 @@ using namespace tlssh;
 int
 main2(int argc, char * const argv[])
 {
-	Socket rawsock;
+	parse_options(argc, argv);
 
-	wordexp_options();
+	Socket rawsock;
 
 	rawsock.connect("127.0.0.1", options.port);
 	sock.ssl_attach(rawsock);
