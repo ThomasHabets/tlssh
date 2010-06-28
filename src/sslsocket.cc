@@ -3,6 +3,7 @@
 #endif
 
 #include<iostream>
+#include<sstream>
 
 #include<openssl/err.h>
 
@@ -183,29 +184,6 @@ SSLSocket::ssl_errstr(int err)
 	return "uhh.. what?";
 }
 
-static void
-ssl_print_err_queue()
-{
-	for (;;) {
-		unsigned long err;
-		const char *file;
-		int line;
-		const char *data;
-		int flags;
-		err = ERR_get_error_line_data(&file,
-					      &line,
-					      &data,
-					      &flags);
-		if (!err) {
-			break;
-		}
-		printf("\tSSL error: %s:%d: (%d) <%s>\n",
-		       file, line, flags, data);
-		char buf[1024];
-		ERR_error_string_n(err, buf, sizeof(buf));
-		printf("\tStr: %s\n", buf);
-	}
-}
 
 SSLSocket::~SSLSocket()
 {
@@ -237,110 +215,30 @@ SSLSocket::ssl_attach(Socket &sock)
 }
 
 void
-SSLSocket::ssl_connect(const std::string &certfile,
-		       const std::string &keyfile,
-		       const std::string &cafile,
-		       const std::string &capath)
+SSLSocket::ssl_connect()
 {
-	ctx = SSL_CTX_new(TLSv1_client_method());
-
-	if (!certfile.empty()) {
-		printf("Loading cert %s %s...\n",
-		       certfile.c_str(),
-		       keyfile.c_str());
-		if (1 != SSL_CTX_use_certificate_chain_file(ctx,
-							    certfile.c_str())){
-			perror("certchain");
-		}
-		if (1 != SSL_CTX_use_PrivateKey_file(ctx,
-						     keyfile.c_str(),
-						     SSL_FILETYPE_PEM)) {
-			perror("keyfile");
-		}
-	}
-
-	const char *ccapath = capath.c_str();
-	const char *ccafile = cafile.c_str();
-	if (!*ccafile) {
-		ccafile = NULL;
-	}
-	if (!*ccapath) {
-		ccapath = NULL;
-	}
-	if (ccafile || ccapath) {
-		printf("Loading CA verification stuff...\n");
-		if (!SSL_CTX_load_verify_locations(ctx,
-						   ccafile,
-						   ccapath)) {
-			throw ErrSSL("load_verify");
-		}
-		SSL_CTX_set_verify_depth(ctx, 5);
-		SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, NULL);
-	}
-	if (!cipher_list.empty()) {
-		if (!SSL_CTX_set_cipher_list(ctx, cipher_list.c_str())) {
-			throw ErrSSL("SSL_CTX_set_cipher_list");
-		}
-	}
-        if (!(ssl = SSL_new(ctx))) {
-		throw ErrSSL("SSL_new");
-	}
-
-	int err;
-	if (!SSL_set_fd(ssl, fd.get())) {
-		throw ErrSSL("SSL_set_fd", ssl, err);
-	}
-
-	// debug
-	if (1) {
-		std::cout << "Cipher possible: " << SSL_get_cipher_list(ssl,0)
-			  << std::endl;
-		printf("verify mode & depth: %d %d\n",
-		       SSL_CTX_get_verify_mode(ctx),
-		       SSL_CTX_get_verify_depth(ctx));
-	}
-
-	err = SSL_connect(ssl);
-	if (err == -1) {
-		perror("SSL_connect fail");
-		throw ErrSSL("SSL_connect", ssl, err);
-	}
-
-	// debug
-	if (1) {
-		printf("verified: %d (should be %d)\n",
-		       SSL_get_verify_result(ssl), X509_V_OK);
-		std::cout << "Cipher chosen: " << SSL_get_cipher(ssl)
-			  << std::endl;
-	}
-
-	X509Wrap x(SSL_get_peer_certificate(ssl));
-	if (0) {
-		std::cout << "  Issuer:  " << x.get_issuer() << std::endl
-			  << "  Subject: " << x.get_subject() << std::endl;
-	}
-	if (!x.check_hostname("green-test.crap.retrofitta.se")) {
-		throw ErrSSL("cert does not match hostname");
-	}
+	ssl_accept_connect(true);
 }
 
 void
-SSLSocket::ssl_accept(const std::string &certfile,
-		      const std::string &keyfile,
-		      const std::string &cafile,
-		      const std::string &capath)
+SSLSocket::ssl_accept_connect(bool isconnect)
 {
 	int err;
-	ctx = SSL_CTX_new(TLSv1_server_method());
+
+	if (isconnect) {
+		ctx = SSL_CTX_new(TLSv1_client_method());
+	} else {
+		ctx = SSL_CTX_new(TLSv1_server_method());
+	}
 
 	if (1 != SSL_CTX_use_certificate_chain_file(ctx,
 						    certfile.c_str())){
-		perror("certchain");
+		throw "certchain";
 	}
 	if (1 != SSL_CTX_use_PrivateKey_file(ctx,
 					     keyfile.c_str(),
 					     SSL_FILETYPE_PEM)) {
-		perror("keyfile");
+		throw "keyfile";
 	}
 
 	const char *ccapath = capath.c_str();
@@ -358,50 +256,62 @@ SSLSocket::ssl_accept(const std::string &certfile,
 			throw ErrSSL("load_verify");
 		}
 		SSL_CTX_set_verify_depth(ctx, 5);
-		SSL_CTX_set_verify(ctx,
-				   SSL_VERIFY_PEER
-				   | SSL_VERIFY_FAIL_IF_NO_PEER_CERT,
-				   NULL);
+		if (isconnect) {
+			SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, NULL);
+		} else {
+			SSL_CTX_set_verify(ctx,
+					   SSL_VERIFY_PEER
+					   | SSL_VERIFY_FAIL_IF_NO_PEER_CERT,
+					   NULL);
+		}
 	}
-
-	// FIXME: why can't I set allowed ciphers on the server?
 	if (0 && !cipher_list.empty()) {
-		std::cout << "Setting cipher list: " << cipher_list
-			  << std::endl;
 		if (!SSL_CTX_set_cipher_list(ctx, cipher_list.c_str())) {
 			throw ErrSSL("SSL_CTX_set_cipher_list");
+                }
+        }
+	if (!(ssl = SSL_new(ctx))) {
+		throw ErrSSL("SSL_new");
+	}
+
+	if (!SSL_set_fd(ssl, fd.get())) {
+		throw ErrSSL("SSL_set_fd", ssl, err);
+        }
+
+	if (isconnect) {
+		err = SSL_connect(ssl);
+		if (err == -1) {
+			perror("SSL_connect fail");
+			throw ErrSSL("SSL_connect", ssl, err);
+		}
+		X509Wrap x(SSL_get_peer_certificate(ssl));
+		if (!x.check_hostname("green-test.crap.retrofitta.se")) {
+			throw ErrSSL("cert does not match hostname");
+		}
+	} else {
+		err = SSL_accept(ssl);
+		if (err == -1) {
+			throw ErrSSL("SSL_accept()", ssl, err);
 		}
 	}
 
-	// debug
-	if (0) {
-		std::cout << "Cipher possible: " << SSL_get_cipher_list(ssl,0)
-			  << std::endl;
-	}
-
-	if (!(ssl = SSL_new(ctx))) {
-		perror("SSL_new()");
-	}
-	if (!SSL_set_fd(ssl, fd.get())) {
-		perror("SSL_set_fd()");
-	}
-	err = SSL_accept(ssl);
-	if (err == -1) {
-		ssl_print_err_queue();
-		throw ErrSSL("SSL_accept()", ssl, err);
-	}
-
-	// debug
-	if (0) {
-		std::cout << "Cipher chosen: " << SSL_get_cipher(ssl)
-			  << std::endl;
-	}
-
 	X509Wrap x(SSL_get_peer_certificate(ssl));
-	if (0) {
+	if (1) {
 		std::cout << "  Issuer:  " << x.get_issuer() << std::endl
-			  << "  Subject: " << x.get_subject() << std::endl;
+			  << "  Subject: " << x.get_subject() << std::endl
+			  << "  Cipher: " << SSL_get_cipher_name(ssl)
+			  << std::endl
+			  << "  Version: " << SSL_get_cipher_version(ssl)
+			  << std::endl
+			;
 	}
+
+}
+
+void
+SSLSocket::ssl_accept()
+{
+	ssl_accept_connect(false);
 }
 
 size_t
@@ -439,4 +349,85 @@ void
 SSLSocket::ssl_set_cipher_list(const std::string &lst)
 {
 	cipher_list = lst;
+}
+
+void
+SSLSocket::ssl_set_capath(const std::string &s)
+{
+	capath = s;
+}
+
+void
+SSLSocket::ssl_set_cafile(const std::string &s)
+{
+	cafile = s;
+}
+
+void
+SSLSocket::ssl_set_certfile(const std::string &s)
+{
+	certfile = s;
+}
+
+void
+SSLSocket::ssl_set_keyfile(const std::string &s)
+{
+	keyfile = s;
+}
+
+SSLSocket::ErrSSL::ErrSSL(const std::string &s, SSL *ssl, int err)
+			:ErrBase(s)
+{
+	if (ssl) {
+		sslmsg = SSLSocket::ssl_errstr(SSL_get_error(ssl, err));
+	}
+	msg = msg + ": " + sslmsg;
+
+	for (;;) {
+		unsigned long err;
+		const char *file;
+		int line;
+		const char *data;
+		int flags;
+		err = ERR_get_error_line_data(&file,
+					      &line,
+					      &data,
+					      &flags);
+		if (!err) {
+			break;
+		}
+		SSLSocket::ErrQueueEntry e;
+		e.file = file;
+		e.line = line;
+		e.data = data;
+		e.flags = flags;
+		char buf[1024];
+		ERR_error_string_n(err, buf, sizeof(buf));
+		e.str = buf;
+		errqueue.push_back(e);
+	}
+}
+
+std::string
+SSLSocket::ErrSSL::human_readable() const
+{
+	errqueue_t::const_iterator itr;
+	std::stringstream ret;
+	int c = 0;
+
+	ret << "------- SSL Error -------" << std::endl
+	    << "Exception message: " << what() << std::endl;
+
+	for (itr = errqueue.begin();
+	     itr != errqueue.end();
+	     ++itr) {
+		ret << "SSL Error number " << ++c << ":" << std::endl
+		    << "  " << itr->str << std::endl
+		    << "  File:  " << itr->file << std::endl
+		    << "  Line:  " << itr->line << std::endl
+		    << "  Data:  " << itr->data << std::endl
+		    << "  Flags: " << itr->flags << std::endl
+			;
+	}
+	return ret.str();
 }

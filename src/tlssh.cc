@@ -121,10 +121,13 @@ mainloop(FDWrap &terminal)
 
 
 struct termios old_tio;
+bool old_tio_set = false;
 void
 reset_tio(void)
 {
-	tcsetattr(0, TCSADRAIN, &old_tio);
+	if (old_tio_set) {
+		tcsetattr(0, TCSADRAIN, &old_tio);
+	}
 }
 
 /**
@@ -133,14 +136,12 @@ reset_tio(void)
 int
 new_connection()
 {
-	sock.ssl_connect(options.certfile,
-			 options.keyfile,
-			 options.servercafile,
-			 options.servercapath);
+	sock.ssl_connect();
 
 	FDWrap terminal(0);
 
 	tcgetattr(terminal.get(), &old_tio);
+	old_tio_set = true;
 	atexit(reset_tio);
 
 	struct termios tio;
@@ -232,6 +233,10 @@ main2(int argc, char * const argv[])
 {
 	parse_options(argc, argv);
 	sock.ssl_set_cipher_list(options.cipher_list);
+	sock.ssl_set_capath(options.servercapath);
+	sock.ssl_set_cafile(options.servercafile);
+	sock.ssl_set_certfile(options.certfile);
+	sock.ssl_set_keyfile(options.keyfile);
 
 	Socket rawsock;
 
@@ -246,7 +251,15 @@ int
 main(int argc, char **argv)
 {
 	try {
-		return main2(argc, argv);
+		try {
+			return main2(argc, argv);
+		} catch(...) {
+			reset_tio();
+			throw;
+		}
+	} catch(const SSLSocket::ErrSSL &e) {
+		reset_tio();
+		std::cerr << e.human_readable();
 	} catch (const std::exception &e) {
 		std::cout << "tlssh::main() std::exception: "
 			  << e.what() << std::endl;
@@ -254,5 +267,4 @@ main(int argc, char **argv)
 		std::cerr << "FIXME: " << std::endl
 			  << e << std::endl;
 	}
-
 }

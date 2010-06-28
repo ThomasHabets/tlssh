@@ -300,12 +300,15 @@ forkmain_new_connection(FDWrap&fd)
 		SSLSocket sock(fd.get());
 		fd.forget();
 		sock.ssl_set_cipher_list(options.cipher_list);
-		sock.ssl_accept(options.certfile,
-				options.keyfile,
-				options.clientcafile,
-				options.clientcapath
-				);
+		sock.ssl_set_capath(options.clientcapath);
+		sock.ssl_set_cafile(options.clientcafile);
+		sock.ssl_set_certfile(options.certfile);
+		sock.ssl_set_keyfile(options.keyfile);
+
+		sock.ssl_accept();
 		new_ssl_connection(sock);
+	} catch (const SSLSocket::ErrSSL &e) {
+		std::cerr << e.human_readable();
 	} catch (const std::exception &e) {
 		std::cerr << "forkmain_new_connection std::exception: "
 			  << e.what() << std::endl;

@@ -4,6 +4,7 @@
 #include<openssl/ssl.h>
 #include<openssl/rand.h>
 #include<string>
+#include<list>
 #include<exception>
 #include<memory>
 
@@ -43,23 +44,29 @@ class SSLSocket: public Socket {
 	SSL_CTX *ctx;
 	SSL *ssl;
 	std::string cipher_list;
+	std::string certfile;
+	std::string keyfile;
+	std::string capath;
+	std::string cafile;
 
+	void ssl_accept_connect(bool);
 	SSLSocket &operator=(const SSLSocket&);
 	SSLSocket(const SSLSocket&);
 public:
+	struct ErrQueueEntry {
+		std::string file;
+		int line;
+		std::string data;
+		int flags;
+		std::string str;
+	};
 	class ErrSSL: public Socket::ErrBase {
 		std::string sslmsg;
 	public:
-		ErrSSL(const std::string &s, SSL *ssl = 0, int err = 0)
-			:ErrBase(s)
-		{
-			if (ssl) {
-				sslmsg = SSLSocket
-					::ssl_errstr(
-						     SSL_get_error(ssl, err));
-			}
-			msg = msg + ": " + sslmsg;
-		}
+		typedef std::list<struct ErrQueueEntry> errqueue_t;
+		errqueue_t errqueue;
+		std::string human_readable() const;
+		ErrSSL(const std::string &s, SSL *ssl = 0, int err = 0);
 		~ErrSSL() throw() {};
 	};
 
@@ -72,20 +79,18 @@ public:
 
 	bool ssl_pending();
 	void ssl_set_cipher_list(const std::string &lst);
+	void ssl_set_capath(const std::string &s);
+	void ssl_set_cafile(const std::string &s);
+	void ssl_set_certfile(const std::string &s);
+	void ssl_set_keyfile(const std::string &s);
 
 	std::auto_ptr<X509Wrap> get_cert();
 
 	void release();
 
 	void shutdown();
-	void ssl_accept(const std::string &certfile,
-			const std::string &keyfile,
-			const std::string &cafile = "",
-			const std::string &capath = "");
-	void ssl_connect(const std::string &certfile = "",
-			 const std::string &keyfile = "",
-			 const std::string &cafile = "",
-			 const std::string &capath = "");
+	void ssl_accept();
+	void ssl_connect();
 	virtual std::string read();
 	virtual size_t write(const std::string &);
 };
