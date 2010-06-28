@@ -6,6 +6,7 @@
 class Socket {
 protected:
 	FDWrap fd;
+	bool debug;
 
 	int create_socket();
 public:
@@ -28,6 +29,9 @@ public:
 
 	Socket(int infd = -1);
 	virtual ~Socket();
+
+	void set_debug(bool v) {debug = v;}
+	bool get_debug() const { return debug; }
 
 	int getfd() const;
 	void forget(); 

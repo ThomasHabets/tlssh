@@ -14,6 +14,7 @@
 
 
 Socket::Socket(int infd)
+	:debug(false)
 {
 	fd.set(infd);
 }

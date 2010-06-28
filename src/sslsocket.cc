@@ -296,7 +296,7 @@ SSLSocket::ssl_accept_connect(bool isconnect)
 	}
 
 	X509Wrap x(SSL_get_peer_certificate(ssl));
-	if (1) {
+	if (debug) {
 		std::cout << "  Issuer:  " << x.get_issuer() << std::endl
 			  << "  Subject: " << x.get_subject() << std::endl
 			  << "  Cipher: " << SSL_get_cipher_name(ssl)

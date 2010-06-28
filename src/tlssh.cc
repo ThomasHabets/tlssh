@@ -46,6 +46,7 @@ struct Options {
 	std::string servercapath;
 	std::string config;
 	std::string cipher_list;
+	unsigned int verbose;
 };
 Options options = {
  port:         DEFAULT_PORT,
@@ -55,6 +56,7 @@ Options options = {
  servercapath: DEFAULT_SERVERCAPATH,
  config:       DEFAULT_CONFIG,
  cipher_list:  DEFAULT_CIPHER_LIST,
+ verbose:      0,
 };
 	
 SSLSocket sock;
@@ -206,6 +208,9 @@ parse_options(int argc, char * const *argv)
 	int opt;
 	while ((opt = getopt(argc, argv, "c:C:hvp:")) != -1) {
 		switch (opt) {
+		case 'v':
+			options.verbose++;
+			break;
 		case 'c':
 			// already handled above
 			break;
@@ -237,6 +242,9 @@ main2(int argc, char * const argv[])
 	sock.ssl_set_cafile(options.servercafile);
 	sock.ssl_set_certfile(options.certfile);
 	sock.ssl_set_keyfile(options.keyfile);
+	if (options.verbose) {
+		sock.set_debug(true);
+	}
 
 	Socket rawsock;
 
