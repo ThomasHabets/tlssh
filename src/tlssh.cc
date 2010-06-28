@@ -28,6 +28,7 @@
 BEGIN_NAMESPACE(tlssh);
 
 // Constants
+const char *argv0 = NULL;
 
 const std::string DEFAULT_PORT         = "12345";
 const std::string DEFAULT_CERTFILE     = "~/.tlssh/keys/default.crt";
@@ -177,11 +178,37 @@ xwordexp(const std::string &in)
 void
 usage(int err)
 {
+	printf("%s [ -hv ] "
+	       "[ -c <config> ] "
+	       "[ -C <cipher-list> ] "
+	       "[ -p <cert+keyfile> ]"
+	       "\n"
+	       "\t-c <config>          Config file (default %s)\n"
+	       "\t-C <cipher-list>     Acceptable ciphers (default %s)\n"
+	       "\t-h, --help           Help\n"
+	       "\t-V, --version        Print version and exit\n"
+	       "\t-p <cert+keyfile>    Load login cert+kef from file\n"
+	       , argv0,
+	       DEFAULT_CONFIG.c_str(), DEFAULT_CIPHER_LIST.c_str());
 	exit(err);
 }
 
+void
+print_version()
+{
+	printf("tlssh version", VERSION);
+}
+
 /**
- * FIXME: this is just a skeleton
+ * FIXME: implement this
+ */
+void
+read_config_file(const std::string &fn)
+{
+}
+
+/**
+ *
  */
 void
 parse_options(int argc, char * const *argv)
@@ -199,27 +226,34 @@ parse_options(int argc, char * const *argv)
 		} else if (!strcmp(argv[c], "--help")) {
 			usage(0);
 		} else if (!strcmp(argv[c], "--version")) {
-			// FIXME
+			print_version();
+			exit(0);
 		} else if (!strcmp(argv[c], "-c")) {
-			//read_config_file(argv[c+1]);
+			read_config_file(argv[c+1]);
 		}
 	}
 
 	int opt;
-	while ((opt = getopt(argc, argv, "c:C:hvp:")) != -1) {
+	while ((opt = getopt(argc, argv, "c:C:hp:vV")) != -1) {
 		switch (opt) {
-		case 'v':
-			options.verbose++;
-			break;
-		case 'c':
-			// already handled above
+		case 'c':  // already handled above
 			break;
 		case 'C':
 			options.cipher_list = optarg;
 			break;
+		case 'h':
+			usage(0);
+			break;
 		case 'p':
 			options.certfile = optarg;
 			options.keyfile = optarg;
+			break;
+		case 'v':
+			options.verbose++;
+			break;
+		case 'V':
+			print_version();
+			exit(0);
 			break;
 		default:
 			usage(1);
@@ -258,6 +292,7 @@ END_LOCAL_NAMESPACE()
 int
 main(int argc, char **argv)
 {
+	argv0 = argv[0];
 	try {
 		try {
 			return main2(argc, argv);
