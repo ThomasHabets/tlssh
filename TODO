@@ -1,0 +1,38 @@
+TODO before 0.02
+-----------------
+* Enforce crypto algs and key lengths
+* Config file parsing
+* Option parsing
+
+
+TODO before 0.03
+-----------------
+* terminal (re)size functionality
+* kill connection when cert expires
+* DH PFS
+
+
+TODO before 0.04
+-----------------
+* Client and server can check CRL (server should deny if CRL is old)
+* Also support for online CRL check
+
+
+TODO before 1.00
+---------------
+* Client has send-local-file-as-typed support.
+* Provide grsec RBAC config
+* anti-dos (many connections)
+
+
+TODO whenever
+-------------
+* EGADS / EGD support (RAND_egd())
+
+
+Notes
+-----
+def seed_random():
+  seed random from /dev/random (RAND_load_file)
+  add some random from /var/run/tlssh.random (RAND_add)
+  write a new /var/run/tlssh.random (RAND_write_file)
