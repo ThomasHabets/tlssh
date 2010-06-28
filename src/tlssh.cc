@@ -47,6 +47,7 @@ struct Options {
 	std::string servercapath;
 	std::string config;
 	std::string cipher_list;
+	std::string host;
 	unsigned int verbose;
 };
 Options options = {
@@ -57,6 +58,7 @@ Options options = {
  servercapath: DEFAULT_SERVERCAPATH,
  config:       DEFAULT_CONFIG,
  cipher_list:  DEFAULT_CIPHER_LIST,
+ host:         "",
  verbose:      0,
 };
 	
@@ -139,7 +141,7 @@ reset_tio(void)
 int
 new_connection()
 {
-	sock.ssl_connect();
+	sock.ssl_connect(options.host);
 
 	FDWrap terminal(0);
 
@@ -266,6 +268,11 @@ parse_options(int argc, char * const *argv)
 			usage(1);
 		}
 	}
+
+	if (optind + 1 != argc) {
+		usage(1);
+	}
+	options.host = argv[optind];
 }
 
 
@@ -289,7 +296,7 @@ main2(int argc, char * const argv[])
 
 	Socket rawsock;
 
-	rawsock.connect("127.0.0.1", options.port);
+	rawsock.connect(options.host, options.port);
 	sock.ssl_attach(rawsock);
 	return new_connection();
 }

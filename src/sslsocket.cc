@@ -215,8 +215,9 @@ SSLSocket::ssl_attach(Socket &sock)
 }
 
 void
-SSLSocket::ssl_connect()
+SSLSocket::ssl_connect(const std::string &inhost)
 {
+	host = inhost;
 	ssl_accept_connect(true);
 }
 
@@ -285,8 +286,8 @@ SSLSocket::ssl_accept_connect(bool isconnect)
 			throw ErrSSL("SSL_connect", ssl, err);
 		}
 		X509Wrap x(SSL_get_peer_certificate(ssl));
-		if (!x.check_hostname("green-test.crap.retrofitta.se")) {
-			throw ErrSSL("cert does not match hostname");
+		if (!x.check_hostname(host)) {
+			throw ErrSSLHostname(host, x.get_subject());
 		}
 	} else {
 		err = SSL_accept(ssl);
@@ -430,4 +431,11 @@ SSLSocket::ErrSSL::human_readable() const
 			;
 	}
 	return ret.str();
+}
+
+SSLSocket::ErrSSLHostname::ErrSSLHostname(const std::string &host,
+					  const std::string &subject)
+	:ErrSSL("")
+{
+	msg = "Cert " + subject + " does not match hostname " + host;
 }

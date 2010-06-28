@@ -48,6 +48,7 @@ class SSLSocket: public Socket {
 	std::string keyfile;
 	std::string capath;
 	std::string cafile;
+	std::string host;
 
 	void ssl_accept_connect(bool);
 	SSLSocket &operator=(const SSLSocket&);
@@ -68,6 +69,11 @@ public:
 		std::string human_readable() const;
 		ErrSSL(const std::string &s, SSL *ssl = 0, int err = 0);
 		~ErrSSL() throw() {};
+	};
+	class ErrSSLHostname: public ErrSSL {
+	public:
+		ErrSSLHostname(const std::string &host,
+			       const std::string &subject);
 	};
 
 	static const std::string ssl_errstr(int err);
@@ -90,7 +96,7 @@ public:
 
 	void shutdown();
 	void ssl_accept();
-	void ssl_connect();
+	void ssl_connect(const std::string &s);
 	virtual std::string read();
 	virtual size_t write(const std::string &);
 };
