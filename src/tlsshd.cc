@@ -83,7 +83,7 @@ Options options = {
 void
 drop_privs(const struct passwd *pw)
 {
-	if (setgroups(0, NULL)) {
+	if (0 > setgroups(0, NULL)) {
 		throw "FIXME: setgroups()";
 	}
 	if (setresgid(pw->pw_gid, pw->pw_gid, pw->pw_gid)) {

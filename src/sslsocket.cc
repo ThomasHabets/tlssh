@@ -276,8 +276,6 @@ SSLSocket::ssl_connect(const std::string &certfile,
 		}
 		SSL_CTX_set_verify_depth(ctx, 5);
 		SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, NULL);
-		/* FIXME, make verify work */
-		SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, NULL);
 	}
         if (!(ssl = SSL_new(ctx))) {
 		throw ErrSSL("SSL_new");
@@ -292,18 +290,20 @@ SSLSocket::ssl_connect(const std::string &certfile,
 		perror("ffoo");
 		throw ErrSSL("SSL_connect", ssl, err);
 	}
-        printf("verify mode & depth: %d %d\n",
-	       SSL_CTX_get_verify_mode(ctx),
-	       SSL_CTX_get_verify_depth(ctx));
-	printf("verified: %d (should be %d)\n",
-	       SSL_get_verify_result(ssl), X509_V_OK);
+	if (0) {
+		printf("verify mode & depth: %d %d\n",
+		       SSL_CTX_get_verify_mode(ctx),
+		       SSL_CTX_get_verify_depth(ctx));
+		printf("verified: %d (should be %d)\n",
+		       SSL_get_verify_result(ssl), X509_V_OK);
+	}
 
 	X509Wrap x(SSL_get_peer_certificate(ssl));
 	if (0) {
 		std::cout << "  Issuer:  " << x.get_issuer() << std::endl
 			  << "  Subject: " << x.get_subject() << std::endl;
 	}
-	if (!x.check_hostname("green.crap.retrofitta.se")) {
+	if (!x.check_hostname("green-test.crap.retrofitta.se")) {
 		throw ErrSSL("cert does not match hostname");
 	}
 }
