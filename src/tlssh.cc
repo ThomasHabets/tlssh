@@ -160,7 +160,7 @@ usage(int err)
 	       "\t-C <cipher-list>     Acceptable ciphers (default %s)\n"
 	       "\t-h, --help           Help\n"
 	       "\t-V, --version        Print version and exit\n"
-	       "\t-p <cert+keyfile>    Load login cert+kef from file\n"
+	       "\t-p <cert+keyfile>    Load login cert+key from file\n"
 	       , argv0,
 	       DEFAULT_CONFIG.c_str(), DEFAULT_CIPHER_LIST.c_str());
 	exit(err);

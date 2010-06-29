@@ -48,6 +48,7 @@ xgetpwnam(const std::string &name, std::vector<char> &buffer)
 BEGIN_NAMESPACE(tlsshd);
 
 // constants
+const char *argv0 = NULL;
 
 const std::string DEFAULT_PORT         = "12345";
 const std::string DEFAULT_CERTFILE     = "/etc/tlssh/tlsshd.crt";
@@ -348,6 +349,32 @@ listen_loop()
 void
 usage(int err)
 {
+	printf("%s [ -hv ] "
+	       "[ -c <config> ] "
+	       "[ -C <cipher-list> ] "
+	       "[ -p <cert+keyfile> ]"
+	       "\n"
+	       "\t-c <config>          Config file (default %s)\n"
+	       "\t-C <cipher-list>     Acceptable ciphers (default %s)\n"
+	       "\t-h, --help           Help\n"
+	       "\t-V, --version        Print version and exit\n"
+	       "\t-p <cert+keyfile>    Load login cert+key from file\n"
+	       , argv0,
+	       DEFAULT_CONFIG.c_str(), DEFAULT_CIPHER_LIST.c_str());
+	exit(err);
+}
+
+void
+printversion()
+{
+	printf("tlsshd %s\n"
+	       "Copyright (C) 2010 Thomas Habets <thomas@habets.pp.se>\n"
+	       "License GPLv2: GNU GPL version 2 or later "
+	       "<http://gnu.org/licenses/gpl-2.0.html>\n"
+	       "This is free software: you are free to change and "
+	       "redistribute it.\n"
+	       "There is NO WARRANTY, to the extent permitted by law.\n",
+	       VERSION);
 }
 
 /**
@@ -408,7 +435,10 @@ parse_options(int argc, char * const *argv)
 		if (!strcmp(argv[c], "--")) {
 			break;
 		} else if (!strcmp(argv[c], "--help")) {
+			usage(0);
 		} else if (!strcmp(argv[c], "--version")) {
+			printversion();
+			exit(0);
 		} else if (!strcmp(argv[c], "-c")) {
 			options.config = argv[c+1];
 		}
@@ -420,11 +450,20 @@ parse_options(int argc, char * const *argv)
 	}
 
 	int opt;
-	while ((opt = getopt(argc, argv, "c:hv")) != -1) {
+	while ((opt = getopt(argc, argv, "c:hp:vV")) != -1) {
 		switch (opt) {
+		case 'h':
+			usage(0);
 		case 'c':
 			// already handled above
 			break;
+		case 'p':
+			options.keyfile = optarg;
+			options.certfile = optarg;
+			exit(0);
+		case 'V':
+			printversion();
+			exit(0);
 		default:
 			usage(1);
 		}
@@ -448,6 +487,7 @@ END_LOCAL_NAMESPACE()
 int
 main(int argc, char **argv)
 {
+	argv0 = argv[0];
 	try {
 		return main2(argc, argv);
 	} catch (const std::exception &e) {
