@@ -11,3 +11,9 @@ int xgetpwnam_r(const char *name, struct passwd *pwbuf,
 #ifdef __cplusplus
 }
 #endif
+/* ---- Emacs Variables ----
+ * Local Variables:
+ * c-basic-offset: 8
+ * indent-tabs-mode: nil
+ * End:
+ */

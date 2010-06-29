@@ -65,6 +65,7 @@ Socket::connect(const std::string &host, const std::string &port)
 
 	memset(&hints, 0, sizeof(hints));
         hints.ai_flags = AI_ADDRCONFIG;
+	hints.ai_family = AF_UNSPEC;
         hints.ai_socktype = SOCK_STREAM;
 
 	GetAddrInfo gai(host, port, &hints);
@@ -88,7 +89,6 @@ Socket::listen_any(int port)
         hints.ai_flags = AI_ADDRCONFIG | AI_PASSIVE;
         hints.ai_family = AF_UNSPEC;
         hints.ai_socktype = SOCK_STREAM;
-        //hints.ai_protocol = dest->ai_protocol;
 
 	GetAddrInfo gai("","12345",&hints);
 	struct addrinfo *p;
@@ -123,3 +123,10 @@ Socket::write(const std::string &data)
 {
 	return fd.write(data);
 }
+
+/* ---- Emacs Variables ----
+ * Local Variables:
+ * c-basic-offset: 8
+ * indent-tabs-mode: nil
+ * End:
+ */

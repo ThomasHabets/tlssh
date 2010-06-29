@@ -184,3 +184,10 @@ main()
 	}
 }
 #endif
+
+/* ---- Emacs Variables ----
+ * Local Variables:
+ * c-basic-offset: 8
+ * indent-tabs-mode: nil
+ * End:
+ */

@@ -458,3 +458,11 @@ SSLSocket::ErrSSLHostname::ErrSSLHostname(const std::string &host,
 {
 	msg = "Cert " + subject + " does not match hostname " + host;
 }
+
+/* ---- Emacs Variables ----
+ * Local Variables:
+ * c-basic-offset: 8
+ * indent-tabs-mode: nil
+ * End:
+ */
+

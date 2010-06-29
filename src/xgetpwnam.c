@@ -28,3 +28,9 @@ xgetpwnam_r(const char *name, struct passwd *pwbuf,
 #error "System doesn't seem to have getpwnam_r(). Not POSIX nor DRAFT."
 #endif
 }
+/* ---- Emacs Variables ----
+ * Local Variables:
+ * c-basic-offset: 8
+ * indent-tabs-mode: nil
+ * End:
+ */

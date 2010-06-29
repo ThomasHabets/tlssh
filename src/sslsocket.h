@@ -100,3 +100,10 @@ public:
 	virtual std::string read();
 	virtual size_t write(const std::string &);
 };
+
+/* ---- Emacs Variables ----
+ * Local Variables:
+ * c-basic-offset: 8
+ * indent-tabs-mode: nil
+ * End:
+ */

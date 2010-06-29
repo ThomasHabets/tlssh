@@ -42,3 +42,10 @@ private:
 	bool is_end;
 	void readnext();
 };
+
+/* ---- Emacs Variables ----
+ * Local Variables:
+ * c-basic-offset: 8
+ * indent-tabs-mode: nil
+ * End:
+ */

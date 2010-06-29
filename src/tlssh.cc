@@ -340,3 +340,10 @@ main(int argc, char **argv)
 			  << e << std::endl;
 	}
 }
+
+/* ---- Emacs Variables ----
+ * Local Variables:
+ * c-basic-offset: 8
+ * indent-tabs-mode: nil
+ * End:
+ */
