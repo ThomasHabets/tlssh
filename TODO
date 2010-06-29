@@ -1,18 +1,19 @@
-TODO before 0.02
+TODO before 0.01
 -----------------
 * Enforce crypto algs and key lengths - Done
-* Config file parsing
-* Option parsing
+* Config file parsing - done
+* Option parsing - done
+* debian package stuff
 
 
-TODO before 0.03
+TODO before 0.02
 -----------------
 * terminal (re)size functionality
 * kill connection when cert expires
 * DH PFS
 
 
-TODO before 0.04
+TODO before 0.03
 -----------------
 * Client and server can check CRL (server should deny if CRL is old)
 * Also support for online CRL check
@@ -20,13 +21,14 @@ TODO before 0.04
 
 TODO before 1.00
 ---------------
-* Client has send-local-file-as-typed support.
 * Provide grsec RBAC config
 * anti-dos (many connections)
+* Manpage
 
 
 TODO whenever
 -------------
+* Client has send-local-file-as-typed support.
 * EGADS / EGD support (RAND_egd())
 
 

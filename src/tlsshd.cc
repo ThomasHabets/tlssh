@@ -17,12 +17,15 @@
 
 #include<memory>
 #include<iostream>
+#include<fstream>
 #include<vector>
 
 
 #include"tlssh.h"
 #include"sslsocket.h"
 #include"xgetpwnam.h"
+#include"configparser.h"
+#include"util.h"
 
 
 /**
@@ -348,12 +351,48 @@ usage(int err)
 }
 
 /**
- *
+ * FIXME: check parms count
  */
 void
 read_config_file(const std::string &fn)
 {
-	// FIXME: write me
+	std::ifstream fi(fn.c_str());
+	ConfigParser conf(fi);
+	ConfigParser end;
+	for (;conf != end; ++conf) {
+		if (conf->keyword.empty()) {
+			// empty
+		} else if (conf->keyword == "#") {
+			// comment
+		} else if (conf->keyword == "ClientCAFile") {
+			options.clientcafile = conf->parms[0];
+		} else if (conf->keyword == "ClientCAPath") {
+			options.clientcapath = conf->parms[0];
+		} else if (conf->keyword == "Port") {
+			options.port = conf->parms[0];
+		} else if (conf->keyword == "KeyFile") {
+			options.keyfile = conf->parms[0];
+		} else if (conf->keyword == "CertFile") {
+			options.certfile = conf->parms[0];
+		} else if (conf->keyword == "CipherList") {
+			options.cipher_list = conf->parms[0];
+		} else if (conf->keyword == "-include") {
+			try {
+				read_config_file(xwordexp(conf->parms[0]));
+			} catch(const ConfigParser::ErrStream&) {
+				break;
+			}
+		} else if (conf->keyword == "include") {
+			try {
+				read_config_file(xwordexp(conf->parms[0]));
+			} catch(const ConfigParser::ErrStream&) {
+				throw "I/O error accessing config file: "
+					+ conf->parms[0];
+			}
+		} else {
+			throw "FIXME: error in config file: " + conf->keyword;
+		}
+	}
 }
 
 /**
@@ -371,8 +410,13 @@ parse_options(int argc, char * const *argv)
 		} else if (!strcmp(argv[c], "--help")) {
 		} else if (!strcmp(argv[c], "--version")) {
 		} else if (!strcmp(argv[c], "-c")) {
-			read_config_file(argv[c+1]);
+			options.config = argv[c+1];
 		}
+	}
+	try {
+		read_config_file(options.config);
+	} catch(const ConfigParser::ErrStream&) {
+		throw "I/O error accessing config file: " + options.config;
 	}
 
 	int opt;
@@ -409,5 +453,8 @@ main(int argc, char **argv)
 	} catch (const std::exception &e) {
 		std::cout << "tlsshd::main() std::exception: "
 			  << e.what() << std::endl;
+	} catch (const std::string &e) {
+		std::cerr << "FIXME: " << std::endl
+			  << e << std::endl;
 	}
 }

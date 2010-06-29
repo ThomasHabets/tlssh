@@ -9,6 +9,19 @@
 
 #include"sslsocket.h"
 
+#if 0
+	char *randfile = "random.seed";
+	int fd;
+	RAND_load_file("/dev/urandom", 1024);
+
+	unlink(randfile);
+	fd = open(randfile, O_WRONLY | O_CREAT | O_EXCL, 0600);
+	close(fd);
+	RAND_write_file("random.seed");
+#endif
+
+
+
 X509Wrap::X509Wrap(X509 *x509)
 	:x509(x509)
 {
@@ -234,12 +247,12 @@ SSLSocket::ssl_accept_connect(bool isconnect)
 
 	if (1 != SSL_CTX_use_certificate_chain_file(ctx,
 						    certfile.c_str())){
-		throw "certchain";
+		throw "certchain: " + certfile;
 	}
 	if (1 != SSL_CTX_use_PrivateKey_file(ctx,
 					     keyfile.c_str(),
 					     SSL_FILETYPE_PEM)) {
-		throw "keyfile";
+		throw "keyfile: " + keyfile;
 	}
 
 	const char *ccapath = capath.c_str();
@@ -251,6 +264,9 @@ SSLSocket::ssl_accept_connect(bool isconnect)
 		ccapath = NULL;
 	}
 	if (ccafile || ccapath) {
+		if (debug) {
+			std::cout << "CAFile: " << ccafile << std::endl;
+		}
 		if (!SSL_CTX_load_verify_locations(ctx,
 						   ccafile,
 						   ccapath)) {
@@ -284,6 +300,9 @@ SSLSocket::ssl_accept_connect(bool isconnect)
 		if (err == -1) {
 			perror("SSL_connect fail");
 			throw ErrSSL("SSL_connect", ssl, err);
+		}
+		if (SSL_get_verify_result(ssl) != X509_V_OK) {
+			throw ErrSSL("SSL_get_verify_result() != X509_V_OK");
 		}
 		X509Wrap x(SSL_get_peer_certificate(ssl));
 		if (!x.check_hostname(host)) {

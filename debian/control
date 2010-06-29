@@ -1,0 +1,13 @@
+Source: tlssh
+Section: net
+Priority: extra
+Maintainer: Thomas Habets <thomas@habets.pp.se>
+Build-Depends: debhelper (>= 7), autotools-dev
+Standards-Version: 3.7.3
+Homepage: http://www.habets.pp.se/synscan/
+
+Package: tlssh
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Encrypted remote shell
+ Like SSH, but built as a simple layer on top of SSL/TLS.

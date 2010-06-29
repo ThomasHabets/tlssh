@@ -8,21 +8,12 @@
 #include<wordexp.h>
 
 #include<iostream>
+#include<fstream>
 
 #include"tlssh.h"
+#include"util.h"
 #include"sslsocket.h"
-#if 0
-	char *randfile = "random.seed";
-	int fd;
-	RAND_load_file("/dev/urandom", 1024);
-
-	unlink(randfile);
-	fd = open(randfile, O_WRONLY | O_CREAT | O_EXCL, 0600);
-	close(fd);
-	RAND_write_file("random.seed");
-#endif
-
-
+#include"configparser.h"
 
 
 BEGIN_NAMESPACE(tlssh);
@@ -157,26 +148,6 @@ new_connection()
 	terminal.forget();
 }
 
-std::string
-xwordexp(const std::string &in)
-{
-	wordexp_t p;
-	char **w;
-	int i;
-
-	if (wordexp(in.c_str(), &p, 0)) {
-		throw "FIXME: wordexp()";
-	}
-
-	if (p.we_wordc != 1) {
-		throw "FIXME: wordexp() nmatch != 1";
-	}
-
-	std::string ret(p.we_wordv[0]);
-	wordfree(&p);
-	return ret;
-}
-
 void
 usage(int err)
 {
@@ -214,6 +185,43 @@ print_version()
 void
 read_config_file(const std::string &fn)
 {
+	std::ifstream fi(fn.c_str());
+	ConfigParser conf(fi);
+	ConfigParser end;
+	for (;conf != end; ++conf) {
+		if (conf->keyword.empty()) {
+			// empty
+		} else if (conf->keyword == "#") {
+			// comment
+		} else if (conf->keyword == "Port") {
+			options.port = conf->parms[0];
+		} else if (conf->keyword == "ServerCAFile") {
+			options.servercafile = conf->parms[0];
+		} else if (conf->keyword == "ServerCAPath") {
+			options.servercapath = conf->parms[0];
+		} else if (conf->keyword == "CertFile") {
+			options.certfile = xwordexp(conf->parms[0]);
+		} else if (conf->keyword == "KeyFile") {
+			options.keyfile = xwordexp(conf->parms[0]);
+		} else if (conf->keyword == "CipherList") {
+			options.cipher_list = conf->parms[0];
+		} else if (conf->keyword == "-include") {
+			try {
+				read_config_file(xwordexp(conf->parms[0]));
+			} catch(const ConfigParser::ErrStream&) {
+				break;
+			}
+		} else if (conf->keyword == "include") {
+			try {
+				read_config_file(xwordexp(conf->parms[0]));
+			} catch(const ConfigParser::ErrStream&) {
+				throw "I/O error accessing config file: "
+					+ conf->parms[0];
+			}
+		} else {
+			throw "FIXME: error in config file: " + conf->keyword;
+		}
+	}
 }
 
 /**
@@ -224,7 +232,7 @@ parse_options(int argc, char * const *argv)
 {
 	int c;
 
-	// expand default options
+	// expand default options. Not needed unless we change defaults
 	options.certfile = xwordexp(options.certfile);
 	options.keyfile = xwordexp(options.keyfile);
 
@@ -238,10 +246,14 @@ parse_options(int argc, char * const *argv)
 			print_version();
 			exit(0);
 		} else if (!strcmp(argv[c], "-c")) {
-			read_config_file(argv[c+1]);
+			options.config = argv[c+1];
 		}
 	}
-
+	try {
+		read_config_file(options.config);
+	} catch(const ConfigParser::ErrStream&) {
+		throw "I/O error accessing config file: " + options.config;
+	}
 	int opt;
 	while ((opt = getopt(argc, argv, "c:C:hp:vV")) != -1) {
 		switch (opt) {
@@ -320,6 +332,9 @@ main(int argc, char **argv)
 	} catch (const std::exception &e) {
 		std::cout << "tlssh::main() std::exception: "
 			  << e.what() << std::endl;
+	} catch (const std::string &e) {
+		std::cerr << "FIXME: " << std::endl
+			  << e << std::endl;
 	} catch (const char *e) {
 		std::cerr << "FIXME: " << std::endl
 			  << e << std::endl;
