@@ -1,3 +1,4 @@
+// -*- c++ -*-
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
@@ -32,7 +33,10 @@ GetAddrInfo::GetAddrInfo(const std::string &host,
 	:addrs(0)
 {
 	int gerr;
-	gerr = getaddrinfo(host.c_str(), port.c_str(), hints, &addrs);
+	gerr = getaddrinfo(host.empty() ? NULL : host.c_str(),
+			   port.c_str(),
+			   hints,
+			   &addrs);
 	if (gerr) {
 		throw ErrBase("getaddrinfo");
 	}

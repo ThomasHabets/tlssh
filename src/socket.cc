@@ -20,10 +20,10 @@ Socket::Socket(int infd)
 }
 
 int
-Socket::create_socket()
+Socket::create_socket(const struct addrinfo *ai)
 {
 	int s;
-	s = socket(AF_INET, SOCK_STREAM, 0);
+	s = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
 	if (s == -1) {
 		throw ErrSys("socket");
 	}
@@ -70,7 +70,7 @@ Socket::connect(const std::string &host, const std::string &port)
 	GetAddrInfo gai(host, port, &hints);
 	p = gai.fixme();
 	if (!fd.valid()) {
-		create_socket();
+		create_socket(p);
 	}
 	err = ::connect(fd.get(), p->ai_addr, p->ai_addrlen);
 	if (0 > err) {
@@ -81,16 +81,23 @@ Socket::connect(const std::string &host, const std::string &port)
 int
 Socket::listen_any(int port)
 {
-	create_socket();
-	setsockopt_reuseaddr();
 
 	int err;
-	struct sockaddr_in sa;
-	memset(&sa, 0, sizeof(sa));
-	sa.sin_family = AF_INET;
-	sa.sin_addr.s_addr = INADDR_ANY;
-	sa.sin_port = htons(port);
-	err = bind(fd.get(), (struct sockaddr*)&sa, sizeof(sa));
+	struct addrinfo hints;
+	memset(&hints, 0, sizeof(hints));
+        hints.ai_flags = AI_ADDRCONFIG | AI_PASSIVE;
+        hints.ai_family = AF_UNSPEC;
+        hints.ai_socktype = SOCK_STREAM;
+        //hints.ai_protocol = dest->ai_protocol;
+
+	GetAddrInfo gai("","12345",&hints);
+	struct addrinfo *p;
+	p = gai.fixme();
+
+	create_socket(p);
+	setsockopt_reuseaddr();
+
+	err = bind(fd.get(), p->ai_addr, p->ai_addrlen);
 	if (err) {
 		throw ErrSys("bind()");
 	}

@@ -8,7 +8,7 @@ protected:
 	FDWrap fd;
 	bool debug;
 
-	int create_socket();
+	int create_socket(const struct addrinfo*);
 public:
 	class ErrBase: public std::exception {
 	protected:
