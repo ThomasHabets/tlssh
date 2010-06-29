@@ -1,11 +1,3 @@
-TODO before 0.01
------------------
-* Enforce crypto algs and key lengths - Done
-* Config file parsing - done
-* Option parsing - done
-* debian package stuff
-
-
 TODO before 0.02
 -----------------
 * terminal (re)size functionality
@@ -16,7 +8,7 @@ TODO before 0.02
 TODO before 0.03
 -----------------
 * Client and server can check CRL (server should deny if CRL is old)
-* Also support for online CRL check
+* support for online CRL check
 
 
 TODO before 1.00
@@ -24,11 +16,13 @@ TODO before 1.00
 * Provide grsec RBAC config
 * anti-dos (many connections)
 * Manpage
+* other documentation
 
 
 TODO whenever
 -------------
 * Client has send-local-file-as-typed support.
+* xmodem file send/recv
 * EGADS / EGD support (RAND_egd())
 
 
