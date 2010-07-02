@@ -28,6 +28,7 @@ const std::string DEFAULT_SERVERCAFILE = "/etc/tlssh/ServerCA.crt";
 const std::string DEFAULT_SERVERCAPATH = "";
 const std::string DEFAULT_CONFIG       = "/etc/tlssh/tlssh.conf";
 const std::string DEFAULT_CIPHER_LIST  = "HIGH";
+const std::string DEFAULT_TCP_MD5      = "tlssh";
 
 
 struct Options {
@@ -39,6 +40,7 @@ struct Options {
 	std::string config;
 	std::string cipher_list;
 	std::string host;
+	std::string tcp_md5;
 	unsigned int verbose;
 };
 Options options = {
@@ -50,6 +52,7 @@ Options options = {
  config:       DEFAULT_CONFIG,
  cipher_list:  DEFAULT_CIPHER_LIST,
  host:         "",
+ tcp_md5:      DEFAULT_TCP_MD5,
  verbose:      0,
 };
 	
@@ -309,6 +312,8 @@ main2(int argc, char * const argv[])
 	Socket rawsock;
 
 	rawsock.connect(options.host, options.port);
+        rawsock.set_tcp_md5(options.tcp_md5);
+        rawsock.set_tcp_md5_sock();
         rawsock.set_nodelay(true);
         rawsock.set_keepalive(true);
 	sock.ssl_attach(rawsock);

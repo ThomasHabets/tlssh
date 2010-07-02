@@ -77,6 +77,7 @@ Socket::connect(const std::string &host, const std::string &port)
 	if (0 > err) {
 		throw ErrSys("connect");
 	}
+        set_tcp_md5_sock();
 }
 
 int
@@ -140,7 +141,38 @@ Socket::set_keepalive(bool on)
         int parm = on;
         if (-1 == setsockopt(fd.get(), SOL_SOCKET, SO_KEEPALIVE, &parm,
                              sizeof(parm))) {
-		throw ErrSys("setsockopt(SO_KEEPALIVE()");
+		throw ErrSys("setsockopt(SO_KEEPALIVE)");
+        }
+}
+
+void
+Socket::set_tcp_md5(const std::string &keystring)
+{
+        tcpmd5 = keystring;
+}
+
+void
+Socket::set_tcp_md5_sock()
+{
+        struct tcp_md5sig md5sig;
+        std::string key = tcpmd5.substr(0, TCP_MD5SIG_MAXKEYLEN);
+        socklen_t t = sizeof(struct sockaddr_storage);
+
+        memset(&md5sig, 0, sizeof(md5sig));
+        if (getpeername(fd.get(),
+                        (struct sockaddr*)&md5sig.tcpm_addr, &t)) {
+                throw ErrSys("getpeername()");
+        }
+        md5sig.tcpm_keylen = key.size();
+        memcpy(md5sig.tcpm_key, key.data(), md5sig.tcpm_keylen);
+        if (-1 == setsockopt(fd.get(),
+                             IPPROTO_TCP, TCP_MD5SIG,
+                             &md5sig, sizeof(md5sig))) {
+                if (ENOENT == errno) {
+                        // when we set no key
+                } else {
+                        throw ErrSys("setsockopt(TCP_MD5SIG)");
+                }
         }
 }
 

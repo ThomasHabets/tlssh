@@ -9,7 +9,7 @@ class Socket {
 protected:
 	FDWrap fd;
 	bool debug;
-
+        std::string tcpmd5;
 	int create_socket(const struct addrinfo*);
 public:
 	class ErrBase: public std::exception {
@@ -27,7 +27,7 @@ public:
                         :ErrBase(s)
                 {
                         myerrno = errno;
-                        msg += std::string(" ") + strerror(myerrno);
+                        msg += std::string(": ") + strerror(myerrno);
                 }
 	};
 	class ErrPeerClosed: public ErrBase {
@@ -46,6 +46,9 @@ public:
 
         void set_nodelay(bool);
         void set_keepalive(bool);
+
+        void set_tcp_md5(const std::string &);
+        void set_tcp_md5_sock();
 
 	int setsockopt_reuseaddr();
 	int listen_any(int port); /* FIXME: change to string and GAI */

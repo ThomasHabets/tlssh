@@ -57,6 +57,7 @@ const std::string DEFAULT_CLIENTCAFILE = "/etc/tlssh/ClientCA.crt";
 const std::string DEFAULT_CLIENTCAPATH = "";
 const std::string DEFAULT_CONFIG       = "/etc/tlssh/tlsshd.conf";
 const std::string DEFAULT_CIPHER_LIST  = "DHE-RSA-AES256-SHA";
+const std::string DEFAULT_TCP_MD5      = "tlssh";
 
 //  Structs
 
@@ -68,6 +69,7 @@ struct Options {
 	std::string clientcapath;
 	std::string config;
 	std::string cipher_list;
+	std::string tcp_md5;
 };
 
 // Process-wide variables
@@ -81,7 +83,8 @@ Options options = {
  clientcafile:   DEFAULT_CLIENTCAFILE,
  clientcapath:   DEFAULT_CLIENTCAPATH,
  config:         DEFAULT_CONFIG,
- cipher_list:    DEFAULT_CIPHER_LIST
+ cipher_list:    DEFAULT_CIPHER_LIST,
+ tcp_md5:        DEFAULT_TCP_MD5,
 };
 	
 
@@ -304,6 +307,8 @@ forkmain_new_connection(FDWrap&fd)
 		SSLSocket sock(fd.get());
                 sock.set_nodelay(true);
                 sock.set_keepalive(true);
+                sock.set_tcp_md5(options.tcp_md5);
+                sock.set_tcp_md5_sock();
 
 		fd.forget();
 		sock.ssl_set_cipher_list(options.cipher_list);
@@ -481,6 +486,7 @@ int
 main2(int argc, char * const argv[])
 {
 	parse_options(argc, argv);
+        tlsshd::listen.set_tcp_md5("foo");
 	tlsshd::listen.listen_any(atoi(options.port.c_str()));
 
 	return listen_loop();
