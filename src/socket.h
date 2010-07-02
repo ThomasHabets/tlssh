@@ -1,4 +1,6 @@
 /* -*- c++ -*- */
+#include <errno.h>
+
 #include<exception>
 #include<string>
 #include "fdwrap.h"
@@ -19,8 +21,14 @@ public:
 		const char *what() const throw() { return msg.c_str(); }
 	};
 	class ErrSys: public ErrBase {
+                int myerrno;
 	public:
-		ErrSys(const std::string &s):ErrBase(s){}
+		ErrSys(const std::string &s)
+                        :ErrBase(s)
+                {
+                        myerrno = errno;
+                        msg += std::string(" ") + strerror(myerrno);
+                }
 	};
 	class ErrPeerClosed: public ErrBase {
 	public:
@@ -35,6 +43,9 @@ public:
 
 	int getfd() const;
 	void forget(); 
+
+        void set_nodelay(bool);
+        void set_keepalive(bool);
 
 	int setsockopt_reuseaddr();
 	int listen_any(int port); /* FIXME: change to string and GAI */

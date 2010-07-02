@@ -123,6 +123,26 @@ Socket::write(const std::string &data)
 {
 	return fd.write(data);
 }
+#include <netinet/tcp.h>
+void
+Socket::set_nodelay(bool on)
+{
+        int parm = on;
+        if (-1 == setsockopt(fd.get(), IPPROTO_TCP, TCP_NODELAY, &parm,
+                             sizeof(parm))) {
+		throw ErrSys("setsockopt(TCP_NODELAY)");
+        }
+}
+
+void
+Socket::set_keepalive(bool on)
+{
+        int parm = on;
+        if (-1 == setsockopt(fd.get(), SOL_SOCKET, SO_KEEPALIVE, &parm,
+                             sizeof(parm))) {
+		throw ErrSys("setsockopt(SO_KEEPALIVE()");
+        }
+}
 
 /* ---- Emacs Variables ----
  * Local Variables:

@@ -302,6 +302,9 @@ forkmain_new_connection(FDWrap&fd)
 {
 	try {
 		SSLSocket sock(fd.get());
+                sock.set_nodelay(true);
+                sock.set_keepalive(true);
+
 		fd.forget();
 		sock.ssl_set_cipher_list(options.cipher_list);
 		sock.ssl_set_capath(options.clientcapath);

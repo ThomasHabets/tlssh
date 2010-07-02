@@ -309,6 +309,8 @@ main2(int argc, char * const argv[])
 	Socket rawsock;
 
 	rawsock.connect(options.host, options.port);
+        rawsock.set_nodelay(true);
+        rawsock.set_keepalive(true);
 	sock.ssl_attach(rawsock);
 	return new_connection();
 }

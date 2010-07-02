@@ -1,7 +1,6 @@
 TODO before 0.02
 -----------------
 * terminal (re)size functionality
-* kill connection when cert expires
 * DH PFS
 
 
@@ -17,6 +16,7 @@ TODO before 1.00
 * anti-dos (many connections)
 * Manpage
 * other documentation
+* kill connection when cert expires
 
 
 TODO whenever
@@ -24,7 +24,7 @@ TODO whenever
 * Client has send-local-file-as-typed support.
 * xmodem file send/recv
 * EGADS / EGD support (RAND_egd())
-
+* TCP MD5 signatures
 
 Notes
 -----
