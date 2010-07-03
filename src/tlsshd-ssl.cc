@@ -276,52 +276,47 @@ spawn_child(const struct passwd *pw,
 	    int *fdm_control
             )
 {
-        int fds;
         int fd_control[2];
 
         if (chdir("/")) {
-                throw "FIXME: chdir(/))";
+                THROW(Err::ErrBase, "chdir()");
         }
-
-	if (-1 == openpty(fdm, &fds, NULL, NULL, NULL)) {
-                throw "FIXME: openpty()";
-        }
-
-	if (fchmod(fds, 0600)) {
-		perror("fchmod(0, 0600)");
-		exit(1);
-	}
-
-	if (fchown(fds, pw->pw_uid, -1)) {
-		perror("fchown(0, pw->pw_uid, -1)");
-		exit(1);
-	}
-
         if (pipe(fd_control)) {
-                throw "FIXME: pipe()";
+                THROW(Err::ErrBase, "pipe()");
+
         }
 
-        *pid = fork();
-	if (!*pid) {
-                close(*fdm);
+        *pid = forkpty(fdm, NULL, NULL, NULL);
+        if (*pid == -1) {
+                THROW(Err::ErrBase, "forkpty()");
+        }
+
+        // child
+        if (*pid == 0) {
                 close(fd_control[1]);
-                if (-1 == login_tty(fds)) {
-                        throw "FIXME: login_tty()";
-                }
                 drop_privs(pw);
-                tlsshd_shellproc::forkmain(pw, fd_control[0]);
+                exit(tlsshd_shellproc::forkmain(pw, fd_control[0]));
 	}
+
+        // parent
+        if (fchmod(0, 0600)) {
+                THROW(Err::ErrBase, "fchmod(0, 0600)");
+        }
+
+        if (fchown(0, pw->pw_uid, -1)) {
+                THROW(Err::ErrBase, "fchown(0, ...)");
+        }
+
         if (!options.chroot.empty()) {
                 if (chroot(options.chroot.c_str())) {
-                        throw "FIXME: chroot()";
+                        THROW(Err::ErrBase, "chroot("+options.chroot+")");
                 }
                 if (chdir("/")) {
-                        throw "FIXME: chdir(/))";
+                        THROW(Err::ErrBase, "chdir(/)");
                 }
         }
 	drop_privs(pw);
         close(fd_control[0]);
-        close(fds);
         *fdm_control = fd_control[1];
 }
 
@@ -398,7 +393,7 @@ forkmain(FDWrap&fd)
 	} catch (const SSLSocket::ErrSSL &e) {
 		std::cerr << e.human_readable();
 	} catch (const std::exception &e) {
-		std::cerr << "forkmain_new_connection std::exception: "
+		std::cerr << "sslproc: std::exception: "
 			  << e.what() << std::endl;
 	} catch (const char *e) {
 		std::cerr << "FIXME: " << std::endl
