@@ -9,54 +9,8 @@
 #include<iterator>
 
 #include"tlssh.h"
+#include"util.h"
 #include"configparser.h"
-
-BEGIN_LOCAL_NAMESPACE();
-
-std::string
-trim(const std::string &str)
-{
-	size_t startpos = str.find_first_not_of(" \t");
-	if (std::string::npos == startpos) {
-		return "";
-	}
-
-	size_t endpos = str.find_last_not_of(" \t");
-
-	return str.substr(startpos, endpos-startpos+1);
-}
-
-
-/**
- * FIXME: handle doublequotes
- */
-std::vector<std::string>
-tokenize(const std::string &s)
-{
-	std::vector<std::string> ret;
-	int end;
-	int start = 0;
-
-	for (;;) {
-		// find beginning of word
-		start = s.find_first_not_of(" \t", start);
-		if (std::string::npos == start) {
-			return ret;
-		}
-
-		// find end of word
-		end = s.find_first_of(" \t", start);
-		if (std::string::npos == end) {
-			ret.push_back(s.substr(start));
-			break;
-		}
-		ret.push_back(trim(s.substr(start, end)));
-		start = end;
-	}
-	return ret;
-}
-
-END_LOCAL_NAMESPACE();
 
 void
 ConfigParserData::parse_line(const std::string&s)

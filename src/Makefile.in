@@ -49,12 +49,13 @@ binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
 am_tlssh_OBJECTS = tlssh.$(OBJEXT) sslsocket.$(OBJEXT) \
 	socket.$(OBJEXT) fdwrap.$(OBJEXT) configparser.$(OBJEXT) \
-	util.$(OBJEXT)
+	util.$(OBJEXT) xgetpwnam.$(OBJEXT)
 tlssh_OBJECTS = $(am_tlssh_OBJECTS)
 tlssh_LDADD = $(LDADD)
 am_tlsshd_OBJECTS = tlsshd.$(OBJEXT) sslsocket.$(OBJEXT) \
 	socket.$(OBJEXT) xgetpwnam.$(OBJEXT) fdwrap.$(OBJEXT) \
-	configparser.$(OBJEXT) util.$(OBJEXT)
+	configparser.$(OBJEXT) util.$(OBJEXT) tlsshd-ssl.$(OBJEXT) \
+	tlsshd-shell.$(OBJEXT)
 tlsshd_OBJECTS = $(am_tlsshd_OBJECTS)
 tlsshd_LDADD = $(LDADD)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
@@ -168,11 +169,12 @@ top_srcdir = @top_srcdir@
 AUTOMAKE_OPTIONS = foreign
 DISTCLEANFILES = *~
 tlssh_SOURCES = \
-tlssh.cc sslsocket.cc socket.cc fdwrap.cc configparser.cc util.cc
+tlssh.cc sslsocket.cc socket.cc fdwrap.cc configparser.cc util.cc \
+xgetpwnam.c
 
 tlsshd_SOURCES = \
 tlsshd.cc sslsocket.cc socket.cc xgetpwnam.c fdwrap.cc configparser.cc \
-util.cc
+util.cc tlsshd-ssl.cc tlsshd-shell.cc
 
 all: all-am
 
@@ -248,6 +250,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/socket.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sslsocket.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tlssh.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tlsshd-shell.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tlsshd-ssl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tlsshd.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/util.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xgetpwnam.Po@am__quote@

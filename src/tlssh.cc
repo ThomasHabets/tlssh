@@ -24,6 +24,7 @@ BEGIN_NAMESPACE(tlssh);
 
 // Constants
 const char *argv0 = NULL;
+const std::string protocol_version     = "tlssh.1";
 
 const std::string DEFAULT_PORT         = "12345";
 const std::string DEFAULT_CERTFILE     = "~/.tlssh/keys/default.crt";
@@ -92,6 +93,13 @@ iac_window_size()
         return std::string(&cmd.buf[0], &cmd.buf[6]);
 }
 
+std::string
+terminal_type()
+{
+        // FIXME: only letters and numbers
+        return getenv("TERM");
+}
+
 void
 mainloop(FDWrap &terminal)
 {
@@ -99,6 +107,7 @@ mainloop(FDWrap &terminal)
 	int err;
 	std::string to_server;
 	std::string to_terminal;
+
 	for (;;) {
                 if (sigwinch_received) {
                         sigwinch_received = false;
@@ -175,6 +184,9 @@ int
 new_connection()
 {
 	sock.ssl_connect(options.host);
+        sock.write("version " + protocol_version + "\n");
+        sock.write("env TERM " + terminal_type() + "\n");
+        sock.write("\n");
 
 	FDWrap terminal(0);
 
@@ -185,6 +197,7 @@ new_connection()
 	struct termios tio;
 	cfmakeraw(&tio);
 	tcsetattr(terminal.get(), TCSADRAIN, &tio);
+
 
 	mainloop(terminal);
 	terminal.forget();

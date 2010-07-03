@@ -124,6 +124,13 @@ Socket::write(const std::string &data)
 {
 	return fd.write(data);
 }
+
+void
+Socket::full_write(const std::string &data)
+{
+        fd.full_write(data);
+}
+
 #include <netinet/tcp.h>
 void
 Socket::set_nodelay(bool on)

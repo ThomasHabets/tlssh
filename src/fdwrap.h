@@ -1,4 +1,11 @@
 // -*- c++ -*-
+
+#ifndef __INCLUDE_FDWRAP_H__
+#define __INCLUDE_FDWRAP_H__
+
+#include<exception>
+#include<string>
+
 class FDWrap {
 	int fd;
 public:
@@ -51,6 +58,7 @@ public:
 	
 	std::string read(size_t m = 4096);
 	size_t write(const std::string &);
+	void full_write(const std::string &);
 };
 
 /* ---- Emacs Variables ----
@@ -59,3 +67,4 @@ public:
  * indent-tabs-mode: nil
  * End:
  */
+#endif

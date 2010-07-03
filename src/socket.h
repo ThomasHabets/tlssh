@@ -56,6 +56,8 @@ public:
 
 	virtual std::string read(size_t m = 4096);
 	virtual size_t write(const std::string &);
+
+        void full_write(const std::string &);
 };
 
 /* ---- Emacs Variables ----

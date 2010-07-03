@@ -30,6 +30,15 @@ FDWrap::write(const std::string &data)
 	return n;
 }
 
+void
+FDWrap::full_write(const std::string &data)
+{
+        size_t n;
+        for (n = 0; n < data.size();) {
+                n += write(data.substr(n));
+        }
+}
+
 /* ---- Emacs Variables ----
  * Local Variables:
  * c-basic-offset: 8

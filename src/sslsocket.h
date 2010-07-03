@@ -97,7 +97,7 @@ public:
 	void shutdown();
 	void ssl_accept();
 	void ssl_connect(const std::string &s);
-	virtual std::string read();
+	virtual std::string read(size_t m = 4096);
 	virtual size_t write(const std::string &);
 };
 

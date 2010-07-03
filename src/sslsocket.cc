@@ -4,6 +4,7 @@
 
 #include<iostream>
 #include<sstream>
+#include<vector>
 
 #include<openssl/err.h>
 
@@ -343,14 +344,14 @@ SSLSocket::write(const std::string &buf)
 }
 
 std::string
-SSLSocket::read()
+SSLSocket::read(size_t m)
 {
-	char buf[1024];
 	int err, sslerr;
+	std::vector<char> buf(m);
 		
-	err = SSL_read(ssl, buf, sizeof(buf));
+	err = SSL_read(ssl, &buf[0], m);
 	if (err > 0) {
-		return std::string(buf, buf+err);
+		return std::string(&buf[0], &buf[err]);
 	}
 	sslerr = SSL_get_error(ssl, err);
 	if (err == 0 && sslerr == SSL_ERROR_ZERO_RETURN) {

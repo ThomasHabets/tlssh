@@ -3,6 +3,8 @@
 #define BEGIN_LOCAL_NAMESPACE() namespace {
 #define END_LOCAL_NAMESPACE() }
 
+#include "fdwrap.h"
+
 BEGIN_NAMESPACE(tlssh_common);
 typedef union {
         struct {
@@ -13,11 +15,30 @@ typedef union {
                                 uint16_t cols;
                                 uint16_t rows;
                         } ws;
+                        char terminal[32];
                 } commands;
         } s;
         char buf[];
 } IACCommand;
 END_NAMESPACE(tlssh_common);
+
+BEGIN_NAMESPACE(tlsshd);
+struct Options {
+	std::string port;
+	std::string certfile;
+	std::string keyfile;
+	std::string clientcafile;
+	std::string clientcapath;
+	std::string config;
+	std::string cipher_list;
+	std::string tcp_md5;
+};
+extern Options options;
+extern std::string protocol_version;
+
+int forkmain_child(const struct passwd *pw, int fd_control);
+int forkmain_new_connection(FDWrap&fd);
+END_NAMESPACE(tlsshd);
 
 
 /* ---- Emacs Variables ----
