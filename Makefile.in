@@ -34,8 +34,7 @@ POST_UNINSTALL = :
 DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(srcdir)/config.h.in \
 	$(top_srcdir)/Makefile.am.common $(top_srcdir)/configure TODO \
-	config.guess config.sub config/depcomp config/install-sh \
-	config/missing
+	config/depcomp config/install-sh config/missing
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/acinclude.m4 \
@@ -609,6 +608,7 @@ uninstall-am:
 
 mrproper: maintainer-clean
 	rm -f aclocal.m4 configure.scan depcomp missing install-sh config.h.in
+	rm -fr config.guess config.sub build-stamp autom4te.cache/
 	rm -f Makefile.in configure autoscan*.log debian/debhelper.log
 	rm -f debian/substvars debian/files
 	rm -fr debian/tmp
