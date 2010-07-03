@@ -1,10 +1,11 @@
 // -*- c++ -*-
 // tlssh/src/util.h
 
+#include<pwd.h>
+#include<sys/types.h>
+
 #include<string>
 #include<vector>
-#include <sys/types.h>
-#include <pwd.h>
 
 struct passwd xgetpwnam(const std::string &name, std::vector<char> &buffer);
 std::string xwordexp(const std::string &in);

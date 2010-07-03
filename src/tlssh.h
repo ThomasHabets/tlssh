@@ -6,7 +6,8 @@
 #define BEGIN_LOCAL_NAMESPACE() namespace {
 #define END_LOCAL_NAMESPACE() }
 
-#include "fdwrap.h"
+#include"fdwrap.h"
+#include"errbase.h"
 
 BEGIN_NAMESPACE(tlssh_common);
 typedef union {
@@ -23,6 +24,7 @@ typedef union {
         } s;
         char buf[];
 } IACCommand;
+
 END_NAMESPACE(tlssh_common);
 
 BEGIN_NAMESPACE(tlsshd);
@@ -36,6 +38,7 @@ struct Options {
 	std::string cipher_list;
 	std::string tcp_md5;
 	std::string chroot;
+        int verbose;
 };
 extern Options options;
 extern std::string protocol_version;

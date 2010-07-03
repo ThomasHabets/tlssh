@@ -1,27 +1,31 @@
-// tlsshd/src/tlsshd.cc
+/* tlsshd/src/tlsshd.cc
+ *
+ * tlsshd
+ *
+ *   By Thomas Habets <thomas@habets.pp.se> 2010
+ *
+ * All the code in this file runs as root.
+ */
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 
-#include<sys/types.h>
 #include<pwd.h>
+#include<unistd.h>
+#include<grp.h>
+#include<poll.h>
+#include<pty.h>
+#include<utmp.h>
+#include<arpa/inet.h>
+#include<sys/types.h>
 #include<sys/types.h>
 #include<sys/stat.h>
 #include<sys/socket.h>
-#include<unistd.h>
-#include<grp.h>
-#include<arpa/inet.h>
-
-
-#include<poll.h>
-#include<pty.h>
 
 #include<memory>
 #include<iostream>
 #include<fstream>
 #include<vector>
-#include <utmp.h>
-
 
 #include"tlssh.h"
 #include"sslsocket.h"
@@ -30,10 +34,11 @@
 #include"util.h"
 
 using namespace tlssh_common;
+using namespace Err;
 
 BEGIN_NAMESPACE(tlsshd);
 
-// constants
+/*** constants **/
 const char *argv0 = NULL;
 
 const std::string DEFAULT_PORT         = "12345";
@@ -45,15 +50,12 @@ const std::string DEFAULT_CONFIG       = "/etc/tlssh/tlsshd.conf";
 const std::string DEFAULT_CIPHER_LIST  = "DHE-RSA-AES256-SHA";
 const std::string DEFAULT_TCP_MD5      = "tlssh";
 const std::string DEFAULT_CHROOT       = "/var/empty";
+const unsigned    DEFAULT_VERBOSE      = 0;
 
-//  Structs
-
-
-// Process-wide variables
+/*** Process-wide variables **/
 
 Socket listen;
 std::string protocol_version; // "tlssh.1"
-
 
 Options options = {
  port:           DEFAULT_PORT,
@@ -65,34 +67,49 @@ Options options = {
  cipher_list:    DEFAULT_CIPHER_LIST,
  tcp_md5:        DEFAULT_TCP_MD5,
  chroot:         DEFAULT_CHROOT,
+ verbose:        DEFAULT_VERBOSE,
 };
-	
+
 /**
+ * Run as: root
  *
+ * Run accept() in a loop. Do not read or write to the socket.
+ * spawns a newly fork()ed sslproc handler. (tlsshd-ssl.cc::forkmain())
  */
 int
 listen_loop()
 {
+        struct sockaddr_storage sa; // never read from
+
 	for (;;) {
 		FDWrap clifd;
-		struct sockaddr_storage sa;
+                pid_t pid;
 		socklen_t salen = sizeof(sa); 
+
 		clifd.set(::accept(listen.getfd(),
 				 (struct sockaddr*)&sa,
 				 &salen));
 		if (0 > clifd.get()) {
 			continue;
 		}
-		if (!fork()) {
+
+                pid = fork();
+
+                if (0 > pid) {          // error
+                        fprintf(stderr, "%s: fork() failed", argv0);
+                } else if (pid == 0) {  // child
 			exit(tlsshd_sslproc::forkmain(clifd));
 		} else {
-			clifd.close();
-		}
+                        ;
+                }
 	}
 }
 
 /**
- *
+ * Print usage info. Called when doing one of:
+ * -h option (err = 0) 
+ * --help option (err = 0)
+ * invalid options (err != 1)
  */
 void
 usage(int err)
@@ -108,12 +125,13 @@ usage(int err)
 	       "\t-V, --version        Print version and exit\n"
 	       "\t-p <cert+keyfile>    Load login cert+key from file\n"
 	       , argv0,
-	       DEFAULT_CONFIG.c_str(), DEFAULT_CIPHER_LIST.c_str());
+               DEFAULT_CONFIG.c_str(),
+               DEFAULT_CIPHER_LIST.c_str());
 	exit(err);
 }
 
 /**
- *
+ * Print version info like GNU wants it. Caller exit()s
  */
 void
 printversion()
@@ -129,7 +147,7 @@ printversion()
 }
 
 /**
- * FIXME: check parms count
+ *
  */
 void
 read_config_file(const std::string &fn)
@@ -139,42 +157,54 @@ read_config_file(const std::string &fn)
 	ConfigParser end;
 	for (;conf != end; ++conf) {
 		if (conf->keyword.empty()) {
-			// empty
+			// empty line
 		} else if (conf->keyword == "#") {
 			// comment
-		} else if (conf->keyword == "ClientCAFile") {
+		} else if (conf->keyword == "ClientCAFile"
+                           && conf->parms.size() == 1) {
 			options.clientcafile = conf->parms[0];
-		} else if (conf->keyword == "ClientCAPath") {
+		} else if (conf->keyword == "ClientCAPath"
+                           && conf->parms.size() == 1) {
 			options.clientcapath = conf->parms[0];
-		} else if (conf->keyword == "Port") {
+		} else if (conf->keyword == "Port"
+                           && conf->parms.size() == 1) {
 			options.port = conf->parms[0];
-		} else if (conf->keyword == "KeyFile") {
+		} else if (conf->keyword == "KeyFile"
+                           && conf->parms.size() == 1) {
 			options.keyfile = conf->parms[0];
-		} else if (conf->keyword == "CertFile") {
+		} else if (conf->keyword == "CertFile"
+                           && conf->parms.size() == 1) {
 			options.certfile = conf->parms[0];
-		} else if (conf->keyword == "CipherList") {
+		} else if (conf->keyword == "CipherList"
+                           && conf->parms.size() == 1) {
 			options.cipher_list = conf->parms[0];
-		} else if (conf->keyword == "-include") {
+		} else if (conf->keyword == "-include"
+                           && conf->parms.size() == 1) {
 			try {
 				read_config_file(xwordexp(conf->parms[0]));
 			} catch(const ConfigParser::ErrStream&) {
+                                // -includes don't have to work
 				break;
 			}
-		} else if (conf->keyword == "include") {
+		} else if (conf->keyword == "include"
+                           && conf->parms.size() == 1) {
 			try {
 				read_config_file(xwordexp(conf->parms[0]));
 			} catch(const ConfigParser::ErrStream&) {
-				throw "I/O error accessing config file: "
-					+ conf->parms[0];
+				THROW(ErrBase,
+                                      "I/O error accessing include file: "
+                                      + conf->parms[0]);
 			}
 		} else {
-			throw "FIXME: error in config file: " + conf->keyword;
+                        THROW(ErrBase,
+                              "Error Error in config line: " + conf->parms[0]);
 		}
 	}
 }
 
 /**
- * FIXME: this is just a skeleton
+ * Parse command line options. First read config file and then let cmdline
+ * override that.
  */
 void
 parse_options(int argc, char * const *argv)
@@ -197,21 +227,26 @@ parse_options(int argc, char * const *argv)
 	try {
 		read_config_file(options.config);
 	} catch(const ConfigParser::ErrStream&) {
-		throw "I/O error accessing config file: " + options.config;
+                THROW(ErrBase,
+                      "I/O error accessing config file: "
+                      + options.config);
 	}
 
 	int opt;
 	while ((opt = getopt(argc, argv, "c:hp:vV")) != -1) {
 		switch (opt) {
-		case 'h':
-			usage(0);
 		case 'c':
 			// already handled above
 			break;
+		case 'h':
+			usage(0);
 		case 'p':
 			options.keyfile = optarg;
 			options.certfile = optarg;
 			exit(0);
+		case 'v':
+			options.verbose++;
+                        break;
 		case 'V':
 			printversion();
 			exit(0);
@@ -224,9 +259,10 @@ parse_options(int argc, char * const *argv)
 END_NAMESPACE(tlsshd);
 
 BEGIN_LOCAL_NAMESPACE()
+
 using namespace tlsshd;
 /**
- *
+ * wrapped main() so that we don't have to handle exceptions in this main()
  */
 int
 main2(int argc, char * const argv[])
@@ -248,12 +284,19 @@ main(int argc, char **argv)
 	argv0 = argv[0];
 	try {
 		return main2(argc, argv);
+	} catch (const Err::ErrBase &e) {
+                if (options.verbose) {
+                        fprintf(stderr, "%s: %s\n",
+                                argv0, e.what_verbose());
+                } else {
+                        fprintf(stderr, "%s: %s\n",
+                                argv0, e.what());
+                }
 	} catch (const std::exception &e) {
-		std::cout << "tlsshd::main() std::exception: "
+		std::cerr << "tlsshd std::exception: "
 			  << e.what() << std::endl;
-	} catch (const std::string &e) {
-		std::cerr << "FIXME: " << std::endl
-			  << e << std::endl;
+	} catch (...) {
+		std::cerr << "tlsshd: Unknown exception!" << std::endl;
 	}
 }
 /* ---- Emacs Variables ----

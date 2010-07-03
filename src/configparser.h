@@ -3,6 +3,9 @@
 #include<string>
 #include<vector>
 
+/**
+ *
+ */
 struct ConfigParserData {
 	ConfigParserData():lineno(0){}
 
@@ -16,6 +19,9 @@ struct ConfigParserData {
 	parms_t parms;
 };
 
+/**
+ *
+ */
 class ConfigParser: public std::iterator<std::input_iterator_tag,
 					 ConfigParserData,
 					 const ConfigParserData*,

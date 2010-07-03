@@ -1,20 +1,29 @@
-// tlssh/src/tlsshd-shell.cc
+/* tlssh/src/tlsshd-shell.cc
+ *
+ * tlsshd
+ *
+ *   By Thomas Habets <thomas@habets.pp.se> 2010
+ *
+ * None of the code in this file is run as root. It's all run after
+ * authentication as the user who logged in.
+ */
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 
-#include <sys/types.h>
-#include <pwd.h>
+#include<pwd.h>
+#include<stdlib.h>
+#include<sys/types.h>
 
-#include <stdlib.h>
-#include <iostream>
-#include <string>
-#include <vector>
-#include "tlssh.h"
-#include "util.h"
+#include<iostream>
+#include<string>
+#include<vector>
+
+#include"tlssh.h"
+#include"util.h"
 
 using namespace tlssh_common;
-using namespace tlsshd;
+using tlsshd::protocol_version;
 
 BEGIN_NAMESPACE(tlsshd_shellproc);
 

@@ -7,7 +7,11 @@
 
 #include"util.h"
 #include"xgetpwnam.h"
+#include"errbase.h"
 
+/**
+ *
+ */
 std::string
 xwordexp(const std::string &in)
 {
@@ -16,11 +20,12 @@ xwordexp(const std::string &in)
 	int i;
 
 	if (wordexp(in.c_str(), &p, 0)) {
-		throw "FIXME: wordexp()";
+		THROW(Err::ErrBase, "wordexp(" + in + ")");
 	}
 
 	if (p.we_wordc != 1) {
-		throw "FIXME: wordexp() nmatch != 1";
+                wordfree(&p);
+		THROW(ERR::ErrBase, "wordexp(" + in + ") nmatch != 1");
 	}
 
 	std::string ret(p.we_wordv[0]);
@@ -57,6 +62,9 @@ tokenize(const std::string &s)
 	return ret;
 }
 
+/**
+ *
+ */
 std::string
 trim(const std::string &str)
 {
@@ -81,7 +89,9 @@ xgetpwnam(const std::string &name, std::vector<char> &buffer)
 	struct passwd *ppw = 0;
 	if (xgetpwnam_r(name.c_str(), &pw, &buffer[0], buffer.capacity(), &ppw)
 	    || !ppw) {
-		throw "FIXME";
+                // don't throw the name. It may be a password written
+                // as a name by mistake
+		THROW(Err::ErrBase, "xgetpwnam()");
 	}
 
 	return pw;

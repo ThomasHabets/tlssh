@@ -1,13 +1,14 @@
 /* -*- c++ -*- */
 // tlssh/src/sslsocket.h
-#include<openssl/bio.h>
-#include<openssl/x509v3.h>
-#include<openssl/ssl.h>
-#include<openssl/rand.h>
 #include<string>
 #include<list>
 #include<exception>
 #include<memory>
+
+#include<openssl/bio.h>
+#include<openssl/x509v3.h>
+#include<openssl/ssl.h>
+#include<openssl/rand.h>
 
 #include"socket.h"
 

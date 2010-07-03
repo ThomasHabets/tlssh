@@ -1,20 +1,39 @@
-// tlssh/src/tlsshd-ssl.cc
+/* tlssh/src/tlsshd-ssl.cc
+ *
+ * tlsshd
+ *
+ *   By Thomas Habets <thomas@habets.pp.se> 2010
+ *
+ * TLSSH SSLProc
+ *
+ * This file contains the code for the SSL-terminal "proxy"
+ * process. It checks what user it should run as and then drops
+ * privileges to that user. It also spawns the shell process.
+ *
+ * Then it shuffles data between the SSL socket and the user shell.
+ *
+ * [network] - <ssl socket> - [ssl] - <pty> - [shell]
+ *                 ^            ^                ^
+ *                 |            |                |
+ * Code:        OpenSSL     This file        tlsshd-shell.cc
+ *
+ * Some of this code (the is run as root. Those functions are clearly labeled.
+ */
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 
-#include<iostream>
-#include <pty.h>
+#include<pty.h>
+#include<utmp.h>
+#include<unistd.h>
+#include<grp.h>
+#include<poll.h>
+#include<pwd.h>
+#include<arpa/inet.h>
+#include<sys/stat.h>
+#include<sys/types.h>
 
-#include <utmp.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <grp.h>
-#include <arpa/inet.h>
-#include <poll.h>
-#include <sys/types.h>
-#include <pwd.h>
+#include<iostream>
 
 #include"tlssh.h"
 #include"sslsocket.h"
@@ -23,14 +42,14 @@
 #include"util.h"
 
 using namespace tlssh_common;
-using namespace tlsshd;
+using tlsshd::options;
 
 BEGIN_NAMESPACE(tlsshd_sslproc);
 
 size_t iac_len[256];
 
 /**
- *
+ * Run as: user
  */
 std::string
 parse_iac(FDWrap &fd, std::string &from_sock)
@@ -86,7 +105,7 @@ parse_iac(FDWrap &fd, std::string &from_sock)
 }
 
 /**
- *
+ * Run as: user
  */
 bool
 connect_fd_sock(FDWrap &fd,
@@ -190,13 +209,12 @@ connect_fd_sock(FDWrap &fd,
  * Run as: logged in user
  */
 void
-user_loop(FDWrap &terminal, SSLSocket &sock, int fd_control)
+user_loop(FDWrap &terminal, SSLSocket &sock, FDWrap &control)
 {
 	std::string to_client;
 	std::string to_terminal;
         std::string from_sock;
 
-        FDWrap control(fd_control);
 	int newlines = 0;
         for (;;) {
                 std::string ch;
@@ -226,7 +244,7 @@ user_loop(FDWrap &terminal, SSLSocket &sock, int fd_control)
 
 
 /**
- *
+ * Drop privs to logged in user
  */
 void
 drop_privs(const struct passwd *pw)
@@ -248,7 +266,8 @@ drop_privs(const struct passwd *pw)
 }
 
 /**
- *
+ * Run as: root
+ * fork()s tlsshd_shellproc and drops privileges on both it and self.
  */
 void
 spawn_child(const struct passwd *pw,
@@ -308,25 +327,31 @@ spawn_child(const struct passwd *pw,
 
 
 /**
+ * Run as: root
+ *
  * verify cert information
+ *
+ * At this point the cert is guaranteed to be signed by the ClientCA.
+ * We now check who the client subject is.
  */
 void
 new_ssl_connection(SSLSocket &sock)
 {
 	std::auto_ptr<X509Wrap> cert = sock.get_cert();
 	if (!cert.get()) {
-		std::cerr << "Client provided no cert.\n";
-		sock.write("No cert provided.");
-		return;
+		sock.write("You are the no-cert client. Goodbye.");
+                throw "FIXME: client provided no cert";
 	}
 
-	if (0) {
+	if (options.verbose) {
 		std::cout << "Client cert: " << cert->get_subject()
 			  << std::endl;
 	}
 
 	std::string username = cert->get_common_name();
-	std::cout << "Logged in using cert " << username << std::endl;
+        if (options.verbose) {
+                std::cout << "Logged in using cert " << username << std::endl;
+        }
 	username = username.substr(0,username.find('.'));
 
 	std::vector<char> pwbuf;
@@ -337,10 +362,16 @@ new_ssl_connection(SSLSocket &sock)
         int fd_control;
 	spawn_child(&pw, &pid, &termfd, &fd_control);
 	FDWrap terminal(termfd);
-	user_loop(terminal, sock, fd_control);
+	FDWrap control(fd_control);
+	user_loop(terminal, sock, control);
 }
 
 /**
+ * Run as: root
+ *
+ * At this point the only thing that's happened with the socket is that
+ * it's been accept(2)ed. This function will SSL-wrap the socket and call
+ * new_ssl_connection().
  *
  * input: newly connected fd, and newly forked process
  * output: calls new_ssl_connection() with up-and-running SSL connection
