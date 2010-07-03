@@ -6,6 +6,9 @@
 #include<termios.h>
 #include<unistd.h>
 #include<wordexp.h>
+#include<signal.h>
+#include <sys/ioctl.h>
+#include <arpa/inet.h>
 
 #include<iostream>
 #include<fstream>
@@ -15,6 +18,7 @@
 #include"sslsocket.h"
 #include"configparser.h"
 
+using namespace tlssh_common;
 
 BEGIN_NAMESPACE(tlssh);
 
@@ -58,6 +62,36 @@ Options options = {
 	
 SSLSocket sock;
 
+bool sigwinch_received = true;
+void
+sigwinch(int)
+{
+        sigwinch_received = true;
+}
+
+std::pair<int,int>
+terminal_size()
+{
+        struct winsize ws;
+        if (ioctl(fileno(stdin), TIOCGWINSZ, (char *)&ws)) {
+                throw "FIXME: ioctl(TIOCGWINSZ)";
+        }
+        return std::pair<int,int>(ws.ws_row, ws.ws_col);
+}
+
+std::string
+iac_window_size()
+{
+        std::pair<int,int> ts(terminal_size());
+
+        IACCommand cmd;
+        cmd.s.iac = 255;
+        cmd.s.command = 1;
+        cmd.s.commands.ws.rows = htons(ts.first);
+        cmd.s.commands.ws.cols = htons(ts.second);
+        return std::string(&cmd.buf[0], &cmd.buf[6]);
+}
+
 void
 mainloop(FDWrap &terminal)
 {
@@ -66,6 +100,11 @@ mainloop(FDWrap &terminal)
 	std::string to_server;
 	std::string to_terminal;
 	for (;;) {
+                if (sigwinch_received) {
+                        sigwinch_received = false;
+                        to_server += iac_window_size();
+                }
+
 		fds[0].fd = sock.getfd();
 		fds[0].events = POLLIN;
 		if (!to_server.empty()) {
@@ -300,6 +339,11 @@ int
 main2(int argc, char * const argv[])
 {
 	parse_options(argc, argv);
+
+        if (SIG_ERR == signal(SIGWINCH, sigwinch)) {
+                throw "FIXME: signal()";
+        }
+
 	sock.ssl_set_cipher_list(options.cipher_list);
 	sock.ssl_set_capath(options.servercapath);
 	sock.ssl_set_cafile(options.servercafile);
@@ -317,6 +361,7 @@ main2(int argc, char * const argv[])
         rawsock.set_nodelay(true);
         rawsock.set_keepalive(true);
 	sock.ssl_attach(rawsock);
+
 	return new_connection();
 }
 END_LOCAL_NAMESPACE()

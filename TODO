@@ -1,6 +1,6 @@
 TODO before 0.02
 -----------------
-* terminal (re)size functionality
+* terminal (re)size functionality & TERM setting support
 * DH PFS
 
 
@@ -26,6 +26,7 @@ TODO whenever
 * EGADS / EGD support (RAND_egd())
 * reset TCP signatures to something secret so that the connection is
   unresettable
+* set QoS
 
 
 Notes

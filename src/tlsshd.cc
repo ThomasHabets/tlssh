@@ -10,6 +10,7 @@
 #include<sys/socket.h>
 #include<unistd.h>
 #include<grp.h>
+#include<arpa/inet.h>
 
 
 #include<poll.h>
@@ -27,6 +28,7 @@
 #include"configparser.h"
 #include"util.h"
 
+using namespace tlssh_common;
 
 /**
  *
@@ -105,10 +107,66 @@ drop_privs(const struct passwd *pw)
 	}
 }
 
+size_t iac_len[256];
+
+std::string
+parse_iac(FDWrap &fd, std::string &from_sock)
+{
+        std::string ret;
+        size_t pos;
+
+        const IACCommand *cmd;
+
+        iac_len[1] = 6;
+
+        for (;;) {
+                // fast path: no IAC
+                pos = from_sock.find('\xff');
+                if (pos == std::string::npos) {
+                        ret += from_sock;
+                        from_sock = "";
+                        break;
+                }
+
+                ret += from_sock.substr(0,pos);
+
+                // no command yet
+                if (from_sock.size() - 1 == pos) {
+                        break;
+                }
+
+                cmd = reinterpret_cast<const IACCommand*>(from_sock.data());
+
+                // incomplete command
+                if (iac_len[cmd->s.command] > from_sock.size()) {
+                        break;
+                }
+
+                switch (cmd->s.command) {
+                case 255:
+                        ret += "\xff";
+                        break;
+                case 1:
+                        struct winsize ws;
+                        ws.ws_col = ntohs(cmd->s.commands.ws.cols);
+                        ws.ws_row = ntohs(cmd->s.commands.ws.rows);
+                        if (0 > ioctl(fd.get(), TIOCSWINSZ, &ws)) {
+                                throw "FIXME: ioctl(TIOCSWINSZ)";
+                        }
+                        break;
+                default:
+                        throw "FIXME: unknown IAC!";
+                }
+                from_sock.erase(0, iac_len[cmd->s.command]);
+        }
+        return ret;
+}
+
 bool
 connect_fd_sock(FDWrap &fd,
 		SSLSocket &sock,
 		std::string &to_fd,
+		std::string &from_sock,
 		std::string &to_sock)
 {
 	struct pollfd fds[2];
@@ -159,9 +217,11 @@ connect_fd_sock(FDWrap &fd,
 	// from client
 	if (fds[0].revents & POLLIN) {
 		do {
-			to_fd += sock.read();
+			from_sock += sock.read();
 		} while (sock.ssl_pending());
 	}
+
+        to_fd += parse_iac(fd, from_sock);
 
 	// from shell
 	if (fds[1].revents & POLLIN) {
@@ -180,6 +240,8 @@ connect_fd_sock(FDWrap &fd,
 	}
 
 	// output
+
+        // to client
 	if ((fds[0].revents & POLLOUT)
 	    && !to_sock.empty()) {
 		size_t n;
@@ -187,6 +249,7 @@ connect_fd_sock(FDWrap &fd,
 		to_sock = to_sock.substr(n);
 	}
 
+        // to terminal
 	if ((fds[1].revents & POLLOUT)
 	    && !to_fd.empty()) {
 		size_t n;
@@ -202,10 +265,16 @@ user_loop(FDWrap &terminal, SSLSocket &sock)
 {
 	std::string to_client;
 	std::string to_terminal;
+        std::string from_sock;
+        memset(iac_len, 2, sizeof(iac_len));
 	for (;;) {
-		if (connect_fd_sock(terminal, sock, to_client, to_terminal)) {
-			break;
-		}
+                if (connect_fd_sock(terminal,
+                                    sock,
+                                    to_client,
+                                    from_sock,
+                                    to_terminal)) {
+                        break;
+                }
 	}
 }
 
