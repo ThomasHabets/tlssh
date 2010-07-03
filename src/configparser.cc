@@ -102,7 +102,7 @@ ConfigParser::operator++()
  *
  */
 ConfigParser
-ConfigParser::operator++(int unused)
+ConfigParser::operator++(int)
 {
 	ConfigParser tmp(*this);
 	readnext();

@@ -54,7 +54,7 @@ namespace Err {
                 }
                 virtual ~ErrSys()throw() {}
         };
-};
+}
 /* ---- Emacs Variables ----
  * Local Variables:
  * c-basic-offset: 8

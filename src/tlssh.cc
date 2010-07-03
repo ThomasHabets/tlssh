@@ -21,7 +21,7 @@
 
 using namespace tlssh_common;
 
-BEGIN_NAMESPACE(tlssh);
+BEGIN_NAMESPACE(tlssh)
 
 // Constants
 const char *argv0 = NULL;
@@ -374,7 +374,7 @@ parse_options(int argc, char * const *argv)
 	options.host = argv[optind];
 }
 
-END_NAMESPACE(tlssh);
+END_NAMESPACE(tlssh)
 
 
 BEGIN_LOCAL_NAMESPACE()

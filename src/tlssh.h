@@ -9,7 +9,8 @@
 #include"fdwrap.h"
 #include"errbase.h"
 
-BEGIN_NAMESPACE(tlssh_common);
+BEGIN_NAMESPACE(tlssh_common)
+#pragma pack(1)
 typedef union {
         struct {
                 uint8_t iac;
@@ -24,10 +25,11 @@ typedef union {
         } s;
         char buf[];
 } IACCommand;
+#pragma pack()
 
-END_NAMESPACE(tlssh_common);
+END_NAMESPACE(tlssh_common)
 
-BEGIN_NAMESPACE(tlsshd);
+BEGIN_NAMESPACE(tlsshd)
 struct Options {
 	std::string port;
 	std::string certfile;
@@ -44,16 +46,16 @@ struct Options {
 extern Options options;
 extern std::string protocol_version;
 
-END_NAMESPACE(tlsshd);
+END_NAMESPACE(tlsshd)
 
 
-BEGIN_NAMESPACE(tlsshd_shellproc);
+BEGIN_NAMESPACE(tlsshd_shellproc)
 int forkmain(const struct passwd *pw, int fd_control);
-END_NAMESPACE(tlsshd_shellproc);
+END_NAMESPACE(tlsshd_shellproc)
 
-BEGIN_NAMESPACE(tlsshd_sslproc);
+BEGIN_NAMESPACE(tlsshd_sslproc)
 int forkmain(FDWrap&fd);
-END_NAMESPACE(tlsshd_sslproc);
+END_NAMESPACE(tlsshd_sslproc)
 
 
 /* ---- Emacs Variables ----
