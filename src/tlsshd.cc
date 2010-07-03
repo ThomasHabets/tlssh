@@ -281,7 +281,7 @@ main2(int argc, char * const argv[])
 
 	parse_options(argc, argv);
         tlsshd::listen.set_tcp_md5("foo");
-	tlsshd::listen.listen_any(atoi(options.port.c_str()));
+	tlsshd::listen.listen_any(options.port);
 
         if (options.daemon) {
                 if (daemon(0,0)) {

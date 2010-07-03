@@ -19,8 +19,6 @@
 void
 ConfigParserData::parse_line(const std::string&s)
 {
-	int pos;
-
 	lineno++;
 	line = s;
 	rest = "";
@@ -51,6 +49,7 @@ operator<<(std::ostream&o, const ConfigParserData&d)
 		o << "<" << *itr << "> ";
 	}
 	o << "]";
+        return o;
 }
 
 /**
@@ -84,7 +83,7 @@ ConfigParser::readnext()
 			is_end = true;
 		}
 	} else if (!stream->good()) {
-		throw ErrStream("configparser stream is not 'good'");
+		THROW(ErrStream, "configparser stream is not 'good'");
 	}
 	data.parse_line(line);
 }

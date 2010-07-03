@@ -3,6 +3,8 @@
 #include<string>
 #include<vector>
 
+#include "errbase.h"
+
 /**
  *
  */
@@ -28,9 +30,12 @@ class ConfigParser: public std::iterator<std::input_iterator_tag,
 					 const ConfigParserData&
 					 > {
 public:
-        class ErrStream {
+        class ErrStream: Err::ErrBase {
 	public:
-		ErrStream(const std::string &s) {}
+                ErrStream(const std::string &f,
+                          int l,
+                          const std::string &m):Err::ErrBase(f,l,m) {}
+                virtual ~ErrStream() throw() {}
 	};
 	bool operator==(const ConfigParser&rhs) const;
 	bool operator!=(const ConfigParser&rhs) const;

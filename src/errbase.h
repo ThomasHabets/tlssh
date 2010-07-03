@@ -1,4 +1,7 @@
 // -*- c++ -*-
+#ifndef __INCLUDE_ERRBASE_H__
+#define __INCLUDE_ERRBASE_H__
+
 #include<errno.h>
 #include<string.h>
 
@@ -58,3 +61,4 @@ namespace Err {
  * indent-tabs-mode: nil
  * End:
  */
+#endif

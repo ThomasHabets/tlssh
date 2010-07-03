@@ -12,14 +12,17 @@
  */
 class FDWrap {
 	int fd;
+        bool autoclose;
 public:
-	FDWrap(int fd = -1)
-		:fd(fd)
+	FDWrap(int fd = -1, bool autoclose = true)
+		:fd(fd),autoclose(autoclose)
 	{
 	}
 	~FDWrap()
 	{
-		close();
+                if (autoclose) {
+                        close();
+                }
 	}
 	void close()
 	{
@@ -34,7 +37,7 @@ public:
 		return fd;
 	}
 
-	int set(int n)
+	void set(int n)
 	{
 		close();
 		fd = n;

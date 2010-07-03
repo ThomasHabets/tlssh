@@ -207,7 +207,7 @@ new_connection()
         sock.write("env TERM " + terminal_type() + "\n");
         sock.write("\n");
 
-	FDWrap terminal(0);
+	FDWrap terminal(0, false);
 
 	if (tcgetattr(terminal.get(), &old_tio)) {
                 THROW(Err::ErrSys, "tcgetattr()");
@@ -223,7 +223,7 @@ new_connection()
 
 
 	mainloop(terminal);
-	terminal.forget();
+        return 0;
 }
 
 /**

@@ -14,7 +14,7 @@ protected:
 	FDWrap fd;
 	bool debug;
         std::string tcpmd5;
-	int create_socket(const struct addrinfo*);
+	void create_socket(const struct addrinfo*);
 public:
 	class ErrBase: public std::exception {
 	protected:
@@ -51,12 +51,12 @@ public:
 
         void set_nodelay(bool);
         void set_keepalive(bool);
+	void set_reuseaddr(bool);
 
         void set_tcp_md5(const std::string &);
         void set_tcp_md5_sock();
 
-	int setsockopt_reuseaddr();
-	int listen_any(int port); /* FIXME: change to string and GAI */
+	void listen_any(const std::string &port);
 	void connect(const std::string &host, const std::string &port);
 
 	virtual std::string read(size_t m = 4096);

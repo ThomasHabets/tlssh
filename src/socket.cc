@@ -27,7 +27,7 @@ Socket::Socket(int infd)
 /**
  *
  */
-int
+void
 Socket::create_socket(const struct addrinfo *ai)
 {
 	int s;
@@ -59,10 +59,10 @@ Socket::forget()
 /**
  *
  */
-int
-Socket::setsockopt_reuseaddr()
+void
+Socket::set_reuseaddr(bool ion)
 {
-	int on = 1;
+	int on = !!ion;
 	if (0 > setsockopt(fd.get(),
 			   SOL_SOCKET,
 			   SO_REUSEADDR,
@@ -102,8 +102,8 @@ Socket::connect(const std::string &host, const std::string &port)
 /**
  *
  */
-int
-Socket::listen_any(int port)
+void
+Socket::listen_any(const std::string &port)
 {
 
 	int err;
@@ -113,12 +113,12 @@ Socket::listen_any(int port)
         hints.ai_family = AF_UNSPEC;
         hints.ai_socktype = SOCK_STREAM;
 
-	GetAddrInfo gai("","12345",&hints);
+	GetAddrInfo gai("", port, &hints);
 	struct addrinfo *p;
 	p = gai.fixme();
 
 	create_socket(p);
-	setsockopt_reuseaddr();
+	set_reuseaddr(true);
 
 	err = bind(fd.get(), p->ai_addr, p->ai_addrlen);
 	if (err) {
@@ -180,7 +180,7 @@ Socket::full_write(const std::string &data)
 void
 Socket::set_nodelay(bool on)
 {
-        int parm = on;
+        int parm = !!on;
         if (-1 == setsockopt(fd.get(), IPPROTO_TCP, TCP_NODELAY, &parm,
                              sizeof(parm))) {
 		throw ErrSys("setsockopt(TCP_NODELAY)");
@@ -193,7 +193,7 @@ Socket::set_nodelay(bool on)
 void
 Socket::set_keepalive(bool on)
 {
-        int parm = on;
+        int parm = !!on;
         if (-1 == setsockopt(fd.get(), SOL_SOCKET, SO_KEEPALIVE, &parm,
                              sizeof(parm))) {
 		throw ErrSys("setsockopt(SO_KEEPALIVE)");

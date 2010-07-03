@@ -16,8 +16,6 @@ std::string
 xwordexp(const std::string &in)
 {
 	wordexp_t p;
-	char **w;
-	int i;
 
 	if (wordexp(in.c_str(), &p, 0)) {
 		THROW(Err::ErrBase, "wordexp(" + in + ")");
@@ -40,8 +38,8 @@ std::vector<std::string>
 tokenize(const std::string &s)
 {
 	std::vector<std::string> ret;
-	int end;
-	int start = 0;
+	size_t end;
+	size_t start = 0;
 
 	for (;;) {
 		// find beginning of word
