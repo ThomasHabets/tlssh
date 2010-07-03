@@ -16,6 +16,7 @@
 #include<poll.h>
 #include<pty.h>
 #include<utmp.h>
+#include<signal.h>
 #include<arpa/inet.h>
 #include<sys/types.h>
 #include<sys/types.h>
@@ -267,6 +268,10 @@ using namespace tlsshd;
 int
 main2(int argc, char * const argv[])
 {
+        if (SIG_ERR == signal(SIGCHLD, SIG_IGN)) {
+                THROW(Err::ErrBase, "signal(SIGCHLD, SIG_IGN)");
+        }
+
 	parse_options(argc, argv);
         tlsshd::listen.set_tcp_md5("foo");
 	tlsshd::listen.listen_any(atoi(options.port.c_str()));
