@@ -229,6 +229,7 @@ user_loop(FDWrap &terminal, SSLSocket &sock, FDWrap &control)
 			break;
 		}
         }
+        control.close();
 
         memset(iac_len, 2, sizeof(iac_len));
 	for (;;) {

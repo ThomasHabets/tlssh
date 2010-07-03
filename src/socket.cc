@@ -133,8 +133,18 @@ Socket::listen_any(int port)
 /**
  *
  */
+void
+Socket::close()
+{
+        fd.close();
+}
+
+/**
+ *
+ */
 Socket::~Socket()
 {
+        close();
 }
 
 /**

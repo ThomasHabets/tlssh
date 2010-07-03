@@ -47,6 +47,7 @@ public:
 
 	int getfd() const;
 	void forget(); 
+        void close();
 
         void set_nodelay(bool);
         void set_keepalive(bool);

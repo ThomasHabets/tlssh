@@ -99,6 +99,7 @@ listen_loop()
                 if (0 > pid) {          // error
                         fprintf(stderr, "%s: fork() failed", argv0);
                 } else if (pid == 0) {  // child
+                        listen.close();
 			exit(tlsshd_sslproc::forkmain(clifd));
 		} else {
                         ;

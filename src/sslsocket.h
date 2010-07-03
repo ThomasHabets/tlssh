@@ -87,7 +87,7 @@ public:
 	static const std::string ssl_errstr(int err);
 
 	SSLSocket(int fd = -1);
-	~SSLSocket();
+	virtual ~SSLSocket();
 
 	void ssl_attach(Socket&sock);
 
