@@ -52,8 +52,9 @@ const std::string DEFAULT_CIPHER_LIST  = "DHE-RSA-AES256-SHA";
 const std::string DEFAULT_TCP_MD5      = "tlssh";
 const std::string DEFAULT_CHROOT       = "/var/empty";
 const unsigned    DEFAULT_VERBOSE      = 0;
+const bool        DEFAULT_DAEMON       = true;
 
-/*** Process-wide variables **/
+/*** Process-wide variables ***/
 
 Socket listen;
 std::string protocol_version; // "tlssh.1"
@@ -69,6 +70,7 @@ Options options = {
  tcp_md5:        DEFAULT_TCP_MD5,
  chroot:         DEFAULT_CHROOT,
  verbose:        DEFAULT_VERBOSE,
+ daemon:         DEFAULT_DAEMON,
 };
 
 /**
@@ -116,13 +118,14 @@ listen_loop()
 void
 usage(int err)
 {
-	printf("%s [ -hv ] "
+	printf("%s [ -fhv ] "
 	       "[ -c <config> ] "
 	       "[ -C <cipher-list> ] "
 	       "[ -p <cert+keyfile> ]"
 	       "\n"
 	       "\t-c <config>          Config file (default %s)\n"
 	       "\t-C <cipher-list>     Acceptable ciphers (default %s)\n"
+	       "\t-f                   Run in foreground\n"
 	       "\t-h, --help           Help\n"
 	       "\t-V, --version        Print version and exit\n"
 	       "\t-p <cert+keyfile>    Load login cert+key from file\n"
@@ -235,10 +238,13 @@ parse_options(int argc, char * const *argv)
 	}
 
 	int opt;
-	while ((opt = getopt(argc, argv, "c:hp:vV")) != -1) {
+	while ((opt = getopt(argc, argv, "c:fhp:vV")) != -1) {
 		switch (opt) {
 		case 'c':
 			// already handled above
+			break;
+		case 'f':
+                        options.daemon = false;
 			break;
 		case 'h':
 			usage(0);
@@ -277,6 +283,11 @@ main2(int argc, char * const argv[])
         tlsshd::listen.set_tcp_md5("foo");
 	tlsshd::listen.listen_any(atoi(options.port.c_str()));
 
+        if (options.daemon) {
+                if (daemon(0,0)) {
+                        THROW(Err::ErrSys, "daemon(0, 0)");
+                }
+        }
 	return listen_loop();
 }
 END_LOCAL_NAMESPACE()

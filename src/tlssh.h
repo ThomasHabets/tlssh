@@ -39,6 +39,7 @@ struct Options {
 	std::string tcp_md5;
 	std::string chroot;
         int verbose;
+        bool daemon;
 };
 extern Options options;
 extern std::string protocol_version;
