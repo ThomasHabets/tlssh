@@ -50,7 +50,7 @@ namespace Err {
                         msg += " :" + errstr;
                 }
                 virtual ~ErrSys()throw() {}
-};
+        };
 };
 /* ---- Emacs Variables ----
  * Local Variables:

@@ -202,7 +202,7 @@ read_config_file(const std::string &fn)
 			}
 		} else {
                         THROW(ErrBase,
-                              "Error Error in config line: " + conf->parms[0]);
+                              "Error in config line: " + conf->parms[0]);
 		}
 	}
 }

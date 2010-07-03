@@ -82,7 +82,7 @@ terminal_size()
 {
         struct winsize ws;
         if (ioctl(fileno(stdin), TIOCGWINSZ, (char *)&ws)) {
-                throw "FIXME: ioctl(TIOCGWINSZ)";
+                THROW(Err::ErrSys, "ioctl(TIOCGWINSZ)");
         }
         return std::pair<int,int>(ws.ws_row, ws.ws_col);
 }
@@ -209,13 +209,17 @@ new_connection()
 
 	FDWrap terminal(0);
 
-	tcgetattr(terminal.get(), &old_tio);
+	if (tcgetattr(terminal.get(), &old_tio)) {
+                THROW(Err::ErrSys, "tcgetattr()");
+        }
 	old_tio_set = true;
 	atexit(reset_tio);
 
 	struct termios tio;
 	cfmakeraw(&tio);
-	tcsetattr(terminal.get(), TCSADRAIN, &tio);
+	if (tcsetattr(terminal.get(), TCSADRAIN, &tio)) {
+                THROW(Err::ErrSys, "tcsetattr(,TCSADRAIN,)");
+        }
 
 
 	mainloop(terminal);
@@ -295,11 +299,13 @@ read_config_file(const std::string &fn)
 			try {
 				read_config_file(xwordexp(conf->parms[0]));
 			} catch(const ConfigParser::ErrStream&) {
-				throw "I/O error accessing config file: "
-					+ conf->parms[0];
+				THROW(Err::ErrBase,
+                                      "I/O error accessing include file: "
+                                      + conf->parms[0]);
 			}
 		} else {
-			throw "FIXME: error in config file: " + conf->keyword;
+			THROW(Err::ErrBase,
+                              "Error in config file: " + conf->keyword);
 		}
 	}
 }
@@ -332,7 +338,8 @@ parse_options(int argc, char * const *argv)
 	try {
 		read_config_file(options.config);
 	} catch(const ConfigParser::ErrStream&) {
-		throw "I/O error accessing config file: " + options.config;
+		THROW(Err::ErrBase,
+                      "I/O error accessing config file: " + options.config);
 	}
 	int opt;
 	while ((opt = getopt(argc, argv, "c:C:hp:vV")) != -1) {
@@ -381,7 +388,7 @@ main2(int argc, char * const argv[])
 	parse_options(argc, argv);
 
         if (SIG_ERR == signal(SIGWINCH, sigwinch)) {
-                throw "FIXME: signal()";
+                THROW(Err::ErrSys, "signal(SIGWINCH)");
         }
 
 	sock.ssl_set_cipher_list(options.cipher_list);
@@ -421,17 +428,20 @@ main(int argc, char **argv)
 			throw;
 		}
 	} catch(const SSLSocket::ErrSSL &e) {
-		reset_tio();
 		std::cerr << e.human_readable();
+	} catch(const Err::ErrBase &e) {
+                if (options.verbose) {
+                        fprintf(stderr, "%s: %s\n",
+                                argv0, e.what_verbose());
+                } else {
+                        fprintf(stderr, "%s: %s\n",
+                                argv0, e.what());
+                }
 	} catch (const std::exception &e) {
-		std::cout << "tlssh::main() std::exception: "
+		std::cerr << "tlssh std::exception: "
 			  << e.what() << std::endl;
-	} catch (const std::string &e) {
-		std::cerr << "FIXME: " << std::endl
-			  << e << std::endl;
-	} catch (const char *e) {
-		std::cerr << "FIXME: " << std::endl
-			  << e << std::endl;
+	} catch (...) {
+		std::cerr << "tlsshd: Unknown exception!" << std::endl;
 	}
 }
 
