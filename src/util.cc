@@ -25,7 +25,7 @@ xwordexp(const std::string &in)
 
 	if (p.we_wordc != 1) {
                 wordfree(&p);
-		THROW(ERR::ErrBase, "wordexp(" + in + ") nmatch != 1");
+		THROW(Err::ErrBase, "wordexp(" + in + ") nmatch != 1");
 	}
 
 	std::string ret(p.we_wordv[0]);
