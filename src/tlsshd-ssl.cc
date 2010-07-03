@@ -1,3 +1,4 @@
+// tlssh/src/tlsshd-ssl.cc
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -22,11 +23,15 @@
 #include"util.h"
 
 using namespace tlssh_common;
+using namespace tlsshd;
 
-BEGIN_NAMESPACE(tlsshd);
+BEGIN_NAMESPACE(tlsshd_sslproc);
 
 size_t iac_len[256];
 
+/**
+ *
+ */
 std::string
 parse_iac(FDWrap &fd, std::string &from_sock)
 {
@@ -80,6 +85,9 @@ parse_iac(FDWrap &fd, std::string &from_sock)
         return ret;
 }
 
+/**
+ *
+ */
 bool
 connect_fd_sock(FDWrap &fd,
 		SSLSocket &sock,
@@ -223,9 +231,14 @@ user_loop(FDWrap &terminal, SSLSocket &sock, int fd_control)
 void
 drop_privs(const struct passwd *pw)
 {
+        if (initgroups(pw->pw_name, pw->pw_gid)) {
+		throw "FIXME: initgroups()";
+        }
+#if 0
 	if (0 > setgroups(0, NULL)) {
 		throw "FIXME: setgroups()";
 	}
+#endif
 	if (setresgid(pw->pw_gid, pw->pw_gid, pw->pw_gid)) {
 		throw "FIXME: setresgid()";
 	}
@@ -234,6 +247,9 @@ drop_privs(const struct passwd *pw)
 	}
 }
 
+/**
+ *
+ */
 void
 spawn_child(const struct passwd *pw,
 	    pid_t *pid,
@@ -243,6 +259,11 @@ spawn_child(const struct passwd *pw,
 {
         int fds;
         int fd_control[2];
+
+        if (chdir("/")) {
+                throw "FIXME: chdir(/))";
+        }
+
 	if (-1 == openpty(fdm, &fds, NULL, NULL, NULL)) {
                 throw "FIXME: openpty()";
         }
@@ -269,8 +290,16 @@ spawn_child(const struct passwd *pw,
                         throw "FIXME: login_tty()";
                 }
                 drop_privs(pw);
-                forkmain_child(pw, fd_control[0]);
+                tlsshd_shellproc::forkmain(pw, fd_control[0]);
 	}
+        if (!options.chroot.empty()) {
+                if (chroot(options.chroot.c_str())) {
+                        throw "FIXME: chroot()";
+                }
+                if (chdir("/")) {
+                        throw "FIXME: chdir(/))";
+                }
+        }
 	drop_privs(pw);
         close(fd_control[0]);
         close(fds);
@@ -317,7 +346,7 @@ new_ssl_connection(SSLSocket &sock)
  * output: calls new_ssl_connection() with up-and-running SSL connection
  */
 int
-forkmain_new_connection(FDWrap&fd)
+forkmain(FDWrap&fd)
 {
 	try {
 		SSLSocket sock(fd.get());
@@ -349,7 +378,7 @@ forkmain_new_connection(FDWrap&fd)
 	return 0;
 }
 
-END_NAMESPACE(tlsshd);
+END_NAMESPACE(tlsshd_sslproc);
 /* ---- Emacs Variables ----
  * Local Variables:
  * c-basic-offset: 8

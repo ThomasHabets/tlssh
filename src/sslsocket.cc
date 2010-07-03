@@ -1,3 +1,4 @@
+// tlssh/src/sslsocket.cc
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -21,8 +22,9 @@
 	RAND_write_file("random.seed");
 #endif
 
-
-
+/**
+ *
+ */
 X509Wrap::X509Wrap(X509 *x509)
 	:x509(x509)
 {
@@ -31,6 +33,9 @@ X509Wrap::X509Wrap(X509 *x509)
 	}
 }
 
+/**
+ *
+ */
 bool
 X509Wrap::check_hostname(const std::string &host)
 {
@@ -99,6 +104,9 @@ X509Wrap::check_hostname(const std::string &host)
 	return false;
 }
 
+/**
+ *
+ */
 std::string
 X509Wrap::get_common_name() const
 {
@@ -117,6 +125,9 @@ X509Wrap::get_common_name() const
 	return std::string(buf);
 }
 
+/**
+ *
+ */
 std::string
 X509Wrap::get_issuer() const
 {
@@ -126,6 +137,9 @@ X509Wrap::get_issuer() const
 	return std::string(buf);
 }
 
+/**
+ *
+ */
 std::string
 X509Wrap::get_subject() const
 {
@@ -135,6 +149,9 @@ X509Wrap::get_subject() const
 	return std::string(buf);
 }
 
+/**
+ *
+ */
 X509Wrap::~X509Wrap()
 {
 	if (x509) {
@@ -143,6 +160,9 @@ X509Wrap::~X509Wrap()
 	}
 }
 
+/**
+ *
+ */
 X509Wrap::ErrSSL::ErrSSL(const std::string &s, SSL *ssl, int err)
 	:ErrBase(s)
 {
@@ -154,6 +174,9 @@ X509Wrap::ErrSSL::ErrSSL(const std::string &s, SSL *ssl, int err)
 	msg = msg + ": " + sslmsg;
 }
 
+/**
+ *
+ */
 SSLSocket::SSLSocket(int fd)
 	:Socket(fd)
 {
@@ -162,6 +185,9 @@ SSLSocket::SSLSocket(int fd)
 	ERR_load_SSL_strings();
 }
 
+/**
+ *
+ */
 std::auto_ptr<X509Wrap>
 SSLSocket::get_cert()
 {
@@ -172,6 +198,9 @@ SSLSocket::get_cert()
 	}
 }
 
+/**
+ *
+ */
 const std::string
 SSLSocket::ssl_errstr(int err)
 {
@@ -198,18 +227,26 @@ SSLSocket::ssl_errstr(int err)
 	return "uhh.. what?";
 }
 
-
+/**
+ *
+ */
 SSLSocket::~SSLSocket()
 {
 	shutdown();
 }
 
+/**
+ *
+ */
 void
 SSLSocket::release()
 {
 	fd.close();
 }
 
+/**
+ *
+ */
 void
 SSLSocket::shutdown()
 {
@@ -221,6 +258,9 @@ SSLSocket::shutdown()
 	ctx = 0;
 }
 
+/**
+ *
+ */
 void
 SSLSocket::ssl_attach(Socket &sock)
 {
@@ -228,6 +268,9 @@ SSLSocket::ssl_attach(Socket &sock)
 	sock.forget();
 }
 
+/**
+ *
+ */
 void
 SSLSocket::ssl_connect(const std::string &inhost)
 {
@@ -235,6 +278,9 @@ SSLSocket::ssl_connect(const std::string &inhost)
 	ssl_accept_connect(true);
 }
 
+/**
+ *
+ */
 void
 SSLSocket::ssl_accept_connect(bool isconnect)
 {
@@ -329,12 +375,18 @@ SSLSocket::ssl_accept_connect(bool isconnect)
 
 }
 
+/**
+ *
+ */
 void
 SSLSocket::ssl_accept()
 {
 	ssl_accept_connect(false);
 }
 
+/**
+ *
+ */
 size_t
 SSLSocket::write(const std::string &buf)
 {
@@ -343,6 +395,9 @@ SSLSocket::write(const std::string &buf)
 	return ret;
 }
 
+/**
+ *
+ */
 std::string
 SSLSocket::read(size_t m)
 {
@@ -360,42 +415,63 @@ SSLSocket::read(size_t m)
 	throw ErrSSL("SSL_read", ssl, err);
 }
 	
+/**
+ *
+ */
 bool
 SSLSocket::ssl_pending()
 {
 	return SSL_pending(ssl);
 }
 
+/**
+ *
+ */
 void
 SSLSocket::ssl_set_cipher_list(const std::string &lst)
 {
 	cipher_list = lst;
 }
 
+/**
+ *
+ */
 void
 SSLSocket::ssl_set_capath(const std::string &s)
 {
 	capath = s;
 }
 
+/**
+ *
+ */
 void
 SSLSocket::ssl_set_cafile(const std::string &s)
 {
 	cafile = s;
 }
 
+/**
+ *
+ */
 void
 SSLSocket::ssl_set_certfile(const std::string &s)
 {
 	certfile = s;
 }
 
+/**
+ *
+ */
 void
 SSLSocket::ssl_set_keyfile(const std::string &s)
 {
 	keyfile = s;
 }
 
+/**
+ *
+ */
 SSLSocket::ErrSSL::ErrSSL(const std::string &s, SSL *ssl, int err)
 			:ErrBase(s)
 {
@@ -429,6 +505,9 @@ SSLSocket::ErrSSL::ErrSSL(const std::string &s, SSL *ssl, int err)
 	}
 }
 
+/**
+ *
+ */
 std::string
 SSLSocket::ErrSSL::human_readable() const
 {
@@ -453,6 +532,9 @@ SSLSocket::ErrSSL::human_readable() const
 	return ret.str();
 }
 
+/**
+ *
+ */
 SSLSocket::ErrSSLHostname::ErrSSLHostname(const std::string &host,
 					  const std::string &subject)
 	:ErrSSL("")

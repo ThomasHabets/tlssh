@@ -4,6 +4,9 @@
 
 #include"fdwrap.h"
 
+/**
+ *
+ */
 std::string
 FDWrap::read(size_t m)
 {
@@ -16,6 +19,9 @@ FDWrap::read(size_t m)
 	return std::string(&buf[0], &buf[n]);
 }
 
+/**
+ *
+ */
 size_t
 FDWrap::write(const std::string &data)
 {
@@ -30,6 +36,9 @@ FDWrap::write(const std::string &data)
 	return n;
 }
 
+/**
+ *
+ */
 void
 FDWrap::full_write(const std::string &data)
 {

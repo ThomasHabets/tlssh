@@ -2,6 +2,10 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
+
+/**
+ *
+ */
 class GetAddrInfo {
 	struct addrinfo *addrs;
 public:
@@ -19,6 +23,9 @@ public:
 	struct addrinfo *fixme() { return addrs; }
 };
 
+/**
+ *
+ */
 GetAddrInfo::~GetAddrInfo()
 {
 	if (addrs) {
@@ -27,6 +34,9 @@ GetAddrInfo::~GetAddrInfo()
 	addrs = 0;
 }
 
+/**
+ *
+ */
 GetAddrInfo::GetAddrInfo(const std::string &host,
 			 const std::string &port,
 			 const struct addrinfo *hints)

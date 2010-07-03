@@ -1,3 +1,4 @@
+// tlssh/src/tlssh.cc
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -63,6 +64,9 @@ Options options = {
 	
 SSLSocket sock;
 
+/**
+ *
+ */
 bool sigwinch_received = true;
 void
 sigwinch(int)
@@ -70,6 +74,9 @@ sigwinch(int)
         sigwinch_received = true;
 }
 
+/**
+ *
+ */
 std::pair<int,int>
 terminal_size()
 {
@@ -80,6 +87,9 @@ terminal_size()
         return std::pair<int,int>(ws.ws_row, ws.ws_col);
 }
 
+/**
+ *
+ */
 std::string
 iac_window_size()
 {
@@ -93,6 +103,9 @@ iac_window_size()
         return std::string(&cmd.buf[0], &cmd.buf[6]);
 }
 
+/**
+ *
+ */
 std::string
 terminal_type()
 {
@@ -100,6 +113,9 @@ terminal_type()
         return getenv("TERM");
 }
 
+/**
+ *
+ */
 void
 mainloop(FDWrap &terminal)
 {
@@ -167,6 +183,9 @@ mainloop(FDWrap &terminal)
 }
 
 
+/**
+ *
+ */
 struct termios old_tio;
 bool old_tio_set = false;
 void
@@ -203,6 +222,9 @@ new_connection()
 	terminal.forget();
 }
 
+/**
+ *
+ */
 void
 usage(int err)
 {
@@ -221,6 +243,9 @@ usage(int err)
 	exit(err);
 }
 
+/**
+ *
+ */
 void
 print_version()
 {
@@ -235,7 +260,7 @@ print_version()
 }
 
 /**
- * FIXME: implement this
+ *
  */
 void
 read_config_file(const std::string &fn)
@@ -342,12 +367,14 @@ parse_options(int argc, char * const *argv)
 	options.host = argv[optind];
 }
 
-
 END_NAMESPACE(tlssh);
 
 
 BEGIN_LOCAL_NAMESPACE()
 using namespace tlssh;
+/**
+ *
+ */
 int
 main2(int argc, char * const argv[])
 {
@@ -379,7 +406,9 @@ main2(int argc, char * const argv[])
 }
 END_LOCAL_NAMESPACE()
 
-
+/**
+ *
+ */
 int
 main(int argc, char **argv)
 {

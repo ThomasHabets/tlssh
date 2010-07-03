@@ -1,3 +1,4 @@
+// tlssh/src/tlsshd-shell.cc
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -13,9 +14,13 @@
 #include "util.h"
 
 using namespace tlssh_common;
+using namespace tlsshd;
 
-BEGIN_NAMESPACE(tlsshd);
+BEGIN_NAMESPACE(tlsshd_shellproc);
 
+/**
+ *
+ */
 void
 parse_header_line(const std::string &s)
 {
@@ -41,7 +46,7 @@ parse_header_line(const std::string &s)
  *
  */
 void
-forkmain2_child(const struct passwd *pw, int fd_control)
+forkmain2(const struct passwd *pw, int fd_control)
 {
 	if (clearenv()) {
 		perror("clearenv()");
@@ -95,10 +100,10 @@ forkmain2_child(const struct passwd *pw, int fd_control)
  * wrapper function with exception handler
  */
 int
-forkmain_child(const struct passwd *pw, int fd_control)
+forkmain(const struct passwd *pw, int fd_control)
 {
         try {
-                forkmain2_child(pw, fd_control);
+                forkmain2(pw, fd_control);
 		return 0;
         } catch (const char *e) {
                 std::cerr << "forkmain_child(): char*: "
@@ -113,7 +118,7 @@ forkmain_child(const struct passwd *pw, int fd_control)
 	return 1;
 }
 
-END_NAMESPACE(tlsshd);
+END_NAMESPACE(tlsshd_shellproc);
 /* ---- Emacs Variables ----
  * Local Variables:
  * c-basic-offset: 8

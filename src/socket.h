@@ -5,6 +5,9 @@
 #include<string>
 #include "fdwrap.h"
 
+/**
+ *
+ */
 class Socket {
 protected:
 	FDWrap fd;

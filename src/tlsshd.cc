@@ -44,6 +44,7 @@ const std::string DEFAULT_CLIENTCAPATH = "";
 const std::string DEFAULT_CONFIG       = "/etc/tlssh/tlsshd.conf";
 const std::string DEFAULT_CIPHER_LIST  = "DHE-RSA-AES256-SHA";
 const std::string DEFAULT_TCP_MD5      = "tlssh";
+const std::string DEFAULT_CHROOT       = "/var/empty";
 
 //  Structs
 
@@ -63,9 +64,12 @@ Options options = {
  config:         DEFAULT_CONFIG,
  cipher_list:    DEFAULT_CIPHER_LIST,
  tcp_md5:        DEFAULT_TCP_MD5,
+ chroot:         DEFAULT_CHROOT,
 };
 	
-
+/**
+ *
+ */
 int
 listen_loop()
 {
@@ -80,13 +84,16 @@ listen_loop()
 			continue;
 		}
 		if (!fork()) {
-			exit(forkmain_new_connection(clifd));
+			exit(tlsshd_sslproc::forkmain(clifd));
 		} else {
 			clifd.close();
 		}
 	}
 }
 
+/**
+ *
+ */
 void
 usage(int err)
 {
@@ -105,6 +112,9 @@ usage(int err)
 	exit(err);
 }
 
+/**
+ *
+ */
 void
 printversion()
 {
@@ -215,6 +225,9 @@ END_NAMESPACE(tlsshd);
 
 BEGIN_LOCAL_NAMESPACE()
 using namespace tlsshd;
+/**
+ *
+ */
 int
 main2(int argc, char * const argv[])
 {
@@ -226,6 +239,9 @@ main2(int argc, char * const argv[])
 }
 END_LOCAL_NAMESPACE()
 
+/**
+ *
+ */
 int
 main(int argc, char **argv)
 {

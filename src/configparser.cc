@@ -1,3 +1,4 @@
+// tlssh/src/configparser.cc
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -12,6 +13,9 @@
 #include"util.h"
 #include"configparser.h"
 
+/**
+ *
+ */
 void
 ConfigParserData::parse_line(const std::string&s)
 {
@@ -31,7 +35,9 @@ ConfigParserData::parse_line(const std::string&s)
 
 }
 
-
+/**
+ *
+ */
 std::ostream&
 operator<<(std::ostream&o, const ConfigParserData&d)
 { 
@@ -47,18 +53,27 @@ operator<<(std::ostream&o, const ConfigParserData&d)
 	o << "]";
 }
 
+/**
+ *
+ */
 bool
 ConfigParser::operator==(const ConfigParser&rhs) const
 {
 	return rhs.is_end & is_end;
 }
 
+/**
+ *
+ */
 bool
 ConfigParser::operator!=(const ConfigParser&rhs) const
 {
 	return !(*this == rhs);
 }
 
+/**
+ *
+ */
 void
 ConfigParser::readnext()
 {
@@ -74,6 +89,9 @@ ConfigParser::readnext()
 	data.parse_line(line);
 }
 
+/**
+ *
+ */
 const ConfigParser&
 ConfigParser::operator++()
 {
@@ -81,6 +99,9 @@ ConfigParser::operator++()
 	return *this;
 }
 
+/**
+ *
+ */
 ConfigParser
 ConfigParser::operator++(int unused)
 {
@@ -89,12 +110,18 @@ ConfigParser::operator++(int unused)
 	return tmp;;
 }
 
+/**
+ *
+ */
 const ConfigParserData&
 ConfigParser::operator*() const
 {
 	return data;
 }
 
+/**
+ *
+ */
 const ConfigParserData*
 ConfigParser::operator->() const
 {
@@ -102,12 +129,18 @@ ConfigParser::operator->() const
 }
 
 
+/**
+ *
+ */
 ConfigParser::ConfigParser(std::istream &s)
 	:stream(&s),is_end(false)
 {
 	readnext();
 }
 
+/**
+ *
+ */
 ConfigParser::ConfigParser()
 	:stream(0),is_end(true)
 {
@@ -115,6 +148,9 @@ ConfigParser::ConfigParser()
 
 
 #ifdef UNIT_TEST
+/**
+ *
+ */
 int
 main()
 {

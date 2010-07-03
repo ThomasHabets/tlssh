@@ -6,6 +6,9 @@
 #include<exception>
 #include<string>
 
+/**
+ *
+ */
 class FDWrap {
 	int fd;
 public:

@@ -1,3 +1,6 @@
+// -*- c++ -*-
+// tlssh/src/tlssh.cc
+
 #define BEGIN_NAMESPACE(a) namespace a {
 #define END_NAMESPACE(a) }
 #define BEGIN_LOCAL_NAMESPACE() namespace {
@@ -32,13 +35,21 @@ struct Options {
 	std::string config;
 	std::string cipher_list;
 	std::string tcp_md5;
+	std::string chroot;
 };
 extern Options options;
 extern std::string protocol_version;
 
-int forkmain_child(const struct passwd *pw, int fd_control);
-int forkmain_new_connection(FDWrap&fd);
 END_NAMESPACE(tlsshd);
+
+
+BEGIN_NAMESPACE(tlsshd_shellproc);
+int forkmain(const struct passwd *pw, int fd_control);
+END_NAMESPACE(tlsshd_shellproc);
+
+BEGIN_NAMESPACE(tlsshd_sslproc);
+int forkmain(FDWrap&fd);
+END_NAMESPACE(tlsshd_sslproc);
 
 
 /* ---- Emacs Variables ----

@@ -1,4 +1,5 @@
 /* -*- c++ -*- */
+// tlssh/src/sslsocket.h
 #include<openssl/bio.h>
 #include<openssl/x509v3.h>
 #include<openssl/ssl.h>
@@ -10,6 +11,9 @@
 
 #include"socket.h"
 
+/**
+ *
+ */
 class X509Wrap {
 	X509 *x509;
 	X509Wrap(const X509Wrap&);
@@ -40,6 +44,9 @@ public:
 	~X509Wrap();
 };
 
+/**
+ *
+ */
 class SSLSocket: public Socket {
 	SSL_CTX *ctx;
 	SSL *ssl;

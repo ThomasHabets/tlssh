@@ -8,17 +8,24 @@
 #include<unistd.h>
 #include<string.h>
 #include<fcntl.h>
+#include<netinet/tcp.h>
 
 #include"socket.h"
 #include"gaiwrap.h"
 
 
+/**
+ *
+ */
 Socket::Socket(int infd)
 	:debug(false)
 {
 	fd.set(infd);
 }
 
+/**
+ *
+ */
 int
 Socket::create_socket(const struct addrinfo *ai)
 {
@@ -30,19 +37,27 @@ Socket::create_socket(const struct addrinfo *ai)
 	fd.set(s);
 }
 
-
+/**
+ *
+ */
 int
 Socket::getfd() const
 {
 	return fd.get();
 }
 
+/**
+ *
+ */
 void
 Socket::forget()
 {
 	fd.forget();
 }
 
+/**
+ *
+ */
 int
 Socket::setsockopt_reuseaddr()
 {
@@ -55,6 +70,9 @@ Socket::setsockopt_reuseaddr()
 	}
 }
 
+/**
+ *
+ */
 void
 Socket::connect(const std::string &host, const std::string &port)
 {
@@ -80,6 +98,9 @@ Socket::connect(const std::string &host, const std::string &port)
         set_tcp_md5_sock();
 }
 
+/**
+ *
+ */
 int
 Socket::listen_any(int port)
 {
@@ -107,31 +128,44 @@ Socket::listen_any(int port)
 		throw ErrSys("listen()");
 	}
 }
-	
 
+/**
+ *
+ */
 Socket::~Socket()
 {
 }
 
+/**
+ *
+ */
 std::string
 Socket::read(size_t m)
 {
 	return fd.read(m);
 }
 
+/**
+ *
+ */
 size_t
 Socket::write(const std::string &data)
 {
 	return fd.write(data);
 }
 
+/**
+ *
+ */
 void
 Socket::full_write(const std::string &data)
 {
         fd.full_write(data);
 }
 
-#include <netinet/tcp.h>
+/**
+ *
+ */
 void
 Socket::set_nodelay(bool on)
 {
@@ -142,6 +176,9 @@ Socket::set_nodelay(bool on)
         }
 }
 
+/**
+ *
+ */
 void
 Socket::set_keepalive(bool on)
 {
@@ -152,12 +189,18 @@ Socket::set_keepalive(bool on)
         }
 }
 
+/**
+ *
+ */
 void
 Socket::set_tcp_md5(const std::string &keystring)
 {
         tcpmd5 = keystring;
 }
 
+/**
+ *
+ */
 void
 Socket::set_tcp_md5_sock()
 {
