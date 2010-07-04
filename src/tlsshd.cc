@@ -49,7 +49,7 @@ const std::string DEFAULT_CLIENTCAFILE = "/etc/tlssh/ClientCA.crt";
 const std::string DEFAULT_CLIENTCAPATH = "";
 const std::string DEFAULT_CLIENTDOMAIN = "";
 const std::string DEFAULT_CONFIG       = "/etc/tlssh/tlsshd.conf";
-const std::string DEFAULT_CIPHER_LIST  = "DHE-RSA-AES256-SHA";
+const std::string DEFAULT_CIPHER_LIST  = "HIGH:!ADH:!LOW:!MD5:@STRENGTH";
 const std::string DEFAULT_TCP_MD5      = "tlssh";
 const std::string DEFAULT_CHROOT       = "/var/empty";
 const unsigned    DEFAULT_VERBOSE      = 0;
@@ -246,10 +246,13 @@ parse_options(int argc, char * const *argv)
 	}
 
 	int opt;
-	while ((opt = getopt(argc, argv, "c:fhp:vV")) != -1) {
+	while ((opt = getopt(argc, argv, "c:C:fhp:vV")) != -1) {
 		switch (opt) {
 		case 'c':
 			// already handled above
+			break;
+		case 'C':
+			options.cipher_list = optarg;
 			break;
 		case 'f':
                         options.daemon = false;
@@ -320,8 +323,12 @@ main(int argc, char **argv)
 	} catch (const std::exception &e) {
 		std::cerr << "tlsshd std::exception: "
 			  << e.what() << std::endl;
+	} catch (const char *e) {
+		std::cerr << "tlsshd const char*: "
+			  << e << std::endl;
 	} catch (...) {
 		std::cerr << "tlsshd: Unknown exception!" << std::endl;
+                throw;
 	}
 }
 /* ---- Emacs Variables ----

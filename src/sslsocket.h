@@ -58,9 +58,11 @@ class SSLSocket: public Socket {
 	std::string cafile;
 	std::string host;
 
-	void ssl_accept_connect(bool);
 	SSLSocket &operator=(const SSLSocket&);
 	SSLSocket(const SSLSocket&);
+
+	void ssl_accept_connect(bool);
+        DH *ssl_setup_dh();
 public:
 	struct ErrQueueEntry {
 		std::string file;

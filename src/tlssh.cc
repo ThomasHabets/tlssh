@@ -440,8 +440,11 @@ main(int argc, char **argv)
 	} catch (const std::exception &e) {
 		std::cerr << "tlssh std::exception: "
 			  << e.what() << std::endl;
+	} catch (const char *e) {
+		std::cerr << "tlssh: const char*: "
+			  << e << std::endl;
 	} catch (...) {
-		std::cerr << "tlsshd: Unknown exception!" << std::endl;
+		std::cerr << "tlssh: Unknown exception!" << std::endl;
 	}
 }
 

@@ -285,6 +285,29 @@ SSLSocket::ssl_accept()
 	ssl_accept_connect(false);
 }
 
+DH*
+SSLSocket::ssl_setup_dh()
+{
+        DH* dh = DH_new();
+        if (!dh) {
+                throw ErrSSL("DH_new()");
+        }
+
+        if (!DH_generate_parameters_ex(dh, 2, DH_GENERATOR_2, 0)) {
+                throw ErrSSL("DH_generate_parameters_ex()");
+        }
+
+        int codes = 0;
+        if (!DH_check(dh, &codes) && !codes) {
+                throw ErrSSL("DH_check()");
+        }
+
+        if (!DH_generate_key(dh)) {
+                throw ErrSSL("DH_generate_key()");
+        }
+
+        return dh;
+}
 /**
  *
  */
@@ -346,6 +369,13 @@ SSLSocket::ssl_accept_connect(bool isconnect)
                 }
         }
 
+        // if server, set up DH
+        if (!isconnect) {
+                if (!SSL_CTX_set_tmp_dh(ctx, ssl_setup_dh())) {
+			throw ErrSSL("SSL_CTX_set_tmp_dh()");
+                }
+        }
+
         // create ssl object
 	if (!(ssl = SSL_new(ctx))) {
 		throw ErrSSL("SSL_new");
@@ -383,6 +413,7 @@ SSLSocket::ssl_accept_connect(bool isconnect)
 		std::cout << "  Issuer:  " << x.get_issuer() << std::endl
 			  << "  Subject: " << x.get_subject() << std::endl
 			  << "  Cipher: " << SSL_get_cipher_name(ssl)
+                          << " (" <<SSL_get_cipher_bits(ssl, 0) << " bits)"
 			  << std::endl
 			  << "  Version: " << SSL_get_cipher_version(ssl)
 			  << std::endl
