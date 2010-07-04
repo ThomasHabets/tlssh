@@ -15,9 +15,9 @@
  * [network] - <ssl socket> - [ssl] - <pty> - [shell]
  *                 ^            ^                ^
  *                 |            |                |
- * Code:        OpenSSL     This file        tlsshd-shell.cc
+ * Code:        OpenSSL     This file        tlsshd-shell.cc & bash
  *
- * Some of this code (the is run as root. Those functions are clearly labeled.
+ * Some of this code is run as root. Those functions are clearly labeled.
  */
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -280,16 +280,16 @@ spawn_child(const struct passwd *pw,
         int fd_control[2];
 
         if (chdir("/")) {
-                THROW(Err::ErrBase, "chdir()");
+                THROW(Err::ErrSys, "chdir()");
         }
         if (pipe(fd_control)) {
-                THROW(Err::ErrBase, "pipe()");
+                THROW(Err::ErrSys, "pipe()");
 
         }
 
         *pid = forkpty(fdm, NULL, NULL, NULL);
         if (*pid == -1) {
-                THROW(Err::ErrBase, "forkpty()");
+                THROW(Err::ErrSys, "forkpty()");
         }
 
         // child
@@ -301,19 +301,19 @@ spawn_child(const struct passwd *pw,
 
         // parent
         if (fchmod(0, 0600)) {
-                THROW(Err::ErrBase, "fchmod(0, 0600)");
+                THROW(Err::ErrSys, "fchmod(0, 0600)");
         }
 
         if (fchown(0, pw->pw_uid, -1)) {
-                THROW(Err::ErrBase, "fchown(0, ...)");
+                THROW(Err::ErrSys, "fchown(0, ...)");
         }
 
         if (!options.chroot.empty()) {
                 if (chroot(options.chroot.c_str())) {
-                        THROW(Err::ErrBase, "chroot("+options.chroot+")");
+                        THROW(Err::ErrSys, "chroot("+options.chroot+")");
                 }
                 if (chdir("/")) {
-                        THROW(Err::ErrBase, "chdir(/)");
+                        THROW(Err::ErrSys, "chdir(/)");
                 }
         }
 	drop_privs(pw);
@@ -377,6 +377,7 @@ forkmain(FDWrap&fd)
 {
 	try {
 		SSLSocket sock(fd.get());
+                sock.set_debug(options.verbose > 0);
                 sock.set_nodelay(true);
                 sock.set_keepalive(true);
                 sock.set_tcp_md5(options.tcp_md5);

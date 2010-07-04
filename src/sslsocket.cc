@@ -48,9 +48,6 @@ X509Wrap::check_hostname(const std::string &host)
 		X509_EXTENSION *ext;
 		const char *extstr;
 
-		// FIXME: this code segfaults!
-		//continue;
-
 		ext = X509_get_ext(x509, i);
 		extstr=OBJ_nid2sn(OBJ_obj2nid(X509_EXTENSION_get_object(ext)));
 		if (!strcmp(extstr, "subjectAltName")) {
@@ -64,7 +61,7 @@ X509Wrap::check_hostname(const std::string &host)
 				continue;
 			}
 			if (!meth->d2i) {
-				printf("What?! meth->d2i missing?!\n");
+				printf("What?! meth->d2i missing?! FIXME\n");
 				continue;
 			}
 			data = ext->value->data;
@@ -119,7 +116,7 @@ X509Wrap::get_common_name() const
 	}
 	if (!X509_NAME_get_text_by_NID(subj, NID_commonName,
 				       buf, sizeof(buf))) {
-		throw ErrSSL("X509_get_subject_name()");
+		throw ErrSSL("X509_NAME_get_text_by_NID()");
 	}
 	buf[sizeof(buf) - 1] = 0;
 	return std::string(buf);
@@ -192,7 +189,8 @@ std::auto_ptr<X509Wrap>
 SSLSocket::get_cert()
 {
 	try {
-		return std::auto_ptr<X509Wrap>(new X509Wrap(SSL_get_peer_certificate(ssl)));
+                return std::auto_ptr<X509Wrap>
+                        (new X509Wrap(SSL_get_peer_certificate(ssl)));
 	} catch(...) {
 		return std::auto_ptr<X509Wrap>(0);
 	}
@@ -282,26 +280,39 @@ SSLSocket::ssl_connect(const std::string &inhost)
  *
  */
 void
+SSLSocket::ssl_accept()
+{
+	ssl_accept_connect(false);
+}
+
+/**
+ *
+ */
+void
 SSLSocket::ssl_accept_connect(bool isconnect)
 {
 	int err;
 
-	if (isconnect) {
-		ctx = SSL_CTX_new(TLSv1_client_method());
-	} else {
-		ctx = SSL_CTX_new(TLSv1_server_method());
+        // create CTX
+        ctx = SSL_CTX_new(isconnect
+                          ? TLSv1_client_method()
+                          : TLSv1_server_method());
+        if (!ctx) {
+                throw ErrSSL("SSL_CTX_new");
 	}
 
+        // load cert & key
 	if (1 != SSL_CTX_use_certificate_chain_file(ctx,
 						    certfile.c_str())){
-		throw "certchain: " + certfile;
+                throw ErrSSL("Load certfile " + certfile);
 	}
 	if (1 != SSL_CTX_use_PrivateKey_file(ctx,
 					     keyfile.c_str(),
 					     SSL_FILETYPE_PEM)) {
-		throw "keyfile: " + keyfile;
+                throw ErrSSL("Load keyfile " + keyfile);
 	}
 
+        // set CAPath & CAFile for cert verification
 	const char *ccapath = capath.c_str();
 	const char *ccafile = cafile.c_str();
 	if (!*ccafile) {
@@ -320,28 +331,32 @@ SSLSocket::ssl_accept_connect(bool isconnect)
 			throw ErrSSL("load_verify");
 		}
 		SSL_CTX_set_verify_depth(ctx, 5);
-		if (isconnect) {
-			SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, NULL);
-		} else {
-			SSL_CTX_set_verify(ctx,
-					   SSL_VERIFY_PEER
-					   | SSL_VERIFY_FAIL_IF_NO_PEER_CERT,
-					   NULL);
-		}
+                SSL_CTX_set_verify(ctx,
+                                   SSL_VERIFY_PEER
+                                   | (isconnect
+                                      ? 0
+                                      : SSL_VERIFY_FAIL_IF_NO_PEER_CERT),
+                                   NULL);
 	}
-	if (0 && !cipher_list.empty()) {
+
+        // set approved cipher list
+	if (!cipher_list.empty()) {
 		if (!SSL_CTX_set_cipher_list(ctx, cipher_list.c_str())) {
 			throw ErrSSL("SSL_CTX_set_cipher_list");
                 }
         }
+
+        // create ssl object
 	if (!(ssl = SSL_new(ctx))) {
 		throw ErrSSL("SSL_new");
 	}
 
+        // attach fd to ssl object
 	if (!SSL_set_fd(ssl, fd.get())) {
 		throw ErrSSL("SSL_set_fd", ssl, err);
         }
 
+        // do handshake
 	if (isconnect) {
 		err = SSL_connect(ssl);
 		if (err == -1) {
@@ -362,6 +377,7 @@ SSLSocket::ssl_accept_connect(bool isconnect)
 		}
 	}
 
+        // if debug, show cert info
 	X509Wrap x(SSL_get_peer_certificate(ssl));
 	if (debug) {
 		std::cout << "  Issuer:  " << x.get_issuer() << std::endl
@@ -378,20 +394,14 @@ SSLSocket::ssl_accept_connect(bool isconnect)
 /**
  *
  */
-void
-SSLSocket::ssl_accept()
-{
-	ssl_accept_connect(false);
-}
-
-/**
- *
- */
 size_t
 SSLSocket::write(const std::string &buf)
 {
-	size_t ret;
+        int ret;
 	ret = SSL_write(ssl, buf.data(), buf.length());
+        if (ret <= 0) {
+                throw ErrSSL("SSL_write()", ssl, SSL_get_error(ssl, ret));
+        }
 	return ret;
 }
 
@@ -548,4 +558,3 @@ SSLSocket::ErrSSLHostname::ErrSSLHostname(const std::string &host,
  * indent-tabs-mode: nil
  * End:
  */
-
