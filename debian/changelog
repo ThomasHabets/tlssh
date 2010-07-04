@@ -1,3 +1,12 @@
+tlssh (0.02) unstable; urgency=low
+
+  * Use Diffie-Hellman
+  * TCP MD5
+  * Terminal support, including resize
+  * Daemonized
+
+ -- Thomas Habets <thomas@habets.pp.se>  Sun, 04 Jul 2010 20:38:01 +0200
+
 tlssh (0.01) unstable; urgency=low
 
   * Initial Release.
