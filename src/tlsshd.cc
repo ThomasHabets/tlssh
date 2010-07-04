@@ -47,6 +47,7 @@ const std::string DEFAULT_CERTFILE     = "/etc/tlssh/tlsshd.crt";
 const std::string DEFAULT_KEYFILE      = "/etc/tlssh/tlsshd.key";
 const std::string DEFAULT_CLIENTCAFILE = "/etc/tlssh/ClientCA.crt";
 const std::string DEFAULT_CLIENTCAPATH = "";
+const std::string DEFAULT_CLIENTDOMAIN = "";
 const std::string DEFAULT_CONFIG       = "/etc/tlssh/tlsshd.conf";
 const std::string DEFAULT_CIPHER_LIST  = "DHE-RSA-AES256-SHA";
 const std::string DEFAULT_TCP_MD5      = "tlssh";
@@ -65,6 +66,7 @@ Options options = {
  keyfile:        DEFAULT_KEYFILE,
  clientcafile:   DEFAULT_CLIENTCAFILE,
  clientcapath:   DEFAULT_CLIENTCAPATH,
+ clientdomain:   DEFAULT_CLIENTDOMAIN,
  config:         DEFAULT_CONFIG,
  cipher_list:    DEFAULT_CIPHER_LIST,
  tcp_md5:        DEFAULT_TCP_MD5,
@@ -171,6 +173,12 @@ read_config_file(const std::string &fn)
 		} else if (conf->keyword == "ClientCAPath"
                            && conf->parms.size() == 1) {
 			options.clientcapath = conf->parms[0];
+		} else if (conf->keyword == "ClientDomain"
+                           && conf->parms.size() == 1) {
+			options.clientdomain = conf->parms[0];
+		} else if (conf->keyword == "Chroot"
+                           && conf->parms.size() == 1) {
+			options.chroot = conf->parms[0];
 		} else if (conf->keyword == "Port"
                            && conf->parms.size() == 1) {
 			options.port = conf->parms[0];

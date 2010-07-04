@@ -36,6 +36,7 @@ struct Options {
 	std::string keyfile;
 	std::string clientcafile;
 	std::string clientcapath;
+	std::string clientdomain;
 	std::string config;
 	std::string cipher_list;
 	std::string tcp_md5;

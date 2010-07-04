@@ -344,11 +344,20 @@ new_ssl_connection(SSLSocket &sock)
 			  << std::endl;
 	}
 
-	std::string username = cert->get_common_name();
-        if (options.verbose) {
-                std::cout << "Logged in using cert " << username << std::endl;
+	std::string certname = cert->get_common_name();
+        size_t dotpos = certname.find('.');
+        if (dotpos == std::string::npos) {
+                throw "FIXME: cert CN had no dot";
         }
-	username = username.substr(0,username.find('.'));
+	std::string username = certname.substr(0, dotpos);
+        std::string domain = certname.substr(dotpos+1);
+        if (domain != options.clientdomain) {
+                throw "FIXME: client is in wrong domain";
+        }
+        if (options.verbose) {
+                printf("Logged in using cert: user=<%s>, domain=<%s>\n",
+                       username.c_str(), domain.c_str());
+        }
 
 	std::vector<char> pwbuf;
 	struct passwd pw = xgetpwnam(username, pwbuf);
@@ -377,7 +386,7 @@ forkmain(FDWrap&fd)
 {
 	try {
 		SSLSocket sock(fd.get());
-                sock.set_debug(options.verbose > 0);
+                sock.set_debug(options.verbose > 1);
                 sock.set_nodelay(true);
                 sock.set_keepalive(true);
                 sock.set_tcp_md5(options.tcp_md5);
