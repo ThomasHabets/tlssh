@@ -294,20 +294,19 @@ spawn_child(const struct passwd *pw,
 
         // child
         if (*pid == 0) {
+                if (fchmod(0, 0600)) {
+                        THROW(Err::ErrSys, "fchmod(0, 0600)");
+                }
+                if (fchown(0, pw->pw_uid, -1)) {
+                        THROW(Err::ErrSys, "fchown(0, ...)");
+                }
+
                 close(fd_control[1]);
                 drop_privs(pw);
                 exit(tlsshd_shellproc::forkmain(pw, fd_control[0]));
 	}
 
         // parent
-        if (fchmod(0, 0600)) {
-                THROW(Err::ErrSys, "fchmod(0, 0600)");
-        }
-
-        if (fchown(0, pw->pw_uid, -1)) {
-                THROW(Err::ErrSys, "fchown(0, ...)");
-        }
-
         if (!options.chroot.empty()) {
                 if (chroot(options.chroot.c_str())) {
                         THROW(Err::ErrSys, "chroot("+options.chroot+")");
