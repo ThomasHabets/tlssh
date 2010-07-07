@@ -43,6 +43,7 @@ struct Options {
 	std::string chroot;
         int verbose;
         bool daemon;
+        int af;
 };
 extern Options options;
 extern std::string protocol_version;

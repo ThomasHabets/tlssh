@@ -35,6 +35,7 @@ const std::string DEFAULT_SERVERCAPATH = "";
 const std::string DEFAULT_CONFIG       = "/etc/tlssh/tlssh.conf";
 const std::string DEFAULT_CIPHER_LIST  = "HIGH";
 const std::string DEFAULT_TCP_MD5      = "tlssh";
+const int         DEFAULT_AF           = AF_UNSPEC;
 
 
 struct Options {
@@ -48,6 +49,7 @@ struct Options {
 	std::string host;
 	std::string tcp_md5;
 	unsigned int verbose;
+        int af;
 };
 Options options = {
  port:         DEFAULT_PORT,
@@ -60,6 +62,7 @@ Options options = {
  host:         "",
  tcp_md5:      DEFAULT_TCP_MD5,
  verbose:      0,
+ af:           AF_UNSPEC,
 };
 	
 SSLSocket sock;
@@ -232,7 +235,7 @@ new_connection()
 void
 usage(int err)
 {
-	printf("%s [ -hv ] "
+	printf("%s [ -46hv ] "
 	       "[ -c <config> ] "
 	       "[ -C <cipher-list> ] "
 	       "[ -p <cert+keyfile> ]"
@@ -342,8 +345,14 @@ parse_options(int argc, char * const *argv)
                       "I/O error accessing config file: " + options.config);
 	}
 	int opt;
-	while ((opt = getopt(argc, argv, "c:C:hp:vV")) != -1) {
+	while ((opt = getopt(argc, argv, "46c:C:hp:vV")) != -1) {
 		switch (opt) {
+                case '4':
+                        options.af = AF_INET;
+                        break;
+                case '6':
+                        options.af = AF_INET6;
+                        break;
 		case 'c':  // already handled above
 			break;
 		case 'C':
@@ -402,7 +411,7 @@ main2(int argc, char * const argv[])
 
 	Socket rawsock;
 
-	rawsock.connect(options.host, options.port);
+	rawsock.connect(options.af, options.host, options.port);
         rawsock.set_tcp_md5(options.tcp_md5);
         rawsock.set_tcp_md5_sock();
         rawsock.set_nodelay(true);

@@ -54,6 +54,7 @@ const std::string DEFAULT_TCP_MD5      = "tlssh";
 const std::string DEFAULT_CHROOT       = "/var/empty";
 const unsigned    DEFAULT_VERBOSE      = 0;
 const bool        DEFAULT_DAEMON       = true;
+const int         DEFAULT_AF           = AF_UNSPEC;
 
 /*** Process-wide variables ***/
 
@@ -73,6 +74,7 @@ Options options = {
  chroot:         DEFAULT_CHROOT,
  verbose:        DEFAULT_VERBOSE,
  daemon:         DEFAULT_DAEMON,
+ af:             DEFAULT_AF,
 };
 
 /**
@@ -120,7 +122,7 @@ listen_loop()
 void
 usage(int err)
 {
-	printf("%s [ -fhv ] "
+	printf("%s [ -46fhv ] "
 	       "[ -c <config> ] "
 	       "[ -C <cipher-list> ] "
 	       "[ -p <cert+keyfile> ]"
@@ -246,8 +248,14 @@ parse_options(int argc, char * const *argv)
 	}
 
 	int opt;
-	while ((opt = getopt(argc, argv, "c:C:fhp:vV")) != -1) {
+	while ((opt = getopt(argc, argv, "46c:C:fhp:vV")) != -1) {
 		switch (opt) {
+                case '4':
+                        options.af = AF_INET;
+                        break;
+                case '6':
+                        options.af = AF_INET6;
+                        break;
 		case 'c':
 			// already handled above
 			break;
@@ -292,7 +300,7 @@ main2(int argc, char * const argv[])
 
 	parse_options(argc, argv);
         tlsshd::listen.set_tcp_md5("foo");
-	tlsshd::listen.listen_any(options.port);
+	tlsshd::listen.listen_any(options.af, options.port);
 
         if (options.daemon) {
                 if (daemon(0,0)) {

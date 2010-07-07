@@ -75,7 +75,7 @@ Socket::set_reuseaddr(bool ion)
  *
  */
 void
-Socket::connect(const std::string &host, const std::string &port)
+Socket::connect(int af, const std::string &host, const std::string &port)
 {
 	struct addrinfo hints;
 	struct addrinfo *p;
@@ -84,7 +84,7 @@ Socket::connect(const std::string &host, const std::string &port)
 
 	memset(&hints, 0, sizeof(hints));
         hints.ai_flags = AI_ADDRCONFIG;
-	hints.ai_family = AF_UNSPEC;
+	hints.ai_family = af;
         hints.ai_socktype = SOCK_STREAM;
 
 	GetAddrInfo gai(host, port, &hints);
@@ -103,14 +103,14 @@ Socket::connect(const std::string &host, const std::string &port)
  *
  */
 void
-Socket::listen_any(const std::string &port)
+Socket::listen_any(int af, const std::string &port)
 {
 
 	int err;
 	struct addrinfo hints;
 	memset(&hints, 0, sizeof(hints));
         hints.ai_flags = AI_ADDRCONFIG | AI_PASSIVE;
-        hints.ai_family = AF_UNSPEC;
+        hints.ai_family = af;
         hints.ai_socktype = SOCK_STREAM;
 
 	GetAddrInfo gai("", port, &hints);

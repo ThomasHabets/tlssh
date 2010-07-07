@@ -56,8 +56,8 @@ public:
         void set_tcp_md5(const std::string &);
         void set_tcp_md5_sock();
 
-	void listen_any(const std::string &port);
-	void connect(const std::string &host, const std::string &port);
+	void listen_any(int af, const std::string &port);
+	void connect(int af, const std::string &host, const std::string &port);
 
 	virtual std::string read(size_t m = 4096);
 	virtual size_t write(const std::string &);
