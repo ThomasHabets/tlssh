@@ -376,6 +376,31 @@ SSLSocket::ssl_accept_connect(bool isconnect)
                 }
         }
 
+        // set up CRL check.
+        // DISABLED: while this works, it gives the error message
+        // SSL_accept()[...]no certificate returned.
+        // so check is made after connection is made, at the end of this
+        // function
+        if (0 && !crlfile.empty()) {
+                // http://bugs.unrealircd.org/view.php?id=2043
+                X509_STORE *store = SSL_CTX_get_cert_store(ctx);
+                X509_LOOKUP *lookup=X509_STORE_add_lookup(store,
+                                                          X509_LOOKUP_file());
+
+                if (!X509_load_crl_file(lookup,
+                                       crlfile.c_str(),
+                                       X509_FILETYPE_PEM)) {
+                        throw ErrSSL("X509_load_crl_file");
+                }
+
+                if (!X509_STORE_set_flags(store,
+                                         X509_V_FLAG_CRL_CHECK
+                                         | X509_V_FLAG_CRL_CHECK_ALL
+                                         )) {
+                        throw ErrSSL("X509_STORE_set_flags");
+                }
+        }
+
         // create ssl object
 	if (!(ssl = SSL_new(ctx))) {
 		throw ErrSSL("SSL_new");
@@ -420,6 +445,40 @@ SSLSocket::ssl_accept_connect(bool isconnect)
 			;
 	}
 
+        // check CRL.
+        // FIXME: CRL only works if cafile is used, not capath
+        if (!crlfile.empty()) {
+                X509_STORE_CTX *ctx2 = X509_STORE_CTX_new();
+                X509_STORE *store = X509_STORE_new();
+                X509_LOOKUP *lookup=X509_STORE_add_lookup(store,
+                                                          X509_LOOKUP_file());
+
+                if (!X509_load_cert_file(lookup,
+                                         cafile.c_str(),
+                                         X509_FILETYPE_PEM)) {
+                        throw ErrSSL("X509_load_cert_file");
+                }
+
+                if (!X509_load_crl_file(lookup,
+                                        crlfile.c_str(),
+                                        X509_FILETYPE_PEM)) {
+                        if (!X509_load_crl_file(lookup,
+                                                crlfile.c_str(),
+                                                X509_FILETYPE_ASN1)) {
+                                throw ErrSSL("X509_load_crl_file");
+                        }
+                }
+
+                X509_STORE_set_flags(store, X509_V_FLAG_CRL_CHECK |
+                                     X509_V_FLAG_CRL_CHECK_ALL);
+
+                X509_STORE_CTX_init(ctx2, store, x.get(), 0);
+                if (1 != (err = X509_verify_cert(ctx2))) {
+                        throw ErrSSL("CRL check failed");
+                }
+                X509_STORE_free(store);
+                X509_STORE_CTX_free(ctx2);
+        }
 }
 
 /**
@@ -481,6 +540,15 @@ void
 SSLSocket::ssl_set_capath(const std::string &s)
 {
 	capath = s;
+}
+
+/**
+ *
+ */
+void
+SSLSocket::ssl_set_crlfile(const std::string &s)
+{
+	crlfile = s;
 }
 
 /**

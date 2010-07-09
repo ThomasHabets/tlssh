@@ -215,6 +215,7 @@ Socket::set_tcp_md5(const std::string &keystring)
 void
 Socket::set_tcp_md5_sock()
 {
+        return; // FIXME: enable later. I think this makes Linux crash
         struct tcp_md5sig md5sig;
         std::string key = tcpmd5.substr(0, TCP_MD5SIG_MAXKEYLEN);
         socklen_t t = sizeof(struct sockaddr_storage);

@@ -31,6 +31,7 @@ const std::string DEFAULT_PORT         = "12345";
 const std::string DEFAULT_CERTFILE     = "~/.tlssh/keys/default.crt";
 const std::string DEFAULT_KEYFILE      = "~/.tlssh/keys/default.key";
 const std::string DEFAULT_SERVERCAFILE = "/etc/tlssh/ServerCA.crt";
+const std::string DEFAULT_SERVERCRL    = "/etc/tlssh/ServerCRL.der";
 const std::string DEFAULT_SERVERCAPATH = "";
 const std::string DEFAULT_CONFIG       = "/etc/tlssh/tlssh.conf";
 const std::string DEFAULT_CIPHER_LIST  = "HIGH";
@@ -44,6 +45,7 @@ struct Options {
 	std::string keyfile;
 	std::string servercafile;
 	std::string servercapath;
+	std::string servercrl;
 	std::string config;
 	std::string cipher_list;
 	std::string host;
@@ -57,6 +59,7 @@ Options options = {
  keyfile:      DEFAULT_KEYFILE,
  servercafile: DEFAULT_SERVERCAFILE,
  servercapath: DEFAULT_SERVERCAPATH,
+ servercrl:    DEFAULT_SERVERCRL,
  config:       DEFAULT_CONFIG,
  cipher_list:  DEFAULT_CIPHER_LIST,
  host:         "",
@@ -286,6 +289,8 @@ read_config_file(const std::string &fn)
 			options.servercafile = conf->parms[0];
 		} else if (conf->keyword == "ServerCAPath") {
 			options.servercapath = conf->parms[0];
+		} else if (conf->keyword == "ServerCRL") {
+			options.servercrl = conf->parms[0];
 		} else if (conf->keyword == "CertFile") {
 			options.certfile = xwordexp(conf->parms[0]);
 		} else if (conf->keyword == "KeyFile") {
@@ -405,6 +410,7 @@ main2(int argc, char * const argv[])
 	sock.ssl_set_cafile(options.servercafile);
 	sock.ssl_set_certfile(options.certfile);
 	sock.ssl_set_keyfile(options.keyfile);
+	sock.ssl_set_crlfile(options.servercrl);
 	if (options.verbose) {
 		sock.set_debug(true);
 	}

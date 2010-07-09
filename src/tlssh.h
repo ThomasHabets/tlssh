@@ -35,6 +35,7 @@ struct Options {
 	std::string certfile;
 	std::string keyfile;
 	std::string clientcafile;
+	std::string clientcrl;
 	std::string clientcapath;
 	std::string clientdomain;
 	std::string config;

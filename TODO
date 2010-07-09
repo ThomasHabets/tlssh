@@ -1,7 +1,7 @@
 TODO before 0.03
 -----------------
 * Client and server can check CRL (server should deny if CRL is old)
-* support for online CRL check
+* support for online CRL check (OCSP)
 
 
 TODO before 1.00

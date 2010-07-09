@@ -42,6 +42,8 @@ public:
 	std::string get_common_name() const;
 	std::string get_subject() const;
 
+        X509 *get() { return x509; }
+
 	~X509Wrap();
 };
 
@@ -57,6 +59,7 @@ class SSLSocket: public Socket {
 	std::string capath;
 	std::string cafile;
 	std::string host;
+	std::string crlfile;
 
 	SSLSocket &operator=(const SSLSocket&);
 	SSLSocket(const SSLSocket&);
@@ -99,6 +102,7 @@ public:
 	void ssl_set_cafile(const std::string &s);
 	void ssl_set_certfile(const std::string &s);
 	void ssl_set_keyfile(const std::string &s);
+	void ssl_set_crlfile(const std::string &s);
 
 	std::auto_ptr<X509Wrap> get_cert();
 

@@ -46,6 +46,7 @@ const std::string DEFAULT_PORT         = "12345";
 const std::string DEFAULT_CERTFILE     = "/etc/tlssh/tlsshd.crt";
 const std::string DEFAULT_KEYFILE      = "/etc/tlssh/tlsshd.key";
 const std::string DEFAULT_CLIENTCAFILE = "/etc/tlssh/ClientCA.crt";
+const std::string DEFAULT_CLIENTCRL    = "/etc/tlssh/ClientCRL.pem";
 const std::string DEFAULT_CLIENTCAPATH = "";
 const std::string DEFAULT_CLIENTDOMAIN = "";
 const std::string DEFAULT_CONFIG       = "/etc/tlssh/tlsshd.conf";
@@ -66,6 +67,7 @@ Options options = {
  certfile:       DEFAULT_CERTFILE,
  keyfile:        DEFAULT_KEYFILE,
  clientcafile:   DEFAULT_CLIENTCAFILE,
+ clientcrl:      DEFAULT_CLIENTCRL,
  clientcapath:   DEFAULT_CLIENTCAPATH,
  clientdomain:   DEFAULT_CLIENTDOMAIN,
  config:         DEFAULT_CONFIG,
@@ -167,7 +169,7 @@ read_config_file(const std::string &fn)
 	for (;conf != end; ++conf) {
 		if (conf->keyword.empty()) {
 			// empty line
-		} else if (conf->keyword == "#") {
+		} else if (conf->keyword[0] == '#') {
 			// comment
 		} else if (conf->keyword == "ClientCAFile"
                            && conf->parms.size() == 1) {
@@ -175,6 +177,9 @@ read_config_file(const std::string &fn)
 		} else if (conf->keyword == "ClientCAPath"
                            && conf->parms.size() == 1) {
 			options.clientcapath = conf->parms[0];
+		} else if (conf->keyword == "ClientCRL"
+                           && conf->parms.size() == 1) {
+			options.clientcrl = conf->parms[0];
 		} else if (conf->keyword == "ClientDomain"
                            && conf->parms.size() == 1) {
 			options.clientdomain = conf->parms[0];
@@ -212,7 +217,7 @@ read_config_file(const std::string &fn)
 			}
 		} else {
                         THROW(ErrBase,
-                              "Error in config line: " + conf->parms[0]);
+                              "Error in config line: " + conf->line);
 		}
 	}
 }
@@ -299,7 +304,7 @@ main2(int argc, char * const argv[])
         }
 
 	parse_options(argc, argv);
-        tlsshd::listen.set_tcp_md5("foo");
+        tlsshd::listen.set_tcp_md5(options.tcp_md5);
 	tlsshd::listen.listen_any(options.af, options.port);
 
         if (options.daemon) {

@@ -385,13 +385,15 @@ forkmain(FDWrap&fd)
 {
 	try {
 		SSLSocket sock(fd.get());
+		fd.forget();
+
                 sock.set_debug(options.verbose > 1);
                 sock.set_nodelay(true);
                 sock.set_keepalive(true);
                 sock.set_tcp_md5(options.tcp_md5);
                 sock.set_tcp_md5_sock();
 
-		fd.forget();
+                sock.ssl_set_crlfile(options.clientcrl);
 		sock.ssl_set_cipher_list(options.cipher_list);
 		sock.ssl_set_capath(options.clientcapath);
 		sock.ssl_set_cafile(options.clientcafile);
