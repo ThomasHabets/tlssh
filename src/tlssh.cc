@@ -306,13 +306,15 @@ new_connection()
 void
 usage(int err)
 {
-	printf("%s [ -46hv ] "
+        printf("%s [ -46hvV ] "
 	       "[ -c <config> ] "
 	       "[ -C <cipher-list> ] "
-	       "[ -p <cert+keyfile> ]"
+               "\n"
+               "\t[ -p <cert+keyfile> ]"
 	       "\n"
 	       "\t-c <config>          Config file (default %s)\n"
-	       "\t-C <cipher-list>     Acceptable ciphers (default %s)\n"
+               "\t-C <cipher-list>     Acceptable ciphers\n"
+               "\t                     (default %s)\n"
 	       "\t-h, --help           Help\n"
 	       "\t-V, --version        Print version and exit\n"
 	       "\t-p <cert+keyfile>    Load login cert+key from file\n"
@@ -409,7 +411,7 @@ parse_options(int argc, char * const *argv)
 	options.keyfile = xwordexp(options.keyfile);
 
 	// special options
-	for (c = 1; c < argc - 1; c++) {
+	for (c = 1; c < argc; c++) {
 		if (!strcmp(argv[c], "--")) {
 			break;
 		} else if (!strcmp(argv[c], "--help")) {
@@ -418,7 +420,9 @@ parse_options(int argc, char * const *argv)
 			print_version();
 			exit(0);
 		} else if (!strcmp(argv[c], "-c")) {
-			options.config = argv[c+1];
+                        if (c != argc - 1) {
+                                options.config = argv[c+1];
+                        }
 		}
 	}
 	try {
