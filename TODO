@@ -1,8 +1,3 @@
-TODO before 0.03
-----------------
-* Client and server can check CRL - Done
-
-
 TODO before 0.04
 ----------------
 * anti-dos (many connections)
@@ -37,6 +32,7 @@ TODO after 1.00
 * pipe:ing.  tlssh host.com echo foo > foo 2>/dev/null
 * support for online CRL check (OCSP)
 * deny CRL if it's too old
+
 
 Notes
 -----
