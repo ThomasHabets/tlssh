@@ -21,7 +21,7 @@ print_version()
         printf("tlssh %s\n"
                "Copyright (C) 2010 Thomas Habets <thomas@habets.pp.se>\n"
                "License 3-clause BSD. Run with --copying to see the whole"
-               "license.\n"
+               " license.\n"
                "This is free software: you are free to change and "
                "redistribute it.\n"
                "There is NO WARRANTY, to the extent permitted by law.\n",
