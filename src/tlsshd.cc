@@ -163,21 +163,6 @@ usage(int err)
 	exit(err);
 }
 
-/** Print version info like GNU wants it. Caller exit()s
- */
-void
-printversion()
-{
-	printf("tlsshd %s\n"
-	       "Copyright (C) 2010 Thomas Habets <thomas@habets.pp.se>\n"
-	       "License GPLv2: GNU GPL version 2 or later "
-	       "<http://gnu.org/licenses/gpl-2.0.html>\n"
-	       "This is free software: you are free to change and "
-	       "redistribute it.\n"
-	       "There is NO WARRANTY, to the extent permitted by law.\n",
-	       VERSION);
-}
-
 /** Read config file
  *
  */
@@ -259,7 +244,10 @@ parse_options(int argc, char * const *argv)
 		} else if (!strcmp(argv[c], "--help")) {
 			usage(0);
 		} else if (!strcmp(argv[c], "--version")) {
-			printversion();
+			print_version();
+			exit(0);
+		} else if (!strcmp(argv[c], "--copying")) {
+			print_copying();
 			exit(0);
 		} else if (!strcmp(argv[c], "-c")) {
                         if (c + 1 != argc) {
@@ -303,7 +291,7 @@ parse_options(int argc, char * const *argv)
 			options.verbose++;
                         break;
 		case 'V':
-			printversion();
+			print_version();
 			exit(0);
 		default:
 			usage(1);

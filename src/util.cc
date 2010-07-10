@@ -98,7 +98,6 @@ xgetpwnam(const std::string &name, std::vector<char> &buffer)
 	return pw;
 }
 
-
 /* ---- Emacs Variables ----
  * Local Variables:
  * c-basic-offset: 8

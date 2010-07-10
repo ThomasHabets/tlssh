@@ -12,6 +12,10 @@
 #include"errbase.h"
 
 BEGIN_NAMESPACE(tlssh_common)
+
+void print_copying();
+void print_version();
+
 #pragma pack(1)
 /**
  * Interpret As Command
