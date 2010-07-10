@@ -1,7 +1,7 @@
 *~
 *.o
 autom4te.cache
-debian
+debian/tlssh*
 *.pem
 *.crl
 doc/doxygen
