@@ -1,0 +1,13 @@
+Installing
+----------
+See INSTALL file.
+
+
+Notes
+-----
+Support for TCP MD5 in Linux is always on since 2.6.27
+
+
+Links
+-----
+Telnet protocol RFC: http://www.faqs.org/rfcs/rfc854.html

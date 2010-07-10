@@ -1,4 +1,8 @@
 // -*- c++ -*-
+/**
+ * \file src/errbase.h
+ * Base exception classes
+ */
 #ifndef __INCLUDE_ERRBASE_H__
 #define __INCLUDE_ERRBASE_H__
 
@@ -22,7 +26,12 @@
 #define THROW0(a)     throw a(THROW_MKERR)
 #define THROW(a, ...) throw a(THROW_MKERR, __VA_ARGS__)
 
+/** Base exception classes
+ */
 namespace Err {
+        /**
+         * Extra error information provided by THROW macro.
+         */
         struct ErrData {
                 std::string file;
                 std::string func;
@@ -41,6 +50,9 @@ namespace Err {
                 }
         };
 
+        /**
+         * Base class for all exceptions
+         */
 	class ErrBase: public std::exception {
         protected:
                 const ErrData errdata;
@@ -66,6 +78,10 @@ namespace Err {
 			return verbose.c_str();
 		}
 	};
+
+        /**
+         * System call errors
+         */
         class ErrSys: public ErrBase {
                 std::string errstr;
                 int serrno;

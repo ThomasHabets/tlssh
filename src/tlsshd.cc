@@ -1,8 +1,24 @@
-/* tlsshd/src/tlsshd.cc
- *
- * tlsshd
+/// tlssh/src/tlsshd.cc
+/*
+ *  tlsshd
  *
  *   By Thomas Habets <thomas@habets.pp.se> 2010
+ *
+ */
+/**
+ * @defgroup TLSSHD TLSSH Server
+ @verbatim
+  [network] - <ssl socket> - [ssl] - <pty> - [shell]
+                  ^            ^                ^
+                  |            |                |
+   Code:        OpenSSL   tlsshd-ssl.cc    tlsshd-shell.cc & bash
+@endverbatim
+ *
+ * @file src/tlsshd.cc
+ * TLSSHD Listener process
+ *
+ * This process sets up the daemon, listens to the port and runs the
+ * accept()-loop.
  *
  * All the code in this file runs as root.
  */
@@ -39,7 +55,7 @@ using namespace Err;
 
 BEGIN_NAMESPACE(tlsshd);
 
-/*** constants **/
+/* constants */
 const char *argv0 = NULL;
 
 const std::string DEFAULT_PORT         = "12345";
@@ -57,10 +73,10 @@ const unsigned    DEFAULT_VERBOSE      = 0;
 const bool        DEFAULT_DAEMON       = true;
 const int         DEFAULT_AF           = AF_UNSPEC;
 
-/*** Process-wide variables ***/
+/* Process-wide variables */
 
 Socket listen;
-std::string protocol_version; // "tlssh.1"
+std::string protocol_version; // should be "tlssh.1"
 
 Options options = {
  port:           DEFAULT_PORT,
@@ -79,11 +95,14 @@ Options options = {
  af:             DEFAULT_AF,
 };
 
-/**
+/** Listen-loop.
+ *
  * Run as: root
  *
  * Run accept() in a loop. Do not read or write to the socket.
  * spawns a newly fork()ed sslproc handler. (tlsshd-ssl.cc::forkmain())
+ *
+ * @return Never returns, but if it did it would be the process exit value.
  */
 int
 listen_loop()
@@ -96,8 +115,8 @@ listen_loop()
 		socklen_t salen = sizeof(sa); 
 
 		clifd.set(::accept(listen.getfd(),
-				 (struct sockaddr*)&sa,
-				 &salen));
+                                   (struct sockaddr*)&sa,
+                                   &salen));
 		if (0 > clifd.get()) {
 			continue;
 		}
@@ -115,8 +134,9 @@ listen_loop()
 	}
 }
 
-/**
- * Print usage info. Called when doing one of:
+/** Print usage info and exit.
+ *
+ * Called when doing one of:
  * -h option (err = 0) 
  * --help option (err = 0)
  * invalid options (err != 1)
@@ -141,8 +161,7 @@ usage(int err)
 	exit(err);
 }
 
-/**
- * Print version info like GNU wants it. Caller exit()s
+/** Print version info like GNU wants it. Caller exit()s
  */
 void
 printversion()
@@ -157,7 +176,7 @@ printversion()
 	       VERSION);
 }
 
-/**
+/** Read config file
  *
  */
 void
@@ -304,7 +323,7 @@ main2(int argc, char * const argv[])
         }
 
 	parse_options(argc, argv);
-        tlsshd::listen.set_tcp_md5(options.tcp_md5);
+        //tlsshd::listen.set_tcp_md5(options.tcp_md5);
 	tlsshd::listen.listen_any(options.af, options.port);
 
         if (options.daemon) {

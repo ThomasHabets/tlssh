@@ -1,8 +1,8 @@
-/* tlssh/src/tlsshd-ssl.cc
- *
- * tlsshd
- *
- *   By Thomas Habets <thomas@habets.pp.se> 2010
+/// tlssh/src/tlsshd-ssl.cc
+/**
+ * @addtogroup TLSSHD
+ * @file src/tlsshd-ssl.cc
+ * TLSSHD SSL middle-layer process.
  *
  * TLSSH SSLProc
  *
@@ -11,11 +11,6 @@
  * privileges to that user. It also spawns the shell process.
  *
  * Then it shuffles data between the SSL socket and the user shell.
- *
- * [network] - <ssl socket> - [ssl] - <pty> - [shell]
- *                 ^            ^                ^
- *                 |            |                |
- * Code:        OpenSSL     This file        tlsshd-shell.cc & bash
  *
  * Some of this code is run as root. Those functions are clearly labeled.
  */

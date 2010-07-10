@@ -1,0 +1,10 @@
+Exceptions
+==========
+The THROW and THROW0 macros are used to throw exceptions. They
+automatically include __FILE__, __LINE__ et.al. so that information
+doesn't have to be typed everywhere.
+
+All exceptions inherit from Err::ErrBase (errbase.h) which in turn
+inherits from std::exception. Besides std::exception::what(),
+Err::ErrBase adds what_verbose(), which includes file, line and
+function where the exception was thrown.

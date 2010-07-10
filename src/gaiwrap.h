@@ -1,5 +1,8 @@
 // -*- c++ -*-
-// tlssh/src/gaiwrap.cc
+/**
+ * \file src/gaiwrap.cc
+ * getaddrinfo() wrapper
+ */
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>

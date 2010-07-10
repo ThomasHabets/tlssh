@@ -1,4 +1,7 @@
-// tlssh/src/socket.cc
+/**
+ * \file src/socket.cc
+ * Socket class
+ */
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -16,7 +19,9 @@
 
 
 /**
+ * Create socket object from existing file descriptor.
  *
+ * @param[in] infd File descriptor to use.
  */
 Socket::Socket(int infd)
 	:debug(false)
@@ -25,7 +30,9 @@ Socket::Socket(int infd)
 }
 
 /**
+ * Create new file descriptor
  *
+ * @param[in] ai addrinfo struct specifying address family and such.
  */
 void
 Socket::create_socket(const struct addrinfo *ai)
@@ -39,7 +46,9 @@ Socket::create_socket(const struct addrinfo *ai)
 }
 
 /**
+ * Get raw fd
  *
+ * @return file descriptor
  */
 int
 Socket::getfd() const
@@ -48,7 +57,7 @@ Socket::getfd() const
 }
 
 /**
- *
+ * Forget about underlying file descriptor (don't close at object destruction)
  */
 void
 Socket::forget()
@@ -57,7 +66,9 @@ Socket::forget()
 }
 
 /**
+ * set/unset socket option SO_REUSEADDR
  *
+ * @param[in] ion Turn on (true) or off (false) the option
  */
 void
 Socket::set_reuseaddr(bool ion)
@@ -72,7 +83,11 @@ Socket::set_reuseaddr(bool ion)
 }
 
 /**
+ * Connect to a hostname or address. Address agnostic if af is AF_UNSPEC.
  *
+ * @param[in] af AF_UNSPEC, AF_INET or AF_INET6. Others may work to.
+ * @param[in] host Hostname to connect to
+ * @param[in] port Port name or number
  */
 void
 Socket::connect(int af, const std::string &host, const std::string &port)
@@ -100,12 +115,14 @@ Socket::connect(int af, const std::string &host, const std::string &port)
 }
 
 /**
+ * Listen to port on all interfaces
  *
+ * @param[in] af Address family (AF_*). Should be AF_UNSPEC.
+ * @param[in] port Port name or number.
  */
 void
 Socket::listen_any(int af, const std::string &port)
 {
-
 	int err;
 	struct addrinfo hints;
 	memset(&hints, 0, sizeof(hints));
@@ -131,7 +148,7 @@ Socket::listen_any(int af, const std::string &port)
 }
 
 /**
- *
+ * Close socket
  */
 void
 Socket::close()
@@ -140,7 +157,7 @@ Socket::close()
 }
 
 /**
- *
+ * Destructor
  */
 Socket::~Socket()
 {
@@ -148,7 +165,12 @@ Socket::~Socket()
 }
 
 /**
+ * read at most 'm' bytes from socket.
  *
+ * Throw error if something goes wrong.
+ *
+ * @param[in] m Read no more than this many bytes
+ * @return Data read
  */
 std::string
 Socket::read(size_t m)
@@ -157,7 +179,10 @@ Socket::read(size_t m)
 }
 
 /**
+ * Write some data to the socket
  *
+ * @param[in] data Data to write
+ * @return How many bytes were actually written
  */
 size_t
 Socket::write(const std::string &data)
@@ -166,7 +191,9 @@ Socket::write(const std::string &data)
 }
 
 /**
+ * Write exactly all of a std::string
  *
+ * @param[in] data Data to write
  */
 void
 Socket::full_write(const std::string &data)
@@ -175,7 +202,9 @@ Socket::full_write(const std::string &data)
 }
 
 /**
+ * set/unset TCP_NODELAY
  *
+ * @param[in] on Turn on (true) or off (false)
  */
 void
 Socket::set_nodelay(bool on)
@@ -188,7 +217,9 @@ Socket::set_nodelay(bool on)
 }
 
 /**
+ * set/unset SO_KEEPALIVE
  *
+ * @param[in] on Turn on (true) or off (false)
  */
 void
 Socket::set_keepalive(bool on)
@@ -201,7 +232,9 @@ Socket::set_keepalive(bool on)
 }
 
 /**
+ * set TCP MD5 key
  *
+ * @param[in] keystring Key to set
  */
 void
 Socket::set_tcp_md5(const std::string &keystring)
@@ -210,7 +243,7 @@ Socket::set_tcp_md5(const std::string &keystring)
 }
 
 /**
- *
+ * Enable the TCP MD5 key set via set_tcp_md5() on the socket
  */
 void
 Socket::set_tcp_md5_sock()

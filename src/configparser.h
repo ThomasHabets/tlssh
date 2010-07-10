@@ -5,7 +5,7 @@
 
 #include "errbase.h"
 
-/**
+/** Data which the ConfigParser iterator dereferences to
  *
  */
 struct ConfigParserData {
@@ -22,7 +22,24 @@ struct ConfigParserData {
 };
 
 /**
+ * Input iterator generating parsed lines from an input stream.
  *
+ * Example use:
+ @code
+  std::ostream_iterator<ConfigParserData> out(std::cout, "\n");
+  std::ifstream inn("../test/test.conf");
+  std::copy(ConfigParser(inn),
+            ConfigParser(),
+            out);
+ @endcode
+ @code
+  std::ifstream fi(fn.c_str());
+  ConfigParser conf(fi);
+  ConfigParser end;
+  for (;conf != end; ++conf) {
+    std::cout << conf->keyword << std::endl;
+  }
+ @endcode
  */
 class ConfigParser: public std::iterator<std::input_iterator_tag,
 					 ConfigParserData,
@@ -30,12 +47,16 @@ class ConfigParser: public std::iterator<std::input_iterator_tag,
 					 const ConfigParserData&
 					 > {
 public:
+        /**
+         * Exception for read errors
+         */
         class ErrStream: Err::ErrBase {
 	public:
                 ErrStream(Err::ErrData errdata,
                           const std::string &m):Err::ErrBase(errdata,m) {}
                 virtual ~ErrStream() throw() {}
 	};
+
 	bool operator==(const ConfigParser&rhs) const;
 	bool operator!=(const ConfigParser&rhs) const;
 

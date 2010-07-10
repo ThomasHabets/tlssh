@@ -3,7 +3,7 @@
 # Don't complain about "missing" standard GNU files
 include $(top_srcdir)/Makefile.am.common
 
-SUBDIRS=src
+SUBDIRS=src doc
 
 mrproper: maintainer-clean
 	rm -f aclocal.m4 configure.scan depcomp missing install-sh config.h.in

@@ -45,7 +45,7 @@ EL_GETPW_R_POSIX
 EL_GETPW_R_DRAFT
 
 # Output
-AC_CONFIG_FILES([Makefile src/Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile doc/Makefile])
 AC_OUTPUT
 
 echo "

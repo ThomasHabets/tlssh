@@ -14,7 +14,7 @@
 #include"configparser.h"
 
 /**
- *
+ * Parse config line.
  */
 void
 ConfigParserData::parse_line(const std::string&s)
@@ -34,7 +34,7 @@ ConfigParserData::parse_line(const std::string&s)
 }
 
 /**
- *
+ * Output parsed config line quite verbosely.
  */
 std::ostream&
 operator<<(std::ostream&o, const ConfigParserData&d)
@@ -53,16 +53,20 @@ operator<<(std::ostream&o, const ConfigParserData&d)
 }
 
 /**
- *
+ * Compare iterators. Two iterators are only the same if either they are
+ * the same iterator or they are both EOF.
  */
 bool
 ConfigParser::operator==(const ConfigParser&rhs) const
 {
+        if (&rhs == this) {
+                return true;
+        }
 	return rhs.is_end & is_end;
 }
 
 /**
- *
+ * Opposite of ==
  */
 bool
 ConfigParser::operator!=(const ConfigParser&rhs) const
@@ -71,7 +75,7 @@ ConfigParser::operator!=(const ConfigParser&rhs) const
 }
 
 /**
- *
+ * Read and parse one line from the input stream.
  */
 void
 ConfigParser::readnext()
@@ -89,7 +93,7 @@ ConfigParser::readnext()
 }
 
 /**
- *
+ * Prefix increment
  */
 const ConfigParser&
 ConfigParser::operator++()
@@ -99,7 +103,7 @@ ConfigParser::operator++()
 }
 
 /**
- *
+ * Postfix increment
  */
 ConfigParser
 ConfigParser::operator++(int)
@@ -110,7 +114,7 @@ ConfigParser::operator++(int)
 }
 
 /**
- *
+ * Dereference
  */
 const ConfigParserData&
 ConfigParser::operator*() const
@@ -119,7 +123,7 @@ ConfigParser::operator*() const
 }
 
 /**
- *
+ * Dereference and follow
  */
 const ConfigParserData*
 ConfigParser::operator->() const
@@ -129,7 +133,9 @@ ConfigParser::operator->() const
 
 
 /**
- *
+ * Create an iterator generating config entries from the input stream 's'.
+ * The generated iterator will turn into an EOF iterator when EOF is reached.
+ * @param[in] s Input stream
  */
 ConfigParser::ConfigParser(std::istream &s)
 	:stream(&s),is_end(false)
@@ -138,7 +144,8 @@ ConfigParser::ConfigParser(std::istream &s)
 }
 
 /**
- *
+ * Create an EOF iterator. Never read from, only compared against a real
+ * iterator to see if we have reached end of file.
  */
 ConfigParser::ConfigParser()
 	:stream(0),is_end(true)

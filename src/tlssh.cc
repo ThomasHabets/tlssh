@@ -1,4 +1,37 @@
-// tlssh/src/tlssh.cc
+/** \file src/tlssh.cc
+ * \brief Main tlssh client source file
+ *
+ * @mainpage TLSSH
+ * @author Thomas Habets <thomas@habets.pp.se>
+ * @defgroup TLSSH TLSSH Client
+ */
+/*
+ * (BSD license without advertising clause below)
+ *
+ * Copyright (c) 2005-2009 Thomas Habets. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. The name of the author may not be used to endorse or promote products
+ *    derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -70,18 +103,18 @@ Options options = {
 	
 SSLSocket sock;
 
-/**
+bool sigwinch_received = true;
+/** SIGWINCH handler
  *
  */
-bool sigwinch_received = true;
 void
 sigwinch(int)
 {
         sigwinch_received = true;
 }
 
-/**
- *
+/** Get local terminal size
+ * @return Height & width of terminal connected to stdin.
  */
 std::pair<int,int>
 terminal_size()
@@ -93,7 +126,7 @@ terminal_size()
         return std::pair<int,int>(ws.ws_row, ws.ws_col);
 }
 
-/**
+/** Generate IAC sequence for new terminal size.
  *
  */
 std::string
@@ -109,8 +142,9 @@ iac_window_size()
         return std::string(&cmd.buf[0], &cmd.buf[6]);
 }
 
-/**
+/** Get terminal type of local terminal.
  *
+ * @todo Only allow letters and numbers here
  */
 std::string
 terminal_type()
@@ -119,7 +153,35 @@ terminal_type()
         return getenv("TERM");
 }
 
-/**
+/** Replace iac byte (255) with two iac bytes.
+ *
+ * @param[in] in Input string
+ * @return       Escaped string
+ */
+std::string
+escape_iac(const std::string &in)
+{
+        size_t startpos = 0, endpos;
+        std::string ret;
+        bool first_try = true;
+
+        for (;;) {
+                endpos = in.find(255, startpos);
+                if (endpos == std::string::npos) {
+                        break;
+                }
+
+                ret += in.substr(startpos, endpos-startpos) + "\xff\xff";
+                startpos = endpos + 1;
+        }
+        if (first_try) {
+                return in;
+        }
+
+        return ret + in.substr(startpos);
+}
+
+/** Main loop reading from terminal and writing to socket, and vice versa.
  *
  */
 void
@@ -169,7 +231,7 @@ mainloop(FDWrap &terminal)
 
 		// from terminal
 		if (fds[1].revents & POLLIN) {
-			to_server += terminal.read();
+			to_server += escape_iac(terminal.read());
 		}
 
 		if ((fds[0].revents & POLLOUT)
@@ -189,11 +251,12 @@ mainloop(FDWrap &terminal)
 }
 
 
-/**
- *
- */
 struct termios old_tio;
 bool old_tio_set = false;
+/** Reset the terminal (termios) to what it was before this program was run
+ *
+ * This function is called by atexit()-hooks
+ */
 void
 reset_tio(void)
 {
@@ -202,8 +265,12 @@ reset_tio(void)
 	}
 }
 
-/**
+/** Set up a new connection.
  *
+ * At this point 'sock' is ready to use, but SSL negotiations have not yet
+ * started.
+ *
+ * @return Normal UNIX-style exit() value. Will be used by main()
  */
 int
 new_connection()
@@ -219,7 +286,9 @@ new_connection()
                 THROW(Err::ErrSys, "tcgetattr()");
         }
 	old_tio_set = true;
-	atexit(reset_tio);
+	if (atexit(reset_tio)) {
+                THROW(Err::ErrSys, "atexit(reset_tio)");
+        }
 
 	struct termios tio;
 	cfmakeraw(&tio);
@@ -232,7 +301,7 @@ new_connection()
         return 0;
 }
 
-/**
+/** Show usage info (-h, --help) and exit
  *
  */
 void
@@ -253,7 +322,7 @@ usage(int err)
 	exit(err);
 }
 
-/**
+/** Print version info according to GNU coding standards
  *
  */
 void
@@ -269,8 +338,9 @@ print_version()
 	       VERSION);
 }
 
-/**
+/** Read config file
  *
+ * @param[in] fn Config file name
  */
 void
 read_config_file(const std::string &fn)
@@ -281,29 +351,38 @@ read_config_file(const std::string &fn)
 	for (;conf != end; ++conf) {
 		if (conf->keyword.empty()) {
 			// empty
-		} else if (conf->keyword == "#") {
+		} else if (conf->keyword[0] == '#') {
 			// comment
-		} else if (conf->keyword == "Port") {
+		} else if (conf->keyword == "Port"
+                           && conf->parms.size() == 1) {
 			options.port = conf->parms[0];
-		} else if (conf->keyword == "ServerCAFile") {
+		} else if (conf->keyword == "ServerCAFile"
+                           && conf->parms.size() == 1) {
 			options.servercafile = conf->parms[0];
-		} else if (conf->keyword == "ServerCAPath") {
+		} else if (conf->keyword == "ServerCAPath"
+                           && conf->parms.size() == 1) {
 			options.servercapath = conf->parms[0];
-		} else if (conf->keyword == "ServerCRL") {
+		} else if (conf->keyword == "ServerCRL"
+                           && conf->parms.size() == 1) {
 			options.servercrl = conf->parms[0];
-		} else if (conf->keyword == "CertFile") {
+		} else if (conf->keyword == "CertFile"
+                           && conf->parms.size() == 1) {
 			options.certfile = xwordexp(conf->parms[0]);
-		} else if (conf->keyword == "KeyFile") {
+		} else if (conf->keyword == "KeyFile"
+                           && conf->parms.size() == 1) {
 			options.keyfile = xwordexp(conf->parms[0]);
-		} else if (conf->keyword == "CipherList") {
+		} else if (conf->keyword == "CipherList"
+                           && conf->parms.size() == 1) {
 			options.cipher_list = conf->parms[0];
-		} else if (conf->keyword == "-include") {
+		} else if (conf->keyword == "-include"
+                           && conf->parms.size() == 1) {
 			try {
 				read_config_file(xwordexp(conf->parms[0]));
 			} catch(const ConfigParser::ErrStream&) {
 				break;
 			}
-		} else if (conf->keyword == "include") {
+		} else if (conf->keyword == "include"
+                           && conf->parms.size() == 1) {
 			try {
 				read_config_file(xwordexp(conf->parms[0]));
 			} catch(const ConfigParser::ErrStream&) {
@@ -318,7 +397,7 @@ read_config_file(const std::string &fn)
 	}
 }
 
-/**
+/** Parse options given on command line
  *
  */
 void
@@ -393,7 +472,8 @@ END_NAMESPACE(tlssh)
 
 BEGIN_LOCAL_NAMESPACE()
 using namespace tlssh;
-/**
+
+/** exception-wrapped version of main()
  *
  */
 int
@@ -428,7 +508,7 @@ main2(int argc, char * const argv[])
 }
 END_LOCAL_NAMESPACE()
 
-/**
+/** main() for tlssh client
  *
  */
 int

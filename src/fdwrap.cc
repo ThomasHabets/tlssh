@@ -1,4 +1,7 @@
-// tlssh/src/fdwrap.cc
+/**
+ * \file src/fdwrap.cc
+ * File descriptor wrapper
+ */
 #include<vector>
 #include<string>
 

@@ -1,8 +1,8 @@
-/* tlssh/src/tlsshd-shell.cc
- *
- * tlsshd
- *
- *   By Thomas Habets <thomas@habets.pp.se> 2010
+/// tlssh/src/tlsshd-shell.cc
+/**
+ * @addtogroup TLSSHD
+ * @file src/tlsshd-shell.cc
+ * TLSSHD Shell process.
  *
  * None of the code in this file is run as root. It's all run after
  * authentication as the user who logged in.

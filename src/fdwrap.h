@@ -1,6 +1,8 @@
 // -*- c++ -*-
-// tlssh/src/fdwrap.h
-
+/**
+ * \file src/fdwrap.h
+ * File descriptor wrapper
+ */
 #ifndef __INCLUDE_FDWRAP_H__
 #define __INCLUDE_FDWRAP_H__
 
