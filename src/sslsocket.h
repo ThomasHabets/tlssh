@@ -109,6 +109,17 @@ public:
 	};
 
         /**
+         * CRL check failed
+         */
+	class ErrSSLCRL: public ErrSSL {
+                const std::string subject;
+	public:
+		ErrSSLCRL(const Err::ErrData &errdata,
+                          const std::string &subject);
+		virtual ~ErrSSLCRL() throw() {};
+	};
+
+        /**
          * Exception hostname doesn't match subject name
          */
 	class ErrSSLHostname: public ErrSSL {

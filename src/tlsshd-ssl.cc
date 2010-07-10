@@ -381,7 +381,7 @@ int
 forkmain(FDWrap&fd)
 {
 	try {
-		SSLSocket sock(fd.get());
+                SSLSocket sock(fd.get());
 		fd.forget();
 
                 sock.set_debug(options.verbose > 1);
@@ -399,6 +399,10 @@ forkmain(FDWrap&fd)
 
 		sock.ssl_accept();
 		new_ssl_connection(sock);
+	} catch (const SSLSocket::ErrSSLHostname &e) {
+		std::cerr << e.what() << std::endl;
+	} catch (const SSLSocket::ErrSSLCRL &e) {
+		std::cerr << e.what() << std::endl;
 	} catch (const SSLSocket::ErrSSL &e) {
 		std::cerr << e.what_verbose();
 	} catch (const std::exception &e) {

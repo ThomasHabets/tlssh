@@ -172,8 +172,8 @@ X509Wrap::ErrSSL::ErrSSL(const Err::ErrData &errdata, const std::string &m,
 		sslmsg = SSLSocket
 			::ssl_errstr(
 				     SSL_get_error(ssl, err));
+                msg = msg + ": " + sslmsg;
 	}
-	msg = msg + ": " + sslmsg;
 }
 
 /**
@@ -618,7 +618,7 @@ SSLSocket::check_crl()
 
         X509_STORE_CTX_init(crlctx, store, cert.get(), 0);
         if (1 != (err = X509_verify_cert(crlctx))) {
-                THROW(ErrSSL, "CRL check failed");
+                THROW(ErrSSLCRL, cert.get_subject());
         }
 
         ,    /*  FINALLY */;
@@ -738,8 +738,8 @@ SSLSocket::ErrSSL::ErrSSL(const Err::ErrData &errdata,
 {
 	if (ssl) {
 		sslmsg = SSLSocket::ssl_errstr(SSL_get_error(ssl, err));
+                msg = msg + ": " + sslmsg;
 	}
-	msg = msg + ": " + sslmsg;
 
 	for (;;) {
 		unsigned long err;
@@ -799,9 +799,19 @@ SSLSocket::ErrSSL::what_verbose() const throw()
 SSLSocket::ErrSSLHostname::ErrSSLHostname(const Err::ErrData &errdata,
                                           const std::string &host,
 					  const std::string &subject)
-        :ErrSSL(errdata, "")
+        :ErrSSL(errdata, "SSL Hostname does not match subject")
 {
 	msg = "Cert " + subject + " does not match hostname " + host;
+}
+
+/**
+ *
+ */
+SSLSocket::ErrSSLCRL::ErrSSLCRL(const Err::ErrData &errdata,
+                                const std::string &subject)
+        :ErrSSL(errdata, "Cert revoked by CRL"),subject(subject)
+{
+        msg += ": " + subject;
 }
 
 /* ---- Emacs Variables ----
