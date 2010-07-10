@@ -149,7 +149,6 @@ iac_window_size()
 std::string
 terminal_type()
 {
-        // FIXME: only letters and numbers
         return getenv("TERM");
 }
 
@@ -523,11 +522,11 @@ main(int argc, char **argv)
 			throw;
 		}
 	} catch(const SSLSocket::ErrSSL &e) {
-		std::cerr << e.human_readable();
+		std::cerr << e.what_verbose();
 	} catch(const Err::ErrBase &e) {
                 if (options.verbose) {
                         fprintf(stderr, "%s: %s\n",
-                                argv0, e.what_verbose());
+                                argv0, e.what_verbose().c_str());
                 } else {
                         fprintf(stderr, "%s: %s\n",
                                 argv0, e.what());

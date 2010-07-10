@@ -73,9 +73,9 @@ namespace Err {
 		{
 			return msg.c_str();
 		}
-		virtual const char* what_verbose() const throw()
+		virtual std::string what_verbose() const throw()
 		{
-			return verbose.c_str();
+			return verbose;
 		}
 	};
 

@@ -17,13 +17,16 @@
 #include"errbase.h"
 
 /**
- *
+ * OpenSSL X509 structure wrapper.
  */
 class X509Wrap {
 	X509 *x509;
 	X509Wrap(const X509Wrap&);
 	X509Wrap operator=(const X509Wrap&);
 public:
+        /**
+         * Base exception class
+         */
 	class ErrBase: public Err::ErrBase {
 	public:
 		ErrBase(const Err::ErrData &errdata,
@@ -31,6 +34,11 @@ public:
                         ):Err::ErrBase(errdata, m){}
 		virtual ~ErrBase() throw() {}
 	};
+        /**
+         * SSL Errors
+         *
+         * @todo Should be merged with ErrSSL tree somehow
+         */
 	class ErrSSL: public ErrBase {
 		std::string sslmsg;
 	public:
@@ -53,7 +61,7 @@ public:
 };
 
 /**
- *
+ * SSL Socket
  */
 class SSLSocket: public Socket {
 	SSL_CTX *ctx;
@@ -74,6 +82,9 @@ class SSLSocket: public Socket {
         void check_ocsp();
         DH *ssl_setup_dh();
 public:
+        /**
+         * Error Queue entry from OpenSSL
+         */
 	struct ErrQueueEntry {
 		std::string file;
 		int line;
@@ -81,16 +92,24 @@ public:
 		int flags;
 		std::string str;
 	};
+
+        /**
+         * SSL library exception
+         */
 	class ErrSSL: public Socket::ErrBase {
 		std::string sslmsg;
 	public:
 		typedef std::list<struct ErrQueueEntry> errqueue_t;
 		errqueue_t errqueue;
-		std::string human_readable() const;
+		std::string what_verbose() const throw();
 		ErrSSL(const Err::ErrData &errdata, const std::string &m,
                        SSL *ssl = 0, int err = 0);
 		virtual ~ErrSSL() throw() {};
 	};
+
+        /**
+         * Exception hostname doesn't match subject name
+         */
 	class ErrSSLHostname: public ErrSSL {
 	public:
 		ErrSSLHostname(const Err::ErrData &errdata,

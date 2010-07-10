@@ -347,7 +347,7 @@ main(int argc, char **argv)
 	} catch (const Err::ErrBase &e) {
                 if (options.verbose) {
                         fprintf(stderr, "%s: %s\n",
-                                argv0, e.what_verbose());
+                                argv0, e.what_verbose().c_str());
                 } else {
                         fprintf(stderr, "%s: %s\n",
                                 argv0, e.what());

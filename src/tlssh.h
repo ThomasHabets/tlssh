@@ -13,6 +13,11 @@
 
 BEGIN_NAMESPACE(tlssh_common)
 #pragma pack(1)
+/**
+ * Interpret As Command
+ *
+ * Inline commands structure. For now only "change window size".
+ */
 typedef union {
         struct {
                 uint8_t iac;
@@ -32,6 +37,9 @@ typedef union {
 END_NAMESPACE(tlssh_common)
 
 BEGIN_NAMESPACE(tlsshd)
+/**
+ * TLSSHD Daemon options
+ */
 struct Options {
 	std::string port;
 	std::string certfile;

@@ -100,7 +100,7 @@ forkmain2(const struct passwd *pw, int fd_control)
 
 	// Should never be reached
 
-	perror("FIXME: log execl() fail");
+	perror("execl() fail");
 	exit(1);
 }
 

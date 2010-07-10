@@ -561,7 +561,7 @@ SSLSocket::check_ocsp()
 
 /**
  * check CRL.
- * FIXME: CRL only works if cafile is used, not capath
+ * @todo CRL only works if cafile is used, not capath
  * http://etutorials.org/Programming/secure+programming/Chapter+10.+Public+Key+Infrastructure/10.5+Performing+X.509+Certificate+Verification+with+OpenSSL/
  */
 void
@@ -770,7 +770,7 @@ SSLSocket::ErrSSL::ErrSSL(const Err::ErrData &errdata,
  *
  */
 std::string
-SSLSocket::ErrSSL::human_readable() const
+SSLSocket::ErrSSL::what_verbose() const throw()
 {
 	errqueue_t::const_iterator itr;
 	std::stringstream ret;

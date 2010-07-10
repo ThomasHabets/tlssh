@@ -12,7 +12,7 @@
 #include"errbase.h"
 
 /**
- *
+ * Wrap file descriptor in a class
  */
 class FDWrap {
 	int fd;
@@ -56,12 +56,19 @@ public:
 		return fd != -1;
 	}
 
+        /**
+         * Exception base class
+         */
 	class ErrBase: public Err::ErrBase {
 	public:
 		ErrBase(const Err::ErrData &e, const std::string &s)
                         :Err::ErrBase(e, s) {}
 		virtual ~ErrBase() throw() {}
 	};
+
+        /**
+         * Exception for end of file
+         */
 	class ErrEOF: public ErrBase {
 	public:
 		ErrEOF(const Err::ErrData &e): ErrBase(e, "EOF") {}

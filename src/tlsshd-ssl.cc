@@ -374,6 +374,8 @@ new_ssl_connection(SSLSocket &sock)
  *
  * input: newly connected fd, and newly forked process
  * output: calls new_ssl_connection() with up-and-running SSL connection
+ *
+ * @todo Eventually don't catch const char*
  */
 int
 forkmain(FDWrap&fd)
@@ -398,7 +400,7 @@ forkmain(FDWrap&fd)
 		sock.ssl_accept();
 		new_ssl_connection(sock);
 	} catch (const SSLSocket::ErrSSL &e) {
-		std::cerr << e.human_readable();
+		std::cerr << e.what_verbose();
 	} catch (const std::exception &e) {
 		std::cerr << "sslproc: std::exception: "
 			  << e.what() << std::endl;

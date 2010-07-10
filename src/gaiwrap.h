@@ -8,16 +8,35 @@
 #include <netdb.h>
 
 /**
+ * getaddrinfo() wrapper
  *
+ @code
+ struct addrinfo hints;
+ memset(&hints, 0, sizeof(hints));
+ GetAddrInfo gai("www.sunet.se", "www", &hints);
+ // something something gai.fixme()
+ @endcode
+ *
+ * @todo Make a proper results-fetcher
  */
 class GetAddrInfo {
 	struct addrinfo *addrs;
+        GetAddrInfo(const GetAddrInfo&);
+        GetAddrInfo &operator=(const GetAddrInfo&);
 public:
+        /**
+         * Exception base class. Not using Err::ErrBase because this file
+         * is copied from project to project.
+         */
 	class ErrBase: public std::exception {
 		const std::string msg;
 	public:
 		ErrBase(const std::string &m): msg(m) {}
-		~ErrBase() throw() {}
+		virtual ~ErrBase() throw() {}
+		virtual const char *what() const throw()
+		{
+			return msg.c_str();
+		}
 	};
 	GetAddrInfo(const std::string &host,
 		    const std::string &port,
@@ -28,7 +47,7 @@ public:
 };
 
 /**
- *
+ * Clean up getaddrinfo() struct
  */
 GetAddrInfo::~GetAddrInfo()
 {
@@ -39,7 +58,11 @@ GetAddrInfo::~GetAddrInfo()
 }
 
 /**
+ * Create GetAddrInfo object to resolve host or address
  *
+ * @param[in] host Hostname or address
+ * @param[in] port Port name or number
+ * @param[in] hints Hints of address family and somesuch
  */
 GetAddrInfo::GetAddrInfo(const std::string &host,
 			 const std::string &port,
