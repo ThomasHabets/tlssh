@@ -539,6 +539,7 @@ main(int argc, char **argv)
 			  << e << std::endl;
 	} catch (...) {
 		std::cerr << "tlssh: Unknown exception!" << std::endl;
+                throw;
 	}
 }
 

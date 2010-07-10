@@ -44,7 +44,7 @@ public:
 	public:
 		ErrBase(const Err::ErrData &errdata,
                         const std::string &m
-                        ):Err::ErrBase(errdata,m){}
+                        ):Err::ErrBase(errdata, m){}
 		virtual ~ErrBase() throw() {}
 	};
         /**
@@ -59,6 +59,7 @@ public:
                 {
                         myerrno = errno;
                         msg += std::string(": ") + strerror(myerrno);
+                        verbose += std::string(": ") + strerror(myerrno);
                 }
 	};
         /**

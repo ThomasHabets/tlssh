@@ -34,6 +34,7 @@ public:
                         ):Err::ErrBase(errdata, m){}
 		virtual ~ErrBase() throw() {}
 	};
+
         /**
          * SSL Errors
          *
