@@ -10,24 +10,51 @@
 #include<vector>
 #include<exception>
 
-#define THROW(a, ...) throw a(__FILE__, __LINE__, __VA_ARGS__)
+#if 0
+// FIXME: handle the case that there is no __PRETTY_FUNCTION__
+//#define __PRETTY_FUNCTION__ __func__
+#endif
+
+#define THROW_MKERR Err::ErrData(__FILE__, \
+                                 __LINE__, \
+                                 __func__, \
+                                 __PRETTY_FUNCTION__)
+#define THROW0(a)     throw a(THROW_MKERR)
+#define THROW(a, ...) throw a(THROW_MKERR, __VA_ARGS__)
 
 namespace Err {
+        struct ErrData {
+                std::string file;
+                std::string func;
+                std::string prettyfunc;
+                int line;
+                ErrData(const std::string &file,
+                        int line,
+                        const std::string &func,
+                        const std::string &prettyfunc
+                        )
+                        :file(file),
+                         func(func),
+                         prettyfunc(prettyfunc),
+                         line(line)
+                {
+                }
+        };
+
 	class ErrBase: public std::exception {
         protected:
-		std::string file;
-		int line;
+                const ErrData errdata;
 		std::string msg;
 		std::string verbose;
         public:
-		ErrBase(const std::string &file,
-			int line,
+		ErrBase(const ErrData &errdata,
 			const std::string &msg)
-			:file(file),line(line),msg(msg)
+			:errdata(errdata),msg(msg)
 		{
 			std::stringstream s;
-			s << line;
-			verbose = file + ":" + s.str() + ": a" + msg;
+			s << errdata.line;
+			verbose = errdata.file + ":" + s.str() + "("
+                                + errdata.prettyfunc + "): " + msg;
 		}
 		virtual ~ErrBase()throw() {}
 		virtual const char *what() const throw()
@@ -43,10 +70,9 @@ namespace Err {
                 std::string errstr;
                 int serrno;
         public:
-                ErrSys(const std::string &f,
-                       int l,
+                ErrSys(const ErrData &errdata,
                        const std::string &m)
-                        :ErrBase(f,l,m)
+                        :ErrBase(errdata, m)
                 {
                         serrno = errno;
                         errstr = strerror(errno);

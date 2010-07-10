@@ -1,23 +1,30 @@
 TODO before 0.03
------------------
+----------------
 * Client and server can check CRL - Done
+
+
+TODO before 0.04
+----------------
+* anti-dos (many connections)
+* proper logging
+
+
+TODO before 0.05
+----------------
+* utmp/wtmp
 
 
 TODO before 1.00
 ---------------
 * Provide grsec RBAC config
-* anti-dos (many connections)
 * Manpage
 * other documentation
 * kill connection when cert expires
-* HUP re-reads config file and re-overrides using the old cmdline
-* proper logging
-* daemonization
-* utmp/wtmp
 
 
-TODO whenever
+TODO after 1.00
 -------------
+* HUP re-reads config file and re-overrides using the old cmdline
 * Client has send-local-file-as-typed support.
 * xmodem file send/recv
 * EGADS / EGD support (RAND_egd())

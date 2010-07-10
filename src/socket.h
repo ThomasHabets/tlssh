@@ -4,7 +4,9 @@
 
 #include<exception>
 #include<string>
+
 #include"fdwrap.h"
+#include"errbase.h"
 
 /**
  *
@@ -16,19 +18,19 @@ protected:
         std::string tcpmd5;
 	void create_socket(const struct addrinfo*);
 public:
-	class ErrBase: public std::exception {
-	protected:
-		std::string msg;
+	class ErrBase: public Err::ErrBase {
 	public:
-		ErrBase(const std::string &s):msg(s){}
-		~ErrBase() throw() {}
-		const char *what() const throw() { return msg.c_str(); }
+		ErrBase(const Err::ErrData &errdata,
+                        const std::string &m
+                        ):Err::ErrBase(errdata,m){}
+		virtual ~ErrBase() throw() {}
 	};
 	class ErrSys: public ErrBase {
                 int myerrno;
 	public:
-		ErrSys(const std::string &s)
-                        :ErrBase(s)
+		ErrSys(const Err::ErrData &errdata,
+                       const std::string &m)
+                        :ErrBase(errdata, m)
                 {
                         myerrno = errno;
                         msg += std::string(": ") + strerror(myerrno);
@@ -36,7 +38,8 @@ public:
 	};
 	class ErrPeerClosed: public ErrBase {
 	public:
-		ErrPeerClosed():ErrBase("Peer closed"){}
+		ErrPeerClosed(const Err::ErrData &errdata)
+                        : ErrBase(errdata,"Peer closed") {}
 	};
 
 	Socket(int infd = -1);

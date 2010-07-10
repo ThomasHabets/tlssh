@@ -32,9 +32,8 @@ class ConfigParser: public std::iterator<std::input_iterator_tag,
 public:
         class ErrStream: Err::ErrBase {
 	public:
-                ErrStream(const std::string &f,
-                          int l,
-                          const std::string &m):Err::ErrBase(f,l,m) {}
+                ErrStream(Err::ErrData errdata,
+                          const std::string &m):Err::ErrBase(errdata,m) {}
                 virtual ~ErrStream() throw() {}
 	};
 	bool operator==(const ConfigParser&rhs) const;

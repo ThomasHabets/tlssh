@@ -11,6 +11,7 @@
 #include<openssl/rand.h>
 
 #include"socket.h"
+#include"errbase.h"
 
 /**
  *
@@ -20,19 +21,20 @@ class X509Wrap {
 	X509Wrap(const X509Wrap&);
 	X509Wrap operator=(const X509Wrap&);
 public:
-	class ErrBase: public std::exception {
-	protected:
-		std::string msg;
+	class ErrBase: public Err::ErrBase {
 	public:
-		ErrBase(const std::string &s):msg(s){}
-		~ErrBase() throw() {}
-		const char *what() const throw() { return msg.c_str(); }
+		ErrBase(const Err::ErrData &errdata,
+                        const std::string &m
+                        ):Err::ErrBase(errdata, m){}
+		virtual ~ErrBase() throw() {}
 	};
 	class ErrSSL: public ErrBase {
 		std::string sslmsg;
 	public:
-		ErrSSL(const std::string &s, SSL *ssl = 0, int err = 0);
-		~ErrSSL() throw() {};
+		ErrSSL(const Err::ErrData &errdata,
+                       const std::string &m,
+                       SSL *ssl = 0, int err = 0);
+		virtual ~ErrSSL() throw() {};
 	};
 	X509Wrap(X509 *x509);
 
@@ -82,12 +84,14 @@ public:
 		typedef std::list<struct ErrQueueEntry> errqueue_t;
 		errqueue_t errqueue;
 		std::string human_readable() const;
-		ErrSSL(const std::string &s, SSL *ssl = 0, int err = 0);
-		~ErrSSL() throw() {};
+		ErrSSL(const Err::ErrData &errdata, const std::string &m,
+                       SSL *ssl = 0, int err = 0);
+		virtual ~ErrSSL() throw() {};
 	};
 	class ErrSSLHostname: public ErrSSL {
 	public:
-		ErrSSLHostname(const std::string &host,
+		ErrSSLHostname(const Err::ErrData &errdata,
+                               const std::string &host,
 			       const std::string &subject);
 	};
 

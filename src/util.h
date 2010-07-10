@@ -7,6 +7,8 @@
 #include<string>
 #include<vector>
 
+#define FINALLY(a,b) try { a } catch(...) { b; throw; }
+
 struct passwd xgetpwnam(const std::string &name, std::vector<char> &buffer);
 std::string xwordexp(const std::string &in);
 std::vector<std::string> tokenize(const std::string &s);

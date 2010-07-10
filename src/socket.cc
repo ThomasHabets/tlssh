@@ -33,7 +33,7 @@ Socket::create_socket(const struct addrinfo *ai)
 	int s;
 	s = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
 	if (s == -1) {
-		throw ErrSys("socket");
+                THROW(ErrSys, "socket()");
 	}
 	fd.set(s);
 }
@@ -67,7 +67,7 @@ Socket::set_reuseaddr(bool ion)
 			   SOL_SOCKET,
 			   SO_REUSEADDR,
 			   &on,sizeof(on))) {
-		throw ErrSys("reuse");
+                THROW(ErrSys, "setsockopt(SO_REUSEADDR)");
 	}
 }
 
@@ -94,7 +94,7 @@ Socket::connect(int af, const std::string &host, const std::string &port)
 	}
 	err = ::connect(fd.get(), p->ai_addr, p->ai_addrlen);
 	if (0 > err) {
-		throw ErrSys("connect");
+                THROW(ErrSys, "connect()");
 	}
         set_tcp_md5_sock();
 }
@@ -122,11 +122,11 @@ Socket::listen_any(int af, const std::string &port)
 
 	err = bind(fd.get(), p->ai_addr, p->ai_addrlen);
 	if (err) {
-		throw ErrSys("bind()");
+                THROW(ErrSys, "bind()");
 	}
 
 	if (listen(fd.get(), 5)) {
-		throw ErrSys("listen()");
+                THROW(ErrSys, "listen()");
 	}
 }
 
@@ -183,7 +183,7 @@ Socket::set_nodelay(bool on)
         int parm = !!on;
         if (-1 == setsockopt(fd.get(), IPPROTO_TCP, TCP_NODELAY, &parm,
                              sizeof(parm))) {
-		throw ErrSys("setsockopt(TCP_NODELAY)");
+                THROW(ErrSys, "setsockopt(TCP_NODELAY)");
         }
 }
 
@@ -196,7 +196,7 @@ Socket::set_keepalive(bool on)
         int parm = !!on;
         if (-1 == setsockopt(fd.get(), SOL_SOCKET, SO_KEEPALIVE, &parm,
                              sizeof(parm))) {
-		throw ErrSys("setsockopt(SO_KEEPALIVE)");
+                THROW(ErrSys, "setsockopt(SO_KEEPALIVE)");
         }
 }
 
@@ -216,6 +216,7 @@ void
 Socket::set_tcp_md5_sock()
 {
         return; // FIXME: enable later. I think this makes Linux crash
+
         struct tcp_md5sig md5sig;
         std::string key = tcpmd5.substr(0, TCP_MD5SIG_MAXKEYLEN);
         socklen_t t = sizeof(struct sockaddr_storage);
@@ -223,7 +224,7 @@ Socket::set_tcp_md5_sock()
         memset(&md5sig, 0, sizeof(md5sig));
         if (getpeername(fd.get(),
                         (struct sockaddr*)&md5sig.tcpm_addr, &t)) {
-                throw ErrSys("getpeername()");
+                THROW(ErrSys, "getpeername()");
         }
         md5sig.tcpm_keylen = key.size();
         memcpy(md5sig.tcpm_key, key.data(), md5sig.tcpm_keylen);
@@ -233,7 +234,7 @@ Socket::set_tcp_md5_sock()
                 if (ENOENT == errno) {
                         // when we set no key
                 } else {
-                        throw ErrSys("setsockopt(TCP_MD5SIG)");
+                        THROW(ErrSys, "setsockopt(TCP_MD5SIG)");
                 }
         }
 }
