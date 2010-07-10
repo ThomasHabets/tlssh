@@ -2,5 +2,5 @@
 
 include $(top_srcdir)/Makefile.am.common
 doc:
-	ln -s ../src
+	ln -fs ../src
 	doxygen Doxyfile

@@ -1,6 +1,8 @@
 // -*- c++ -*-
-// tlssh/src/xgetpwnam.c
-
+/**
+ * @file src/xgetpwnam.c
+ * Portable getpwnam_r()
+ */
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif

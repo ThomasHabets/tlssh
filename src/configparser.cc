@@ -1,4 +1,7 @@
-// tlssh/src/configparser.cc
+/**
+ * @file src/configparser.cc
+ * Config file parser
+ */
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif

@@ -1,5 +1,8 @@
 // -*- c++ -*-
-// tlssh/src/configparser.h
+/**
+ * @file src/configparser.h
+ * Config file parser
+ */
 #include<string>
 #include<vector>
 

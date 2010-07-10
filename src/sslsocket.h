@@ -1,5 +1,8 @@
 /* -*- c++ -*- */
-// tlssh/src/sslsocket.h
+/**
+ * @file src/sslsocket.h
+ * SSLSocket class
+ */
 #include<string>
 #include<list>
 #include<exception>

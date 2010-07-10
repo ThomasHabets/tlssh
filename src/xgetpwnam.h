@@ -1,5 +1,8 @@
 // -*- c++ -*-
-// tlssh/src/xgetpwnam.h
+/**
+ * @file src/xgetpwnam.h
+ * Portable getpwnam_r()
+ */
 #include <sys/types.h>
 #include <pwd.h>
 

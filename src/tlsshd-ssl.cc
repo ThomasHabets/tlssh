@@ -88,11 +88,11 @@ parse_iac(FDWrap &fd, std::string &from_sock)
                         ws.ws_col = ntohs(cmd->s.commands.ws.cols);
                         ws.ws_row = ntohs(cmd->s.commands.ws.rows);
                         if (0 > ioctl(fd.get(), TIOCSWINSZ, &ws)) {
-                                throw "FIXME: ioctl(TIOCSWINSZ)";
+                                THROW(Err::ErrSys, "ioctl(TIOCSWINSZ)");
                         }
                         break;
                 default:
-                        throw "FIXME: unknown IAC!";
+                        THROW(Err::ErrBase, "Unknown IAC!");
                 }
                 from_sock.erase(0, iac_len[cmd->s.command]);
         }
@@ -246,18 +246,18 @@ void
 drop_privs(const struct passwd *pw)
 {
         if (initgroups(pw->pw_name, pw->pw_gid)) {
-		throw "FIXME: initgroups()";
+		THROW(Err::ErrSys, "initgroups()");
         }
 #if 0
 	if (0 > setgroups(0, NULL)) {
-		throw "FIXME: setgroups()";
+		THROW(Err::ErrSys, "setgroups()");
 	}
 #endif
 	if (setresgid(pw->pw_gid, pw->pw_gid, pw->pw_gid)) {
-		throw "FIXME: setresgid()";
+		THROW(Err::ErrSys, "setresgid()");
 	}
 	if (setresuid(pw->pw_uid, pw->pw_uid, pw->pw_uid)) {
-		throw "FIXME: setresuid()";
+		THROW(Err::ErrSys, "setresuid()");
 	}
 }
 
@@ -330,7 +330,7 @@ new_ssl_connection(SSLSocket &sock)
 	std::auto_ptr<X509Wrap> cert = sock.get_cert();
 	if (!cert.get()) {
 		sock.write("You are the no-cert client. Goodbye.");
-                throw "FIXME: client provided no cert";
+                THROW(Err::ErrBase, "client provided no cert");
 	}
 
 	if (options.verbose) {
@@ -341,12 +341,12 @@ new_ssl_connection(SSLSocket &sock)
 	std::string certname = cert->get_common_name();
         size_t dotpos = certname.find('.');
         if (dotpos == std::string::npos) {
-                throw "FIXME: cert CN had no dot";
+                THROW(Err::ErrBase, "cert CN had no dot");
         }
 	std::string username = certname.substr(0, dotpos);
         std::string domain = certname.substr(dotpos+1);
         if (domain != options.clientdomain) {
-                throw "FIXME: client is in wrong domain";
+                THROW(Err::ErrBase, "client is in wrong domain");
         }
         if (options.verbose) {
                 printf("Logged in using cert: user=<%s>, domain=<%s>\n",

@@ -39,14 +39,14 @@ parse_header_line(const std::string &s)
                 if (toks[1] == "tlssh.1") {
                         protocol_version = toks[1];
                 } else {
-                        throw "FIXME: incompatible protocol version";
+                        THROW(Err::ErrBase, "incompatible protocol version");
                 }
         } else if (toks[0] == "env" && toks.size() == 3) {
                 if (setenv(toks[1].c_str(), toks[2].c_str(), 1)) {
-                        throw "FIXME: setenv() error";
+                        THROW(Err::ErrBase, "setenv() error");
                 }
         } else {
-                throw "FIXME: env line error";
+                THROW(Err::ErrBase, "protocol header error");
         }
 }
 
@@ -93,7 +93,7 @@ forkmain2(const struct passwd *pw, int fd_control)
 
 
         if (protocol_version.empty()) {
-                throw "FIXME: client did not provide protocol version";
+                THROW(Err::ErrBase, "client did not provide protocol version");
         }
 
 	execl(pw->pw_shell, pw->pw_shell, "-i", NULL);

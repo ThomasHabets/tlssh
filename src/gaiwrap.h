@@ -1,6 +1,6 @@
 // -*- c++ -*-
 /**
- * \file src/gaiwrap.cc
+ * @file src/gaiwrap.h
  * getaddrinfo() wrapper
  */
 #include <sys/types.h>

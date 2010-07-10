@@ -1,6 +1,8 @@
 // -*- c++ -*-
-// tlssh/src/util.h
-
+/**
+ * @file src/util.h
+ * Random utility functions
+ */
 #include<pwd.h>
 #include<sys/types.h>
 
