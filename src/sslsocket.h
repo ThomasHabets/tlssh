@@ -65,6 +65,8 @@ class SSLSocket: public Socket {
 	SSLSocket(const SSLSocket&);
 
 	void ssl_accept_connect(bool);
+        void check_crl();
+        void check_ocsp();
         DH *ssl_setup_dh();
 public:
 	struct ErrQueueEntry {

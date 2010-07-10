@@ -445,40 +445,162 @@ SSLSocket::ssl_accept_connect(bool isconnect)
 			;
 	}
 
-        // check CRL.
-        // FIXME: CRL only works if cafile is used, not capath
-        if (!crlfile.empty()) {
-                X509_STORE_CTX *ctx2 = X509_STORE_CTX_new();
-                X509_STORE *store = X509_STORE_new();
-                X509_LOOKUP *lookup=X509_STORE_add_lookup(store,
-                                                          X509_LOOKUP_file());
+        check_crl();
+        if (isconnect) {
+                check_ocsp();
+        }
+}
 
-                if (!X509_load_cert_file(lookup,
-                                         cafile.c_str(),
-                                         X509_FILETYPE_PEM)) {
-                        throw ErrSSL("X509_load_cert_file");
-                }
+/**
+ * http://etutorials.org/Programming/secure+programming/Chapter+10.+Public+Key+Infrastructure/10.12+Checking+Revocation+Status+via+OCSP+with+OpenSSL/
+ */
+#define FINALLY(a,b) try { a } catch(...) { b; throw; }
+void
+SSLSocket::check_ocsp()
+{
+#if 0
+        const char *url = "http://ocsp.cacert.org/";
+        char *host = 0;
+        char *port = 0;
+        SSL_CTX               *ctx2 = 0;
+        X509_STORE            *store = 0;
+        OCSP_CERTID           *id;
+        OCSP_REQUEST          *req = 0;
+        OCSP_RESPONSE         *resp = 0;
+        OCSP_BASICRESP        *basic = 0;
+        ASN1_GENERALIZEDTIME  *producedAt, *thisUpdate, *nextUpdate;
 
+        FINALLY(
+#if 0
+        // indent right in emacs
+                );
+#endif
+
+        if (!OCSP_parse_url(url, &host, &port, &path, &ssl)) {
+                throw ErrSSL("OCSP_parse_url");
+        }
+
+        if (!(req = OCSP_REQUEST_new(  ))) {
+                throw ErrSSL("OCSP_REQUEST_new");
+        }
+
+        id = OCSP_cert_to_id(0, data->cert, data->issuer);
+        if (!id || !OCSP_request_add0_id(req, id)) {
+                throw ErrSSL("OCSP_request_add0_id");
+        }
+
+        OCSP_request_add1_nonce(req, 0, -1);
+        /* sign the request */
+#if 0
+        if (data->sign_cert && data->sign_key &&
+            !OCSP_request_sign(req, data->sign_cert, data->sign_key, EVP_sha1(  ), 0, 0)) {
+                throw ErrSSL("OCSP_request_sign");
+        }
+#endif
+        /* establish a connection to the OCSP responder */
+        if (!(bio = spc_connect(host, atoi(port), ssl, data->store, &ctx))) {
+                throw ErrSSL("OSCP connect");
+        }
+
+        /* send the request and get a response */
+        resp = OCSP_sendreq_bio(bio, path, req);
+        if ((rc = OCSP_response_status(resp)) != OCSP_RESPONSE_STATUS_SUCCESSFUL) {
+                throw ErrSSL("OCSP_response_status");
+        }
+
+        /* verify the response */
+        if (!(basic = OCSP_response_get1_basic(resp))) {
+                        throw ErrSSL("OCSP_response_get1_basic");
+        }
+        if (OCSP_check_nonce(req, basic) <= 0) {
+                throw ErrSSL("OCSP_check_nonce");
+        }
+        if (data->store && !(store = spc_create_x509store(data->store))) {
+                throw ErrSSL("spc_create_x509store");
+        }
+        if ((rc = OCSP_basic_verify(basic, 0, store, 0)) <= 0) {
+                throw ErrSSL("OCSP_basic_verify");
+        }
+        if (!OCSP_resp_find_status(basic, id, &status, &reason, &producedAt,
+                                   &thisUpdate, &nextUpdate)) {
+                throw ErrSSL("OCSP_resp_find_status");
+        }
+        if (!OCSP_check_validity(thisUpdate,
+                                 nextUpdate, data->skew, data->maxage)) {
+                throw ErrSSL("OCSP_check_validity");
+        }
+        /* All done.  Set the return code based on the status from the
+           response. */
+        if (status =  = V_OCSP_CERTSTATUS_REVOKED) {
+                result = SPC_OCSPRESULT_CERTIFICATE_REVOKED;
+        } else {
+                result = SPC_OCSPRESULT_CERTIFICATE_VALID;
+        }
+
+        ,    /*  FINALLY */;
+
+        if (bio) BIO_free_all(bio);
+        if (host) OPENSSL_free(host);
+        if (port) OPENSSL_free(port);
+        if (path) OPENSSL_free(path);
+        if (req) OCSP_REQUEST_free(req);
+        if (resp) OCSP_RESPONSE_free(resp);
+        if (basic) OCSP_BASICRESP_free(basic);
+        if (ctx) SSL_CTX_free(ctx);
+        if (store) X509_STORE_free(store);
+#if 0
+        // indent right in emacs
+        (
+#endif
+        );
+#endif
+}
+
+/**
+ * check CRL.
+ * FIXME: CRL only works if cafile is used, not capath
+ * http://etutorials.org/Programming/secure+programming/Chapter+10.+Public+Key+Infrastructure/10.5+Performing+X.509+Certificate+Verification+with+OpenSSL/
+ */
+void
+SSLSocket::check_crl()
+{
+        int err;
+
+        if (crlfile.empty()) {
+                return;
+        }
+
+	X509Wrap cert(SSL_get_peer_certificate(ssl));
+        X509_STORE_CTX *ctx2 = X509_STORE_CTX_new();
+        X509_STORE *store = X509_STORE_new();
+        X509_LOOKUP *lookup = X509_STORE_add_lookup(store,
+                                                    X509_LOOKUP_file());
+
+        if (!X509_load_cert_file(lookup,
+                                 cafile.c_str(),
+                                 X509_FILETYPE_PEM)) {
+                throw ErrSSL("X509_load_cert_file");
+        }
+
+        if (!X509_load_crl_file(lookup,
+                                crlfile.c_str(),
+                                X509_FILETYPE_PEM)) {
                 if (!X509_load_crl_file(lookup,
                                         crlfile.c_str(),
-                                        X509_FILETYPE_PEM)) {
-                        if (!X509_load_crl_file(lookup,
-                                                crlfile.c_str(),
-                                                X509_FILETYPE_ASN1)) {
-                                throw ErrSSL("X509_load_crl_file");
-                        }
+                                        X509_FILETYPE_ASN1)) {
+                        throw ErrSSL("X509_load_crl_file");
                 }
-
-                X509_STORE_set_flags(store, X509_V_FLAG_CRL_CHECK |
-                                     X509_V_FLAG_CRL_CHECK_ALL);
-
-                X509_STORE_CTX_init(ctx2, store, x.get(), 0);
-                if (1 != (err = X509_verify_cert(ctx2))) {
-                        throw ErrSSL("CRL check failed");
-                }
-                X509_STORE_free(store);
-                X509_STORE_CTX_free(ctx2);
         }
+
+        X509_STORE_set_flags(store, X509_V_FLAG_CRL_CHECK |
+                             X509_V_FLAG_CRL_CHECK_ALL);
+
+        X509_STORE_CTX_init(ctx2, store, cert.get(), 0);
+        if (1 != (err = X509_verify_cert(ctx2))) {
+                throw ErrSSL("CRL check failed");
+        }
+        X509_STORE_CTX_free(ctx2);
+        X509_STORE_free(store); // need this?
 }
 
 /**

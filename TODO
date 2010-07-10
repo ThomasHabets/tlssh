@@ -1,7 +1,6 @@
 TODO before 0.03
 -----------------
-* Client and server can check CRL (server should deny if CRL is old)
-* support for online CRL check (OCSP)
+* Client and server can check CRL - Done
 
 
 TODO before 1.00
@@ -27,7 +26,8 @@ TODO whenever
 * set QoS
 * TCP MD5 should be on the listening socket.
 * pipe:ing.  tlssh host.com echo foo > foo 2>/dev/null
-
+* support for online CRL check (OCSP)
+* deny CRL if it's too old
 
 Notes
 -----
