@@ -1,2 +1,8 @@
 *~
 *.o
+autom4te.cache
+debian
+*.pem
+*.crl
+doc/doxygen
+doc/src
