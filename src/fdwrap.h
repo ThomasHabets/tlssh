@@ -7,6 +7,8 @@
 #include<exception>
 #include<string>
 
+#include"errbase.h"
+
 /**
  *
  */
@@ -52,15 +54,15 @@ public:
 		return fd != -1;
 	}
 
-	class ErrBase: public std::exception {
-		std::string msg;
+	class ErrBase: public Err::ErrBase {
 	public:
-		ErrBase(const std::string &e):msg(e){}
-		~ErrBase() throw() {}
+		ErrBase(const Err::ErrData &e, const std::string &s)
+                        :Err::ErrBase(e, s) {}
+		virtual ~ErrBase() throw() {}
 	};
 	class ErrEOF: public ErrBase {
 	public:
-		ErrEOF(): ErrBase("EOF") {}
+		ErrEOF(const Err::ErrData &e): ErrBase(e, "EOF") {}
 	};
 	
 	std::string read(size_t m = 4096);

@@ -18,8 +18,10 @@ TODO before 1.00
 ---------------
 * Provide grsec RBAC config
 * Manpage
-* other documentation
+* other documentation (README, INSTALL, HACKING)
 * kill connection when cert expires
+* document the code
+* get someone to audit the code
 
 
 TODO after 1.00

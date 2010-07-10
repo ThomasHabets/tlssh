@@ -14,7 +14,7 @@ FDWrap::read(size_t m)
 	std::vector<char> buf(m);
 	n = ::read(fd, &buf[0], m);
 	if (n < 0) {
-		throw ErrBase("read");
+		THROW(ErrBase, "read()");
 	}
 	return std::string(&buf[0], &buf[n]);
 }
@@ -28,10 +28,10 @@ FDWrap::write(const std::string &data)
 	ssize_t n;
 	n = ::write(fd, data.data(), data.length());
 	if (n < 0) {
-		throw ErrBase("write");
+		THROW(ErrBase, "write()");
 	}
 	if (!n) {
-		throw ErrEOF();
+		THROW0(ErrEOF);
 	}
 	return n;
 }
