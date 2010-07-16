@@ -274,6 +274,28 @@ Socket::set_tcp_md5_sock()
         }
 }
 
+/**
+ * Get peer address as string, in numeric format.
+ */
+std::string
+Socket::get_peer_addr_string() const
+{
+        struct sockaddr_storage sa;
+        socklen_t salen = sizeof(sa);
+        if (getpeername(fd.get(), (struct sockaddr*)&sa, &salen)) {
+                THROW(ErrSys, "getpeername()");
+        }
+
+        char host[1024];
+        if (getnameinfo((struct sockaddr*)&sa, salen,
+                        host, sizeof(host),
+                        NULL, 0,
+                        NI_NUMERICHOST)) {
+                THROW(ErrSys, "getnameinfo()");
+        }
+        return host;
+}
+
 /* ---- Emacs Variables ----
  * Local Variables:
  * c-basic-offset: 8

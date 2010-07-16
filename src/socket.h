@@ -88,6 +88,8 @@ public:
         void set_tcp_md5(const std::string &);
         void set_tcp_md5_sock();
 
+        std::string get_peer_addr_string() const;
+
 	void listen_any(int af, const std::string &port);
 	void connect(int af, const std::string &host, const std::string &port);
 

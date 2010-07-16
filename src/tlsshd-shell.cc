@@ -98,8 +98,16 @@ forkmain2(const struct passwd *pw, int fd_control)
 
 	execl(pw->pw_shell, pw->pw_shell, "-i", NULL);
 
-	// Should never be reached
+        // while the below works, it requires root and I want to drop
+        // root privs before this
+        if (0) {
+                execl("/bin/login", "/bin/login",
+                      "-f", pw->pw_name,
+                      "-h", "127.1.2.3",
+                      NULL);
+        }
 
+        // Should never be reached
 	perror("execl() fail");
 	exit(1);
 }

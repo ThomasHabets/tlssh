@@ -262,14 +262,78 @@ drop_privs(const struct passwd *pw)
 }
 
 /**
+ * Log user login to utmp and wtmp.
+ *
  * Run as: root
+ */
+void
+log_login(const struct passwd *pw, const std::string &peer_addr)
+{
+        std::string short_ttyname = ttyname(STDIN_FILENO);
+
+        if (short_ttyname.substr(0,5) == "/dev/") {
+                short_ttyname = short_ttyname.substr(5);
+        }
+
+        std::string short2_ttyname = short_ttyname;
+        size_t pos = short2_ttyname.find('/');
+        if (pos != std::string::npos) {
+                short2_ttyname = short2_ttyname.substr(pos + 1);
+        }
+        if (short2_ttyname.substr(0,3) == "tty") {
+                short2_ttyname = short2_ttyname.substr(3);
+        }
+
+        // write to utmp file (who / w)
+        if (1) {
+                struct utmp ut;
+                struct timeval tv;
+                memset(&ut, 0, sizeof(ut));
+                ut.ut_type = USER_PROCESS;
+                ut.ut_pid = getpid();
+                strncpy(ut.ut_line,
+                        short_ttyname.c_str(),
+                        sizeof(ut.ut_line) - 1);
+                strncpy(ut.ut_id,
+                        short2_ttyname.c_str(),
+                        sizeof(ut.ut_id) - 1);
+                gettimeofday(&tv, NULL);
+                ut.ut_tv.tv_sec = tv.tv_sec;
+                ut.ut_tv.tv_usec = tv.tv_usec;
+                strncpy(ut.ut_user,
+                        pw->pw_name,
+                        sizeof(ut.ut_user) - 1);
+                strncpy(ut.ut_host,
+                        peer_addr.c_str(),
+                        sizeof(ut.ut_host) - 1);
+                ut.ut_addr = 0;
+                setutent();
+                if (!pututline(&ut)) {
+                        THROW(Err::ErrSys, "pututline()");
+                }
+                endutent();
+        }
+
+        // write to wtmp file (last -10)
+        if (1) {
+                logwtmp(short_ttyname.c_str(),
+                        pw->pw_name,
+                        peer_addr.c_str());
+        }
+}
+
+
+/**
  * fork()s tlsshd_shellproc and drops privileges on both it and self.
+ *
+ * Run as: root
  */
 void
 spawn_child(const struct passwd *pw,
 	    pid_t *pid,
 	    int *fdm,
-	    int *fdm_control
+	    int *fdm_control,
+            const std::string &peer_addr
             )
 {
         int fd_control[2];
@@ -297,6 +361,9 @@ spawn_child(const struct passwd *pw,
                 }
 
                 close(fd_control[1]);
+
+                log_login(pw, peer_addr);
+
                 drop_privs(pw);
                 exit(tlsshd_shellproc::forkmain(pw, fd_control[0]));
 	}
@@ -359,7 +426,8 @@ new_ssl_connection(SSLSocket &sock)
 	pid_t pid;
 	int termfd;
         int fd_control;
-	spawn_child(&pw, &pid, &termfd, &fd_control);
+	spawn_child(&pw, &pid, &termfd, &fd_control,
+                    sock.get_peer_addr_string());
 	FDWrap terminal(termfd);
 	FDWrap control(fd_control);
 	user_loop(terminal, sock, control);

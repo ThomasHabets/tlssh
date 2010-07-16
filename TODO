@@ -6,7 +6,7 @@ TODO before 0.04
 
 TODO before 0.05
 ----------------
-* utmp/wtmp
+* fix wtmp update at logout
 
 
 TODO before 1.00
@@ -21,6 +21,9 @@ TODO before 1.00
 
 TODO after 1.00
 -------------
+* port to Solaris
+* port to OpenBSD
+* pick a proper port number
 * HUP re-reads config file and re-overrides using the old cmdline
 * Client has send-local-file-as-typed support.
 * xmodem file send/recv
