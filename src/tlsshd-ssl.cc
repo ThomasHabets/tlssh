@@ -18,7 +18,9 @@
 #include "config.h"
 #endif
 
+#ifdef HAVE_PTY_H
 #include<pty.h>
+#endif
 #include<utmp.h>
 #include<unistd.h>
 #include<grp.h>

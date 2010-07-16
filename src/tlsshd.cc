@@ -30,7 +30,11 @@
 #include<unistd.h>
 #include<grp.h>
 #include<poll.h>
+
+#ifdef HAVE_PTY_H
 #include<pty.h>
+#endif
+
 #include<utmp.h>
 #include<signal.h>
 #include<arpa/inet.h>

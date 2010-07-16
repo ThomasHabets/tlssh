@@ -26,7 +26,7 @@ AC_SEARCH_LIBS([send], [socket])
 AC_HEADER_STDC
 AC_CHECK_HEADERS([arpa/inet.h netdb.h netinet/in.h netinet/in6.h stdlib.h \
 string.h sys/socket.h sys/time.h unistd.h memory.h sys/uio.h \
-ifaddrs.h \
+ifaddrs.h pty.h \
 ])
 
 # Checks for typedefs, structures, and compiler characteristics.
@@ -39,7 +39,9 @@ AC_C_VOLATILE
 # Checks for library functions.
 #AC_FUNC_MALLOC
 AC_TYPE_SIGNAL
-AC_CHECK_FUNCS([memcpy gettimeofday memset socket sqrt strerror strtoul])
+AC_CHECK_FUNCS([memcpy gettimeofday memset socket sqrt strerror strtoul \
+daemon setresuid setresgid logwtmp basename forkpty clearenv \
+])
 
 EL_GETPW_R_POSIX
 EL_GETPW_R_DRAFT

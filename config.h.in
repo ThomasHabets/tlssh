@@ -3,6 +3,18 @@
 /* Define to 1 if you have the <arpa/inet.h> header file. */
 #undef HAVE_ARPA_INET_H
 
+/* Define to 1 if you have the `basename' function. */
+#undef HAVE_BASENAME
+
+/* Define to 1 if you have the `clearenv' function. */
+#undef HAVE_CLEARENV
+
+/* Define to 1 if you have the `daemon' function. */
+#undef HAVE_DAEMON
+
+/* Define to 1 if you have the `forkpty' function. */
+#undef HAVE_FORKPTY
+
 /* Define to 1 if you have getpwnam_r and getpwuid_r that are draft POSIX.1
    versions. */
 #undef HAVE_GETPW_R_DRAFT
@@ -29,6 +41,9 @@
 /* Define to 1 if you have the `util' library (-lutil). */
 #undef HAVE_LIBUTIL
 
+/* Define to 1 if you have the `logwtmp' function. */
+#undef HAVE_LOGWTMP
+
 /* Define to 1 if you have the `memcpy' function. */
 #undef HAVE_MEMCPY
 
@@ -46,6 +61,15 @@
 
 /* Define to 1 if you have the <netinet/in.h> header file. */
 #undef HAVE_NETINET_IN_H
+
+/* Define to 1 if you have the <pty.h> header file. */
+#undef HAVE_PTY_H
+
+/* Define to 1 if you have the `setresgid' function. */
+#undef HAVE_SETRESGID
+
+/* Define to 1 if you have the `setresuid' function. */
+#undef HAVE_SETRESUID
 
 /* Define to 1 if you have the `socket' function. */
 #undef HAVE_SOCKET

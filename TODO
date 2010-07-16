@@ -34,7 +34,6 @@ TODO after 1.00
 * TCP MD5 should be on the listening socket.
 * pipe:ing.  tlssh host.com echo foo > foo 2>/dev/null
 * support for online CRL check (OCSP)
-* deny CRL if it's too old
 
 
 Notes
