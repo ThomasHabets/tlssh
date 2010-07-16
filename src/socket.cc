@@ -282,6 +282,7 @@ Socket::get_peer_addr_string() const
 {
         struct sockaddr_storage sa;
         socklen_t salen = sizeof(sa);
+        std::string ret;
         if (getpeername(fd.get(), (struct sockaddr*)&sa, &salen)) {
                 THROW(ErrSys, "getpeername()");
         }
@@ -293,7 +294,12 @@ Socket::get_peer_addr_string() const
                         NI_NUMERICHOST)) {
                 THROW(ErrSys, "getnameinfo()");
         }
-        return host;
+        ret = host;
+
+        if (ret.substr(0,7) == "::ffff:") {
+                ret = ret.substr(7);
+        }
+        return ret;
 }
 
 /* ---- Emacs Variables ----
