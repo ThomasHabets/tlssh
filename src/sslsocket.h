@@ -56,6 +56,8 @@ public:
 	std::string get_common_name() const;
 	std::string get_subject() const;
 
+        static const std::string errstr(int err);
+
         X509 *get() { return x509; }
 
 	~X509Wrap();

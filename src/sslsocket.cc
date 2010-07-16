@@ -202,6 +202,62 @@ SSLSocket::get_cert()
 }
 
 /**
+ * Return error description for X509 errors.
+ *
+ * @todo there must be a built-in library function for this
+ */
+const std::string
+X509Wrap::errstr(int err)
+{
+        switch (err) {
+        case X509_V_OK:
+                return "ok";
+        case X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT:
+                return "unable to get issuer";
+        case X509_V_ERR_UNABLE_TO_GET_CRL:
+                return "unable to get certificate CRL";
+        case X509_V_ERR_UNABLE_TO_DECRYPT_CERT_SIGNATURE:
+                return "unable to decrypt";
+        case X509_V_ERR_UNABLE_TO_DECRYPT_CRL_SIGNATURE:
+                return "unable to decrypt CRL’s";
+        case X509_V_ERR_UNABLE_TO_DECODE_ISSUER_PUBLIC_KEY:
+                return "unable to decode";
+        case X509_V_ERR_CERT_SIGNATURE_FAILURE:
+                return "certificate signature failure";
+        case X509_V_ERR_CRL_SIGNATURE_FAILURE:
+                return "CRL signature failure";
+        case X509_V_ERR_CERT_NOT_YET_VALID:
+                return "certificate is not yet valid";
+        case X509_V_ERR_CERT_HAS_EXPIRED:
+                return "certificate has expired";
+        case X509_V_ERR_CRL_NOT_YET_VALID:
+                return "CRL is not yet valid";
+        case X509_V_ERR_CRL_HAS_EXPIRED:
+                return "CRL has expired";
+        case X509_V_ERR_ERROR_IN_CERT_NOT_BEFORE_FIELD:
+                return "format error in";
+        case X509_V_ERR_ERROR_IN_CERT_NOT_AFTER_FIELD:
+                return "format error in";
+        case X509_V_ERR_ERROR_IN_CRL_LAST_UPDATE_FIELD:
+                return "format error in CRL’s";
+        case X509_V_ERR_ERROR_IN_CRL_NEXT_UPDATE_FIELD:
+                return "format error in CRL’s";
+        case X509_V_ERR_OUT_OF_MEM:
+                return "out of memory";
+        case X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT:
+                return "self signed certificate";
+        case X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN:
+                return "self signed certificate in";
+        case X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY:
+                return "unable to get local";
+        case X509_V_ERR_UNABLE_TO_VERIFY_LEAF_SIGNATURE:
+                return "unable to verify the";
+        default:
+                return "unknown X509 error";
+        }
+}
+
+/**
  *
  */
 const std::string
@@ -617,8 +673,10 @@ SSLSocket::check_crl()
                              | X509_V_FLAG_CRL_CHECK_ALL);
 
         X509_STORE_CTX_init(crlctx, store, cert.get(), 0);
-        if (1 != (err = X509_verify_cert(crlctx))) {
-                THROW(ErrSSLCRL, cert.get_subject());
+        if (1 != X509_verify_cert(crlctx)) {
+                err = X509_STORE_CTX_get_error(crlctx);
+                THROW(ErrSSLCRL,
+                      X509Wrap::errstr(err) + ": " + cert.get_subject());
         }
 
         ,    /*  FINALLY */;
@@ -809,7 +867,7 @@ SSLSocket::ErrSSLHostname::ErrSSLHostname(const Err::ErrData &errdata,
  */
 SSLSocket::ErrSSLCRL::ErrSSLCRL(const Err::ErrData &errdata,
                                 const std::string &subject)
-        :ErrSSL(errdata, "Cert revoked by CRL"),subject(subject)
+        :ErrSSL(errdata, "Cert revoked by CRL"), subject(subject)
 {
         msg += ": " + subject;
 }

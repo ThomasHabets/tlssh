@@ -514,7 +514,7 @@ main(int argc, char **argv)
 			throw;
 		}
 	} catch(const SSLSocket::ErrSSL &e) {
-		std::cerr << e.what_verbose();
+		std::cerr << "tlssh: " << e.what_verbose();
 	} catch(const Err::ErrBase &e) {
                 if (options.verbose) {
                         fprintf(stderr, "%s: %s\n",
