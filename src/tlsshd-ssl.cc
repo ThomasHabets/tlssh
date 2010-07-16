@@ -27,6 +27,9 @@
 #include<arpa/inet.h>
 #include<sys/stat.h>
 #include<sys/types.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #include<iostream>
 
@@ -40,6 +43,10 @@ using namespace tlssh_common;
 using tlsshd::options;
 
 BEGIN_NAMESPACE(tlsshd_sslproc);
+
+FDWrap fd_wtmp;
+std::string short_ttyname;
+std::string short2_ttyname;
 
 size_t iac_len[256];
 
@@ -269,24 +276,9 @@ drop_privs(const struct passwd *pw)
 void
 log_login(const struct passwd *pw, const std::string &peer_addr)
 {
-        std::string short_ttyname = ttyname(STDIN_FILENO);
-
-        if (short_ttyname.substr(0,5) == "/dev/") {
-                short_ttyname = short_ttyname.substr(5);
-        }
-
-        std::string short2_ttyname = short_ttyname;
-        size_t pos = short2_ttyname.find('/');
-        if (pos != std::string::npos) {
-                short2_ttyname = short2_ttyname.substr(pos + 1);
-        }
-        if (short2_ttyname.substr(0,3) == "tty") {
-                short2_ttyname = short2_ttyname.substr(3);
-        }
-
+        struct utmp ut;
         // write to utmp file (who / w)
         if (1) {
-                struct utmp ut;
                 struct timeval tv;
                 memset(&ut, 0, sizeof(ut));
                 ut.ut_type = USER_PROCESS;
@@ -322,6 +314,27 @@ log_login(const struct passwd *pw, const std::string &peer_addr)
         }
 }
 
+/**
+ * Write logout info to wtmp
+ *
+ * @todo This is not pretty. I feel like it at least needs locking.
+ *       What I'd really like is a updwtmp() that uses FILE* or int fd.
+ */
+void
+log_logout()
+{
+        if (!fd_wtmp.valid()) {
+                return;
+        }
+
+        struct utmp ut;
+        memset(&ut, 0, sizeof(ut));
+        strncpy(ut.ut_line, short_ttyname.c_str(), sizeof(ut.ut_line)-1);
+        ut.ut_time = time(0);
+        ut.ut_type = DEAD_PROCESS;
+        fd_wtmp.full_write(std::string((char*)&ut,
+                                       ((char*)&ut) + sizeof(ut)));
+}
 
 /**
  * fork()s tlsshd_shellproc and drops privileges on both it and self.
@@ -337,6 +350,7 @@ spawn_child(const struct passwd *pw,
             )
 {
         int fd_control[2];
+        char tty_name[PATH_MAX];
 
         if (chdir("/")) {
                 THROW(Err::ErrSys, "chdir()");
@@ -346,9 +360,20 @@ spawn_child(const struct passwd *pw,
 
         }
 
-        *pid = forkpty(fdm, NULL, NULL, NULL);
+        *pid = forkpty(fdm, tty_name, NULL, NULL);
         if (*pid == -1) {
                 THROW(Err::ErrSys, "forkpty()");
+        }
+
+        short_ttyname = tty_name;
+
+        if (short_ttyname.substr(0,5) == "/dev/") {
+                short_ttyname = short_ttyname.substr(5);
+        }
+
+        short2_ttyname = basename(short_ttyname.c_str());
+        if (short2_ttyname.substr(0,3) == "tty") {
+                short2_ttyname = short2_ttyname.substr(3);
         }
 
         // child
@@ -368,6 +393,8 @@ spawn_child(const struct passwd *pw,
                 exit(tlsshd_shellproc::forkmain(pw, fd_control[0]));
 	}
 
+        fd_wtmp.set(open(WTMP_FILE, O_WRONLY | O_APPEND));
+
         // parent
         if (!options.chroot.empty()) {
                 if (chroot(options.chroot.c_str())) {
@@ -377,11 +404,11 @@ spawn_child(const struct passwd *pw,
                         THROW(Err::ErrSys, "chdir(/)");
                 }
         }
+
 	drop_privs(pw);
         close(fd_control[0]);
         *fdm_control = fd_control[1];
 }
-
 
 /**
  * Run as: root
@@ -431,6 +458,8 @@ new_ssl_connection(SSLSocket &sock)
 	FDWrap terminal(termfd);
 	FDWrap control(fd_control);
 	user_loop(terminal, sock, control);
+
+        log_logout();
 }
 
 /**

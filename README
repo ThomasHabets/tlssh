@@ -5,8 +5,8 @@ See INSTALL file.
 
 Notes
 -----
-Support for TCP MD5 in Linux is always on since 2.6.27
-
+* Support for TCP MD5 in Linux is always on since 2.6.27
+* Cacert.org Class 1 CRL: http://crl.cacert.org/revoke.crl
 
 Links
 -----
