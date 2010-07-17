@@ -16,10 +16,7 @@ std::string xwordexp(const std::string &in);
 std::vector<std::string> tokenize(const std::string &s);
 std::string trim(const std::string &str);
 
-#ifndef HAVE_BASENAME
-char *basename (const char *filename);
-#endif
-
+char *gnustyle_basename(const char *filename);
 
 extern "C" {
 #ifndef HAVE_CFMAKERAW
@@ -38,6 +35,9 @@ extern "C" {
 
 #ifndef HAVE_CLEARENV
         int clearenv(void);
+#endif
+#ifndef HAVE_DAEMON
+        int daemon(int nochdir, int noclose);
 #endif
 #ifndef HAVE_LOGWTMP
         void logwtmp(const char *line, const char *name, const char *host);

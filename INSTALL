@@ -1,0 +1,4 @@
+
+Solaris:
+  ./configure LDFLAGS="-L/opt/csw/lib -R/opt/csw/lib" \
+              CPPFLAGS="-I/opt/csw/include"

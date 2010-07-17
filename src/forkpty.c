@@ -10,6 +10,10 @@ static const int ISO_C_forbids_an_empty_source_file = 1;
 #include<pty.h>
 #endif
 
+#include<stdlib.h>
+#include<unistd.h>
+#include<termios.h>
+
 pid_t
 forkpty(int *amaster, char *name, struct termios *termp,
 	struct winsize *winp)
@@ -21,7 +25,7 @@ forkpty(int *amaster, char *name, struct termios *termp,
     goto errout;
   }
 
-  pid = fork(0);
+  pid = fork();
 
   if (pid < 0) {
     goto errout_fork;

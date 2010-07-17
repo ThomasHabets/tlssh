@@ -29,9 +29,10 @@
 #include<arpa/inet.h>
 #include<sys/stat.h>
 #include<sys/types.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
+#include<sys/types.h>
+#include<sys/stat.h>
+#include<fcntl.h>
+#include<termios.h>
 
 #include<iostream>
 
@@ -278,6 +279,7 @@ drop_privs(const struct passwd *pw)
 void
 log_login(const struct passwd *pw, const std::string &peer_addr)
 {
+#if 0
         struct utmp ut;
         // write to utmp file (who / w)
         if (1) {
@@ -314,6 +316,7 @@ log_login(const struct passwd *pw, const std::string &peer_addr)
                         pw->pw_name,
                         peer_addr.c_str());
         }
+#endif
 }
 
 /**
@@ -373,7 +376,7 @@ spawn_child(const struct passwd *pw,
                 short_ttyname = short_ttyname.substr(5);
         }
 
-        short2_ttyname = basename(short_ttyname.c_str());
+        short2_ttyname = gnustyle_basename(short_ttyname.c_str());
         if (short2_ttyname.substr(0,3) == "tty") {
                 short2_ttyname = short2_ttyname.substr(3);
         }

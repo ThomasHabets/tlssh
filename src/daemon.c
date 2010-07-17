@@ -3,6 +3,9 @@
 #endif
 
 #include<unistd.h>
+#include<sys/types.h>
+#include<sys/stat.h>
+#include<fcntl.h>
 
 static const int ISO_C_forbids_an_empty_source_file = 1;
 
