@@ -5,7 +5,7 @@
  *
  */
 void
-cfmakeraw(struct temios *termios_p)
+cfmakeraw(struct termios *termios_p)
 {
         termios_p->c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP
                                 | INLCR | IGNCR | ICRNL | IXON);

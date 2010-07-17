@@ -5606,8 +5606,9 @@ _ACEOF
 
 
 
+
 for ac_func in memcpy gettimeofday memset socket sqrt strerror strtoul \
-daemon setresuid setresgid logwtmp basename forkpty clearenv \
+daemon setresuid setresgid logwtmp basename forkpty clearenv cfmakeraw \
 
 do
 as_ac_var=`echo "ac_cv_func_$ac_func" | $as_tr_sh`

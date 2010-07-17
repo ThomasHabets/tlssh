@@ -40,7 +40,7 @@ AC_C_VOLATILE
 #AC_FUNC_MALLOC
 AC_TYPE_SIGNAL
 AC_CHECK_FUNCS([memcpy gettimeofday memset socket sqrt strerror strtoul \
-daemon setresuid setresgid logwtmp basename forkpty clearenv \
+daemon setresuid setresgid logwtmp basename forkpty clearenv cfmakeraw \
 ])
 
 EL_GETPW_R_POSIX

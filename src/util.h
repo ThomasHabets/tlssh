@@ -23,9 +23,9 @@ char *basename (const char *filename);
 
 extern "C" {
 #ifndef HAVE_CFMAKERAW
-        void cfmakeraw(struct temios *termios_p);
+        void cfmakeraw(struct termios *termios_p);
 #endif
-#ifndef HAVE_CFMAKERAW
+#ifndef HAVE_FORKPTY
         pid_t forkpty(int *amaster, char *name, struct termios *termp,
                       struct winsize *winp);
 #endif
