@@ -251,7 +251,7 @@ void
 Socket::set_tcp_md5_sock()
 {
         return;
-
+#ifdef HAVE_TCP_MD5
         struct tcp_md5sig md5sig;
         std::string key = tcpmd5.substr(0, TCP_MD5SIG_MAXKEYLEN);
         socklen_t t = sizeof(struct sockaddr_storage);
@@ -272,6 +272,7 @@ Socket::set_tcp_md5_sock()
                         THROW(ErrSys, "setsockopt(TCP_MD5SIG)");
                 }
         }
+#endif
 }
 
 /**

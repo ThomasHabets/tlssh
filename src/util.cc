@@ -98,6 +98,15 @@ xgetpwnam(const std::string &name, std::vector<char> &buffer)
 	return pw;
 }
 
+#ifndef HAVE_BASENAME
+char*
+basename(const char *fn)
+{
+        char *p = strrchr(fn, '/');
+        return p ? p + 1 : (char *)fn;
+}
+#endif
+
 /* ---- Emacs Variables ----
  * Local Variables:
  * c-basic-offset: 8

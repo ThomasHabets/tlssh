@@ -49,13 +49,17 @@ binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
 am_tlssh_OBJECTS = tlssh.$(OBJEXT) sslsocket.$(OBJEXT) \
 	socket.$(OBJEXT) fdwrap.$(OBJEXT) configparser.$(OBJEXT) \
-	util.$(OBJEXT) xgetpwnam.$(OBJEXT) tlssh_common.$(OBJEXT)
+	util.$(OBJEXT) xgetpwnam.$(OBJEXT) tlssh_common.$(OBJEXT) \
+	cfmakeraw.$(OBJEXT)
 tlssh_OBJECTS = $(am_tlssh_OBJECTS)
 tlssh_LDADD = $(LDADD)
 am_tlsshd_OBJECTS = tlsshd.$(OBJEXT) sslsocket.$(OBJEXT) \
 	socket.$(OBJEXT) xgetpwnam.$(OBJEXT) fdwrap.$(OBJEXT) \
 	configparser.$(OBJEXT) util.$(OBJEXT) tlsshd-ssl.$(OBJEXT) \
-	tlsshd-shell.$(OBJEXT) tlssh_common.$(OBJEXT)
+	tlsshd-shell.$(OBJEXT) tlssh_common.$(OBJEXT) \
+	cfmakeraw.$(OBJEXT) forkpty.$(OBJEXT) \
+	openpty_solaris.$(OBJEXT) setresuid.$(OBJEXT) \
+	clearenv.$(OBJEXT) daemon.$(OBJEXT) logwtmp.$(OBJEXT)
 tlsshd_OBJECTS = $(am_tlsshd_OBJECTS)
 tlsshd_LDADD = $(LDADD)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
@@ -170,11 +174,12 @@ AUTOMAKE_OPTIONS = foreign
 DISTCLEANFILES = *~
 tlssh_SOURCES = \
 tlssh.cc sslsocket.cc socket.cc fdwrap.cc configparser.cc util.cc \
-xgetpwnam.c tlssh_common.cc
+xgetpwnam.c tlssh_common.cc cfmakeraw.c
 
 tlsshd_SOURCES = \
 tlsshd.cc sslsocket.cc socket.cc xgetpwnam.c fdwrap.cc configparser.cc \
-util.cc tlsshd-ssl.cc tlsshd-shell.cc tlssh_common.cc
+util.cc tlsshd-ssl.cc tlsshd-shell.cc tlssh_common.cc cfmakeraw.c forkpty.c \
+openpty_solaris.c setresuid.c clearenv.c daemon.c logwtmp.c
 
 all: all-am
 
@@ -245,8 +250,15 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cfmakeraw.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clearenv.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/configparser.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/daemon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fdwrap.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/forkpty.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/logwtmp.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/openpty_solaris.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/setresuid.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/socket.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sslsocket.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tlssh.Po@am__quote@
