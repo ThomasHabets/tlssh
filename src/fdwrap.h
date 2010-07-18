@@ -6,6 +6,7 @@
 #ifndef __INCLUDE_FDWRAP_H__
 #define __INCLUDE_FDWRAP_H__
 
+#include<unistd.h>
 #include<exception>
 #include<string>
 
