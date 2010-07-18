@@ -16,6 +16,35 @@ std::string xwordexp(const std::string &in);
 std::vector<std::string> tokenize(const std::string &s);
 std::string trim(const std::string &str);
 
+char *gnustyle_basename(const char *filename);
+
+extern "C" {
+#ifndef HAVE_CFMAKERAW
+        void cfmakeraw(struct termios *termios_p);
+#endif
+#ifndef HAVE_FORKPTY
+        pid_t forkpty(int *amaster, char *name, struct termios *termp,
+                      struct winsize *winp);
+#endif
+#ifndef HAVE_SETRESUID
+        int setresuid(uid_t ruid, uid_t euid, uid_t suid);
+#endif
+#ifndef HAVE_SETRESGID
+        int setresgid(gid_t rgid, gid_t egid, gid_t sgid);
+#endif
+
+#ifndef HAVE_CLEARENV
+        int clearenv(void);
+#endif
+#ifndef HAVE_DAEMON
+        int daemon(int nochdir, int noclose);
+#endif
+#ifndef HAVE_LOGWTMP
+        void logwtmp(const char *line, const char *name, const char *host);
+#endif
+
+};
+
 /* ---- Emacs Variables ----
  * Local Variables:
  * c-basic-offset: 8

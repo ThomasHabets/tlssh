@@ -6,6 +6,9 @@
 /* Define to 1 if you have the `basename' function. */
 #undef HAVE_BASENAME
 
+/* Define to 1 if you have the `cfmakeraw' function. */
+#undef HAVE_CFMAKERAW
+
 /* Define to 1 if you have the `clearenv' function. */
 #undef HAVE_CLEARENV
 
@@ -110,8 +113,14 @@
 /* Define to 1 if you have the <sys/uio.h> header file. */
 #undef HAVE_SYS_UIO_H
 
+/* Define if you have TCP MD5 */
+#undef HAVE_TCPMD5
+
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
+
+/* Define to 1 if you have the <wordexp.h> header file. */
+#undef HAVE_WORDEXP_H
 
 /* Name of package */
 #undef PACKAGE

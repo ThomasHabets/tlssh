@@ -26,7 +26,7 @@ AC_SEARCH_LIBS([send], [socket])
 AC_HEADER_STDC
 AC_CHECK_HEADERS([arpa/inet.h netdb.h netinet/in.h netinet/in6.h stdlib.h \
 string.h sys/socket.h sys/time.h unistd.h memory.h sys/uio.h \
-ifaddrs.h pty.h \
+ifaddrs.h pty.h wordexp.h \
 ])
 
 # Checks for typedefs, structures, and compiler characteristics.
@@ -40,11 +40,17 @@ AC_C_VOLATILE
 #AC_FUNC_MALLOC
 AC_TYPE_SIGNAL
 AC_CHECK_FUNCS([memcpy gettimeofday memset socket sqrt strerror strtoul \
-daemon setresuid setresgid logwtmp basename forkpty clearenv \
+daemon setresuid setresgid logwtmp basename forkpty clearenv cfmakeraw \
 ])
 
 EL_GETPW_R_POSIX
 EL_GETPW_R_DRAFT
+
+AC_CHECK_MEMBER(struct tcp_md5sig.tcpm_keylen,
+		       [AC_DEFINE([HAVE_TCPMD5], 1,
+		       [Define if you have TCP MD5])],
+		       [],
+		       [[#include <netinet/tcp.h>]])
 
 # Output
 AC_CONFIG_FILES([Makefile src/Makefile doc/Makefile])

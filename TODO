@@ -13,7 +13,17 @@ TODO before 1.00
 ---------------
 * Provide grsec RBAC config
 * port to Solaris
+** cfmakeraw - done?
+** forkpty - done?
+** tcpmd5 - done?
+** clearenv - skeleton
+** setres[ug]id - done?
+** logwtmp (whole utmp handling)
+** basename - done?
+** daemon - done?
 * port to OpenBSD
+** wordexp
+** md5sig
 * Manpage
 * other documentation (README, INSTALL, HACKING)
 * kill connection when cert expires
