@@ -17,6 +17,11 @@
 #include"socket.h"
 #include"gaiwrap.h"
 
+/* For those OSs that don't read RFC3493, even though their manpage
+ * points to it. */
+#ifndef AI_ADDRCONFIG
+# define AI_ADDRCONFIG 0
+#endif
 
 /**
  * Create socket object from existing file descriptor.

@@ -6,6 +6,7 @@
 #include "config.h"
 #endif
 
+#include<stdio.h>
 #include<wordexp.h>
 
 #include"util.h"
@@ -19,6 +20,7 @@ std::string
 xwordexp(const std::string &in)
 {
 	wordexp_t p;
+        std::string ret;
 
 	if (wordexp(in.c_str(), &p, 0)) {
 		THROW(Err::ErrBase, "wordexp(" + in + ")");
@@ -28,9 +30,13 @@ xwordexp(const std::string &in)
                 wordfree(&p);
 		THROW(Err::ErrBase, "wordexp(" + in + ") nmatch != 1");
 	}
-
-	std::string ret(p.we_wordv[0]);
-	wordfree(&p);
+        try {
+                ret = p.we_wordv[0];
+        } catch(...) {
+                wordfree(&p);
+                throw;
+        }
+        wordfree(&p);
 	return ret;
 }
 

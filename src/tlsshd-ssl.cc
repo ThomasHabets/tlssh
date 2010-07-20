@@ -21,6 +21,7 @@
 #ifdef HAVE_PTY_H
 #include<pty.h>
 #endif
+#include<time.h>
 #include<utmp.h>
 #include<unistd.h>
 #include<grp.h>
@@ -328,6 +329,7 @@ log_login(const struct passwd *pw, const std::string &peer_addr)
 void
 log_logout()
 {
+#if 0
         if (!fd_wtmp.valid()) {
                 return;
         }
@@ -336,9 +338,10 @@ log_logout()
         memset(&ut, 0, sizeof(ut));
         strncpy(ut.ut_line, short_ttyname.c_str(), sizeof(ut.ut_line)-1);
         ut.ut_time = time(0);
-        ut.ut_type = DEAD_PROCESS;
+        //ut.ut_type = DEAD_PROCESS; // Linux-specific?
         fd_wtmp.full_write(std::string((char*)&ut,
                                        ((char*)&ut) + sizeof(ut)));
+#endif
 }
 
 /**
