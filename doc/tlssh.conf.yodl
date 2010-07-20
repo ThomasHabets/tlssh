@@ -1,0 +1,39 @@
+manpage(tlssh.conf)(8)(20th Jul, 2010)(tlssh.conf)()
+
+manpagename(tlssh.conf)(TLSSH client configuration file)
+
+manpagesynopsis()
+    ~/.tlssh/tlssh.conf
+    /etc/tlssh/tlssh.conf
+
+manpagedescription()
+  dit(em(BASIC))
+  dit(bf(KeyFile) /path/to/keyfile)
+      Private key for tlsshd. Default is ~/.tlssh/keys/default.key.
+  dit(bf(CertFile) /path/to/certfile)
+      Public key for tlsshd. Default is ~/.tlssh/keys/default.crt.
+  dit(bf(ServerCAFile) /path/to/file.crt)
+      CA certificate file that has signed the tlsshd server certificates.
+      Default is /etc/tlssh/ServerCA.crt.
+      Either a working ServerCAFile or ServerCAPath is needed.
+  dit(bf(ServerCAPath) /path/to/certs)
+      Directory containing CAs that have signed tlsshd server certificates.
+  dit(em(OPTIONAL))
+  dit(bf(ServerCRL) /path/to/file)
+      CRL file. If the CRL is out of date or missing you will NOT be able
+      to connect.
+  dit(bf(Cipherlist) HIGH)
+      List of crypto ciphers allowed, in OpenSSL format.
+      Default is HIGH.
+  dit(bf(include) /path/to/config)
+      Include other config file.
+  dit(bf(-include) /path/to/config)
+      Include other config file, but don't error out if the file doesn't exist.
+      It's by using bf(-include) that /etc/tlssh/tlssh.conf includes
+      ~/.tlssh/tlssh.conf.
+
+manpageseealso()
+    bf(tlssh(1)), bf(tlsshd.conf(5))
+
+manpageauthor()
+    TLSSH was written by Thomas Habets <thomas@habets.pp.se>.

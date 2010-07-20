@@ -62,11 +62,12 @@ BEGIN_NAMESPACE(tlsshd);
 /* constants */
 const char *argv0 = NULL;
 
+const std::string DEFAULT_LISTEN       = "::";
 const std::string DEFAULT_PORT         = "12345";
 const std::string DEFAULT_CERTFILE     = "/etc/tlssh/tlsshd.crt";
 const std::string DEFAULT_KEYFILE      = "/etc/tlssh/tlsshd.key";
 const std::string DEFAULT_CLIENTCAFILE = "/etc/tlssh/ClientCA.crt";
-const std::string DEFAULT_CLIENTCRL    = "/etc/tlssh/ClientCRL.pem";
+const std::string DEFAULT_CLIENTCRL    = "";
 const std::string DEFAULT_CLIENTCAPATH = "";
 const std::string DEFAULT_CLIENTDOMAIN = "";
 const std::string DEFAULT_CONFIG       = "/etc/tlssh/tlsshd.conf";
@@ -83,6 +84,7 @@ Socket listen;
 std::string protocol_version; // should be "tlssh.1"
 
 Options options = {
+ listen:         DEFAULT_LISTEN,
  port:           DEFAULT_PORT,
  certfile:       DEFAULT_CERTFILE,
  keyfile:        DEFAULT_KEYFILE,
@@ -181,6 +183,9 @@ read_config_file(const std::string &fn)
 			// empty line
 		} else if (conf->keyword[0] == '#') {
 			// comment
+		} else if (conf->keyword == "Listen"
+                           && conf->parms.size() == 1) {
+			options.listen = conf->parms[0];
 		} else if (conf->keyword == "ClientCAFile"
                            && conf->parms.size() == 1) {
 			options.clientcafile = conf->parms[0];
@@ -268,29 +273,16 @@ parse_options(int argc, char * const *argv)
 	}
 
 	int opt;
-	while ((opt = getopt(argc, argv, "46c:C:fhp:vV")) != -1) {
+	while ((opt = getopt(argc, argv, "c:fhvV")) != -1) {
 		switch (opt) {
-                case '4':
-                        options.af = AF_INET;
-                        break;
-                case '6':
-                        options.af = AF_INET6;
-                        break;
 		case 'c':
 			// already handled above
-			break;
-		case 'C':
-			options.cipher_list = optarg;
 			break;
 		case 'f':
                         options.daemon = false;
 			break;
 		case 'h':
 			usage(0);
-		case 'p':
-			options.keyfile = optarg;
-			options.certfile = optarg;
-			exit(0);
 		case 'v':
 			options.verbose++;
                         break;
@@ -310,6 +302,8 @@ BEGIN_LOCAL_NAMESPACE()
 using namespace tlsshd;
 /**
  * wrapped main() so that we don't have to handle exceptions in this main()
+ *
+ * @todo Only listen to options.listen
  */
 int
 main2(int argc, char * const argv[])

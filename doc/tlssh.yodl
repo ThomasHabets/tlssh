@@ -1,0 +1,40 @@
+manpage(tlssh)(1)(20th Jul, 2010)(tlssh)()
+
+manpagename(tlssh)(TLSSH client)
+
+manpagesynopsis()
+    bf(tlssh) em(destination)
+
+manpagedescription()
+  TLSSH is a program for logging into a remote host using TLS and
+  certificates. The server does not ask for a username or password, it
+  only verifies the client certificate and logs the client in using the
+  username written on the certificate.  
+
+  To log in as a different user you must obtain a certificate for that
+  user.
+
+manpageoptions()
+startdit()
+  dit(-4) Force IPv4. Default is auto-detect.
+  dit(-6) Force IPv6. Default is auto-detect.
+  dit(-c em(config file)) Config file. Default is /etc/tlssh/tlssh.conf
+  dit(-C em(cipher list)) Cipher list. Default is HIGH
+  dit(-h, --help) Show brief usage info and exit. 
+  dit(-p em(cert/key file))
+  dit(-v) Increase verbosity (debug output).
+  dit(-V, --version) Show version and exit.
+  dit(--copying) Show license and exit.
+enddit()
+
+manpagesection(EXAMPLES)
+    FIXME
+
+manpagebugs()
+    No known bugs.
+
+manpageseealso()
+    bf(tlsshd(8)), bf(tlssh.conf(5))
+
+manpageauthor()
+    TLSSH was written by Thomas Habets <thomas@habets.pp.se>.

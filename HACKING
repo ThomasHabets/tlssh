@@ -1,3 +1,27 @@
+Protocol
+========
+Normal TLS connection with both client and server cert, as well as
+Diffie-Hellman. If crypto parameters are incorrect the connection is simply
+closed.
+
+Client then sends a few header commands, one on each line:
+  version <n>         # Protocol version. Currently 1
+  env <name> <val>    # Set env variable <name> to <val>, currently only TERM
+
+Header part is done when client sends an empty line. Lines end with \n only.
+
+Connection in then set up.
+
+All data is sent as-is except byte 255 (IAC, Interpret As Command,
+from Telnet protocol). IAC commands are:
+    1 - Set window size. Two 16bit network-order ints follow with height,width.
+  255 - Send literal byte 255
+
+Client sends IAC 1 (set window size) with updated size every time the
+local terminal changes size (it gets SIGWINCH). The client sends its
+first set-window-size as soon as the connection is set up.
+
+
 Exceptions
 ==========
 The THROW and THROW0 macros are used to throw exceptions. They

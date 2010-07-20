@@ -1,12 +1,18 @@
-#include <termios.h>
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #ifndef HAVE_CFMAKERAW
+#include <termios.h>
+#include <string.h>
+
 /**
  *
  */
 void
 cfmakeraw(struct termios *termios_p)
 {
+        memset(0, &termios_p, sizeof(struct termios));
         termios_p->c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP
                                 | INLCR | IGNCR | ICRNL | IXON);
         termios_p->c_oflag &= ~OPOST;
