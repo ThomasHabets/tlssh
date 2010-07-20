@@ -11,6 +11,7 @@ TODO before 0.05
 
 TODO before 1.00
 ---------------
+* Listen option
 * Provide grsec RBAC config
 * port to Solaris
 ** cfmakeraw - done?
@@ -23,8 +24,8 @@ TODO before 1.00
 ** daemon - done?
 * port to OpenBSD
 ** wordexp
-** md5sig
-* Manpage
+** tcpmd5
+* Manpage - done
 * other documentation (README, INSTALL, HACKING)
 * kill connection when cert expires
 * document the code
