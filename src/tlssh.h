@@ -45,6 +45,7 @@ BEGIN_NAMESPACE(tlsshd)
  * TLSSHD Daemon options
  */
 struct Options {
+	std::string listen;
 	std::string port;
 	std::string certfile;
 	std::string keyfile;
