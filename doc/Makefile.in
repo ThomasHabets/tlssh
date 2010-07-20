@@ -305,7 +305,7 @@ doc: manpages
 
 manpages: tlssh.1 tlsshd.8 tlssh.conf.5 tlsshd.conf.5
 
-%.1 %.5 %.8: %1.yodl
+%.1 %.5 %.8: %.yodl
 	yodl2man -o $@ $<
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
