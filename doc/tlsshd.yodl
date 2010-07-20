@@ -1,0 +1,38 @@
+manpage(tlsshd)(8)(20th Jul, 2010)(tlsshd)()
+
+manpagename(tlsshd)(TLSSH daemon)
+
+manpagesynopsis()
+    bf(tlsshd) [ -hfvV ] [ -c em(config) ]
+
+manpagedescription()
+  tlsshd is the server for tlssh(1). It takes very few options and is instead
+  configured using a configuration file.
+
+manpageoptions()
+startdit()
+  dit(-c em(config file)) Config file. Default is /etc/tlssh/tlsshd.conf
+  dit(-h, --help) Show brief usage info and exit. 
+  dit(-f) Run in foreground. Default is to daemonize.
+  dit(-v) Increase verbosity (debug output).
+  dit(-V, --version) Show version and exit.
+  dit(--copying) Show license and exit.
+enddit()
+
+manpagesection(SIGNALS)
+startdit()
+    dit(em(SIGHUP)) Reload configuration file.
+    dit(em(SIGINT)) Kills listener process, but not logged in users.
+        For use with commands like em(pkill tlsshd).
+    dit(em(SIGTERM)) Kills process, be it the listener or a connection handling
+        process.
+enddit()
+
+manpagebugs()
+    No known bugs.
+
+manpageseealso()
+    bf(tlssh(1)), bf(tlsshd.conf(5))
+
+manpageauthor()
+    TLSSH was written by Thomas Habets <thomas@habets.pp.se>.

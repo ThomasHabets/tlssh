@@ -1,0 +1,52 @@
+manpage(tlsshd.conf)(8)(20th Jul, 2010)(tlsshd.conf)()
+
+manpagename(tlsshd.conf)(TLSSH daemon configuration file)
+
+manpagesynopsis()
+    /etc/tlssh/tlsshd.conf
+
+manpagedescription()
+startdit()
+  dit(em(BASIC))
+  dit(bf(KeyFile) /path/to/keyfile)
+      Private key for tlsshd. Default is /etc/tlssh/tlsshd.key.
+  dit(bf(CertFile) /path/to/certfile)
+      Public key for tlsshd. Default is /etc/tlssh/tlsshd.crt.
+  dit(bf(ClientCAFile) /path/to/file.crt)
+      CA certificate file that has signed the client certificates.
+      Default is /etc/tlssh/ClientCA.crt.
+      Either a working ClientCAFile or ClientCAPath is needed.
+  dit(bf(ClientCAPath) /path/to/certs)
+      Directory containing CAs that have signed client certificates.
+  dit(bf(ClientDomain) .users.domain.com)
+      Under what domain users certs are named. User "bob" would have a cert
+      with the CommonName bob.users.domain.com in this case. Default is empty,
+      so CommonName is the username itself.
+  dit(em(OPTIONAL))
+  dit(bf(Listen) 2001:db8:1:2::3)
+      Address to listen to. Can be IPv4 or IPv6. An IPv6 address of "::" will
+      listen to any IPv4 or IPv6 connection, and "0.0.0.0" will listen to
+      a IPv4 port only. Default is to leave it unspecified.
+  dit(bf(ClientCRL) /path/to/file)
+      CRL file. If the CRL is out of date or missing the clients will
+      NOT be able to log in.
+  dit(bf(Chroot) /path/to/dir) 
+      If present, tlsshd will chroot(1) to this directory as soon as possible
+      after a new connection is made. If set to "/" will not attempt chroot.
+      Default is /var/empty.
+  dit(bf(Port) 12345)
+      Port to listen to. Default is FIXME.
+  dit(bf(Cipherlist) HIGH)
+      List of crypto ciphers allowed, in OpenSSL format.
+      Default is HIGH:!ADH:!LOW:!MD5:@STRENGTH.
+  dit(bf(include) /path/to/config)
+      Include other config file.
+  dit(bf(-include) /path/to/config)
+      Include other config file, but don't error out if the file doesn't exist.
+enddit()
+
+manpageseealso()
+    bf(tlsshd(8)), bf(tlssh.conf(5))
+
+manpageauthor()
+    TLSSH was written by Thomas Habets <thomas@habets.pp.se>.
