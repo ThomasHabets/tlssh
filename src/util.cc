@@ -24,12 +24,17 @@ SysLogger::SysLogger(const std::string &inid, int fac)
 void
 Logger::copyterminal(int prio, const char *fmt, va_list ap) const
 {
-        va_list ap2;
         if (!flag_copyterminal) {
                 return;
         }
+
+        va_list ap2;
         va_copy(ap2,ap);
-        vfprintf(stderr, fmt, ap); // BUG HERE
+        FINALLY(
+                vfprintf(stderr, fmt, ap2);
+                ,
+                va_end(ap2);
+                );
         fprintf(stderr, "\n");
 }
 
@@ -38,6 +43,34 @@ StreamLogger::StreamLogger(std::ostream &os, const std::string timestring)
          timestring(timestring)
 {
         os << "starting logging..." << std::endl;
+}
+
+std::string
+xvsprintf(const char *fmt, va_list ap)
+{
+        int n;
+        va_list ap_count;
+        va_list ap_write;
+
+        va_copy(ap_count, ap);
+        FINALLY(
+                n = vsnprintf(0, 0, fmt, ap_count);
+                if (n < 0) {
+                        THROW(Err::ErrBase, "snprintf()");
+                }
+                ,
+                va_end(ap_count);
+                );
+
+        std::vector<char> buf(n + 1);
+        va_copy(ap_write, ap);
+        FINALLY(
+                vsnprintf(&buf[0], n, fmt, ap_write);
+                ,
+                va_end(ap_write);
+                );
+        buf[n] = 0;
+        return std::string(&buf[0]);
 }
 
 void
@@ -52,7 +85,7 @@ StreamLogger::vlog(int prio, const char *fmt, va_list ap) const
                       timestring.c_str(), &tm)) {
                 strcpy(tbuf, "0000-00-00 00:00:00 UTC ");
         }
-        os << tbuf << fmt << std::endl;
+        os << tbuf << xvsprintf(fmt, ap) << std::endl;
 }
 
 

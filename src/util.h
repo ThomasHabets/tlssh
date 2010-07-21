@@ -13,7 +13,7 @@
 #include<string>
 #include<vector>
 
-#define FINALLY(a,b) try { a } catch(...) { b; throw; }
+#define FINALLY(a,b) try { a } catch(...) { b; throw; } b;
 
 #include<stdarg.h>
 #include<syslog.h>
@@ -74,10 +74,21 @@ public:
 	void
 	vlog(int prio, const char *fmt, va_list ap) const
 	{
-                va_list ap2;
-                va_copy(ap2, ap);
-                copyterminal(prio, fmt, ap2);
-		vsyslog(prio, fmt, ap);
+                va_list ap_term;
+                va_copy(ap_term, ap);
+                FINALLY(
+                        copyterminal(prio, fmt, ap_term);
+                        ,
+                        va_end(ap_term);
+                        );
+
+                va_list ap_syslog;
+                va_copy(ap_syslog, ap);
+                FINALLY(
+                        vsyslog(prio, fmt, ap_syslog);
+                        ,
+                        va_end(ap_syslog);
+                        );
 	}
 };
 
