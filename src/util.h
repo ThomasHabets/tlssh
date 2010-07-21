@@ -3,6 +3,10 @@
  * @file src/util.h
  * Random utility functions
  */
+#ifndef __INCLUDE_UTIL_H__
+#define __INCLUDE_UTIL_H__
+
+
 #include<pwd.h>
 #include<sys/types.h>
 
@@ -10,6 +14,80 @@
 #include<vector>
 
 #define FINALLY(a,b) try { a } catch(...) { b; throw; }
+
+#include<stdarg.h>
+#include<syslog.h>
+#include<iostream>
+#include<time.h>
+
+#define LOGGER_H_LOGLEVEL(n,v) void \
+n(const char *fmt, ...) \
+{ \
+	va_list ap; \
+	va_start(ap, fmt); \
+	vlog(v, fmt, ap); \
+	va_end(ap); \
+}
+
+class Logger {
+private:
+	Logger(const Logger&);
+	Logger&operator=(const Logger&);
+        int logmask;
+        bool flag_copyterminal;
+public:
+	Logger():logmask(~0),flag_copyterminal(false) {}
+	LOGGER_H_LOGLEVEL(emerg, LOG_EMERG);
+	LOGGER_H_LOGLEVEL(alert, LOG_ALERT);
+	LOGGER_H_LOGLEVEL(crit, LOG_CRIT);
+	LOGGER_H_LOGLEVEL(err, LOG_ERR);
+	LOGGER_H_LOGLEVEL(warning, LOG_WARNING);
+	LOGGER_H_LOGLEVEL(notice, LOG_NOTICE);
+	LOGGER_H_LOGLEVEL(info, LOG_INFO);
+	LOGGER_H_LOGLEVEL(debug, LOG_DEBUG);
+
+        void set_copyterminal(bool y) { flag_copyterminal = y; }
+        virtual void set_logmask(int m) { logmask = m; }
+        int get_logmask() { return logmask; }
+        void copyterminal(int prio, const char *fmt, va_list ap) const;
+
+	virtual void vlog(int prio, const char *fmt, va_list ap) const = 0;
+};
+
+class SysLogger: public Logger {
+        const std::string id;
+public:
+	SysLogger(const std::string &id, int fac);
+
+	virtual ~SysLogger()
+	{
+		closelog();
+	}
+
+        void
+        set_logmask(int m)
+        {
+                Logger::set_logmask(m);
+                ::setlogmask(get_logmask());
+        }
+
+	void
+	vlog(int prio, const char *fmt, va_list ap) const
+	{
+                copyterminal(prio, fmt, ap);
+		vsyslog(prio, fmt, ap);
+	}
+};
+
+class StreamLogger: public Logger {
+	std::ostream &os;
+	std::string timestring;
+public:
+	StreamLogger(std::ostream &os,
+		     const std::string timestring = "%Y-%m-%d %H:%M:%S %Z ");
+
+	void vlog(int prio, const char *fmt, va_list ap) const;
+};
 
 struct passwd xgetpwnam(const std::string &name, std::vector<char> &buffer);
 std::string xwordexp(const std::string &in);
@@ -51,3 +129,4 @@ extern "C" {
  * indent-tabs-mode: nil
  * End:
  */
+#endif

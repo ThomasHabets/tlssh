@@ -55,6 +55,8 @@
 
 using namespace tlssh_common;
 
+Logger *logger;
+
 BEGIN_NAMESPACE(tlssh)
 
 // Constants
@@ -507,6 +509,11 @@ int
 main(int argc, char **argv)
 {
 	argv0 = argv[0];
+
+        logger = new StreamLogger(std::cerr,
+                                  std::string(argv0) + ": ");
+        logger->set_logmask(logger->get_logmask() & ~LOG_MASK(LOG_DEBUG));
+
 	try {
 		try {
 			return main2(argc, argv);

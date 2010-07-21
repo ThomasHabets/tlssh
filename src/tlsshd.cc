@@ -57,6 +57,8 @@
 using namespace tlssh_common;
 using namespace Err;
 
+Logger *logger;
+
 BEGIN_NAMESPACE(tlsshd);
 
 /* constants */
@@ -130,7 +132,7 @@ listen_loop()
                 pid = fork();
 
                 if (0 > pid) {          // error
-                        fprintf(stderr, "%s: fork() failed", argv0);
+                        logger->err("accept()-loop fork() failed");
                 } else if (pid == 0) {  // child
                         listen.close();
 			exit(tlsshd_sslproc::forkmain(clifd));
@@ -313,12 +315,19 @@ main2(int argc, char * const argv[])
         }
 
 	parse_options(argc, argv);
+        if (options.verbose) {
+                logger->set_logmask(logger->get_logmask()
+                                    | LOG_MASK(LOG_DEBUG));
+        }
         //tlsshd::listen.set_tcp_md5(options.tcp_md5);
 	tlsshd::listen.listen_any(options.af, options.port);
 
         if (options.daemon) {
                 if (daemon(0,0)) {
                         THROW(Err::ErrSys, "daemon(0, 0)");
+                }
+                if (options.daemon) {
+                        logger->set_copyterminal(false);
                 }
         }
 	return listen_loop();
@@ -331,25 +340,30 @@ END_LOCAL_NAMESPACE()
 int
 main(int argc, char **argv)
 {
+        if (getuid()) {
+                fprintf(stderr, "tlsshd must run as root\n");
+                exit(1);
+        }
+
+        logger = new SysLogger("tlsshd", LOG_AUTHPRIV);
+        logger->set_copyterminal(true);
+        logger->set_logmask(logger->get_logmask() & ~LOG_MASK(LOG_DEBUG));
+
 	argv0 = argv[0];
 	try {
 		return main2(argc, argv);
 	} catch (const Err::ErrBase &e) {
                 if (options.verbose) {
-                        fprintf(stderr, "%s: %s\n",
-                                argv0, e.what_verbose().c_str());
+                        logger->err("%s\n", e.what_verbose().c_str());
                 } else {
-                        fprintf(stderr, "%s: %s\n",
-                                argv0, e.what());
+                        logger->err("%s\n", e.what());
                 }
 	} catch (const std::exception &e) {
-		std::cerr << "tlsshd std::exception: "
-			  << e.what() << std::endl;
+		logger->err("tlsshd std::exception: %s", e.what());
 	} catch (const char *e) {
-		std::cerr << "tlsshd const char*: "
-			  << e << std::endl;
+		logger->err("tlsshd const char*: %s", e);
 	} catch (...) {
-		std::cerr << "tlsshd: Unknown exception!" << std::endl;
+		logger->err("tlsshd: Unknown exception!");
                 throw;
 	}
 }

@@ -123,14 +123,11 @@ forkmain(const struct passwd *pw, int fd_control)
                 forkmain2(pw, fd_control);
 		return 0;
         } catch (const char *e) {
-                std::cerr << "forkmain_child(): char*: "
-                          << e << std::endl;
+                logger->err("forkmain_child(): char*: %s", e);
         } catch (const std::exception &e) {
-                std::cerr << "forkmain_child(): std::exception: \n"
-                          << e.what() << std::endl;
+                logger->err("forkmain_child(): std::exception: %s", e.what());
         } catch (...) {
-                std::cerr << "forkmain_child(): Unknown exception caught\n"
-                          << std::endl;
+                logger->err("forkmain_child(): Unknown exception caught");
         }
 	return 1;
 }

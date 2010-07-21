@@ -435,10 +435,7 @@ new_ssl_connection(SSLSocket &sock)
                 THROW(Err::ErrBase, "client provided no cert");
 	}
 
-	if (options.verbose) {
-		std::cout << "Client cert: " << cert->get_subject()
-			  << std::endl;
-	}
+        logger->debug("Client cert: %s", cert->get_subject().c_str());
 
 	std::string certname = cert->get_common_name();
         size_t dotpos = certname.find('.');
@@ -450,10 +447,9 @@ new_ssl_connection(SSLSocket &sock)
         if (domain != options.clientdomain) {
                 THROW(Err::ErrBase, "client is in wrong domain");
         }
-        if (options.verbose) {
-                printf("Logged in using cert: user=<%s>, domain=<%s>\n",
-                       username.c_str(), domain.c_str());
-        }
+
+        logger->info("Logged in using cert: user=<%s>, domain=<%s>\n",
+                    username.c_str(), domain.c_str());
 
 	std::vector<char> pwbuf;
 	struct passwd pw = xgetpwnam(username, pwbuf);
@@ -505,19 +501,19 @@ forkmain(FDWrap&fd)
 		sock.ssl_accept();
 		new_ssl_connection(sock);
 	} catch (const SSLSocket::ErrSSLHostname &e) {
-		std::cerr << e.what() << std::endl;
+		logger->warning("%s", e.what());
 	} catch (const SSLSocket::ErrSSLCRL &e) {
-		std::cerr << e.what() << std::endl;
+		logger->warning("%s", e.what());
 	} catch (const SSLSocket::ErrSSL &e) {
-		std::cerr << e.what_verbose();
+		logger->warning("%s", e.what_verbose().c_str());
 	} catch (const std::exception &e) {
-		std::cerr << "sslproc: std::exception: "
-			  << e.what() << std::endl;
+                logger->err("%s",
+                            (std::string("sslproc: std::exception: ")
+                             + e.what() + "\n").c_str());
 	} catch (const char *e) {
-		std::cerr << "FIXME: " << std::endl
-			  << e << std::endl;
+		logger->err("%s", (std::string("FIXME: ") + e).c_str());
 	} catch (...) {
-		std::cerr << "Unknown exception happened\n";
+		logger->err("Unknown exception happened");
 	}
 	return 0;
 }

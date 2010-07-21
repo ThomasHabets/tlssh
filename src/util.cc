@@ -9,9 +9,50 @@
 #include<stdio.h>
 #include<wordexp.h>
 
+#include"mywordexp.h"
 #include"util.h"
 #include"xgetpwnam.h"
 #include"errbase.h"
+
+SysLogger::SysLogger(const std::string &inid, int fac)
+        :id(inid)
+{
+        set_logmask(::setlogmask(0));
+        openlog(id.c_str(), LOG_CONS | LOG_NDELAY | LOG_PID, fac);
+}
+
+void
+Logger::copyterminal(int prio, const char *fmt, va_list ap) const
+{
+        if (!flag_copyterminal) {
+                return;
+        }
+        vfprintf(stderr, fmt, ap); // BUG HERE
+        fprintf(stderr, "\n");
+}
+
+StreamLogger::StreamLogger(std::ostream &os, const std::string timestring)
+        :os(os),
+         timestring(timestring)
+{
+        os << "starting logging..." << std::endl;
+}
+
+void
+StreamLogger::vlog(int prio, const char *fmt, va_list ap) const
+{
+        char tbuf[1024];
+        struct tm tm;
+        time_t t;
+        time(&t);
+        localtime_r(&t, &tm);
+        if (!strftime(tbuf, sizeof(tbuf),
+                      timestring.c_str(), &tm)) {
+                strcpy(tbuf, "0000-00-00 00:00:00 UTC ");
+        }
+        os << tbuf << fmt << std::endl;
+}
+
 
 /**
  *

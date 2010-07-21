@@ -10,6 +10,9 @@
 
 #include"fdwrap.h"
 #include"errbase.h"
+#include"util.h"
+
+extern Logger *logger;
 
 BEGIN_NAMESPACE(tlssh_common)
 

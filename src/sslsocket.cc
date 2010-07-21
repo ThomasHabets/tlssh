@@ -14,6 +14,7 @@
 
 #include"sslsocket.h"
 #include"util.h"
+#include"tlssh.h"
 
 #if 0
 	char *randfile = "random.seed";
@@ -65,7 +66,7 @@ X509Wrap::check_hostname(const std::string &host)
 				continue;
 			}
 			if (!meth->d2i) {
-				printf("What?! meth->d2i missing?! FIXME\n");
+				logger->info("meth->d2i missing?! FIXME\n");
 				continue;
 			}
 			data = ext->value->data;
@@ -407,7 +408,7 @@ SSLSocket::ssl_accept_connect(bool isconnect)
 	}
 	if (ccafile || ccapath) {
 		if (debug) {
-			std::cout << "CAFile: " << ccafile << std::endl;
+			logger->debug("CAFile: %s", ccafile?ccafile:"<null>");
 		}
 		if (!SSL_CTX_load_verify_locations(ctx,
 						   ccafile,
@@ -494,16 +495,13 @@ SSLSocket::ssl_accept_connect(bool isconnect)
 
         // if debug, show cert info
 	X509Wrap x(SSL_get_peer_certificate(ssl));
-	if (debug) {
-		std::cout << "  Issuer:  " << x.get_issuer() << std::endl
-			  << "  Subject: " << x.get_subject() << std::endl
-			  << "  Cipher: " << SSL_get_cipher_name(ssl)
-                          << " (" <<SSL_get_cipher_bits(ssl, 0) << " bits)"
-			  << std::endl
-			  << "  Version: " << SSL_get_cipher_version(ssl)
-			  << std::endl
-			;
-	}
+        logger->debug("Issuer: %s\nSubject: %s\n"
+                      "Cipher: %s (Version %d bits) %s\n",
+                      x.get_issuer().c_str(),
+                      x.get_subject().c_str(),
+                      SSL_get_cipher_name(ssl),
+                      SSL_get_cipher_bits(ssl, 0),
+                      SSL_get_cipher_version(ssl));
 
         check_crl();
         if (isconnect) {
