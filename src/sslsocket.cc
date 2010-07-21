@@ -66,7 +66,7 @@ X509Wrap::check_hostname(const std::string &host)
 				continue;
 			}
 			if (!meth->d2i) {
-				logger->info("meth->d2i missing?! FIXME\n");
+				logger->info("meth->d2i missing?! FIXME");
 				continue;
 			}
 			data = ext->value->data;
@@ -496,7 +496,7 @@ SSLSocket::ssl_accept_connect(bool isconnect)
         // if debug, show cert info
 	X509Wrap x(SSL_get_peer_certificate(ssl));
         logger->debug("Issuer: %s\nSubject: %s\n"
-                      "Cipher: %s (Version %d bits) %s\n",
+                      "Cipher: %s (Version %d bits) %s",
                       x.get_issuer().c_str(),
                       x.get_subject().c_str(),
                       SSL_get_cipher_name(ssl),

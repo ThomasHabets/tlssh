@@ -74,7 +74,9 @@ public:
 	void
 	vlog(int prio, const char *fmt, va_list ap) const
 	{
-                copyterminal(prio, fmt, ap);
+                va_list ap2;
+                va_copy(ap2, ap);
+                copyterminal(prio, fmt, ap2);
 		vsyslog(prio, fmt, ap);
 	}
 };

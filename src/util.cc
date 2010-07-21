@@ -24,9 +24,11 @@ SysLogger::SysLogger(const std::string &inid, int fac)
 void
 Logger::copyterminal(int prio, const char *fmt, va_list ap) const
 {
+        va_list ap2;
         if (!flag_copyterminal) {
                 return;
         }
+        va_copy(ap2,ap);
         vfprintf(stderr, fmt, ap); // BUG HERE
         fprintf(stderr, "\n");
 }

@@ -354,9 +354,9 @@ main(int argc, char **argv)
 		return main2(argc, argv);
 	} catch (const Err::ErrBase &e) {
                 if (options.verbose) {
-                        logger->err("%s\n", e.what_verbose().c_str());
+                        logger->err("%s", e.what_verbose().c_str());
                 } else {
-                        logger->err("%s\n", e.what());
+                        logger->err("%s", e.what());
                 }
 	} catch (const std::exception &e) {
 		logger->err("tlsshd std::exception: %s", e.what());

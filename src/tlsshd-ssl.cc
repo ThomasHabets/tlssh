@@ -448,7 +448,7 @@ new_ssl_connection(SSLSocket &sock)
                 THROW(Err::ErrBase, "client is in wrong domain");
         }
 
-        logger->info("Logged in using cert: user=<%s>, domain=<%s>\n",
+        logger->info("Logged in using cert: user=<%s>, domain=<%s>",
                     username.c_str(), domain.c_str());
 
 	std::vector<char> pwbuf;
