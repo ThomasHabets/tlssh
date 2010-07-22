@@ -27,8 +27,8 @@ using tlsshd::protocol_version;
 
 BEGIN_NAMESPACE(tlsshd_shellproc);
 
-/**
- *
+/** Parse protocol header line where client gives some environment
+ *  variables like TERM
  */
 void
 parse_header_line(const std::string &s)
@@ -51,8 +51,8 @@ parse_header_line(const std::string &s)
 }
 
 
-/**
- *
+/** exception-wrapped main function of shell process. Processes
+ *  protocol header and spawns shell.
  */
 void
 forkmain2(const struct passwd *pw, int fd_control)
@@ -122,8 +122,6 @@ forkmain(const struct passwd *pw, int fd_control)
         try {
                 forkmain2(pw, fd_control);
 		return 0;
-        } catch (const char *e) {
-                logger->err("forkmain_child(): char*: %s", e);
         } catch (const std::exception &e) {
                 logger->err("forkmain_child(): std::exception: %s", e.what());
         } catch (...) {

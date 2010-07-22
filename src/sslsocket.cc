@@ -17,6 +17,7 @@
 #include"tlssh.h"
 
 #if 0
+// do I need this somewhere?
 	char *randfile = "random.seed";
 	int fd;
 	RAND_load_file("/dev/urandom", 1024);
@@ -28,7 +29,7 @@
 #endif
 
 /**
- *
+ * create a new X509 wrapper object. Null pointer not allowed.
  */
 X509Wrap::X509Wrap(X509 *x509)
 	:x509(x509)
@@ -39,7 +40,8 @@ X509Wrap::X509Wrap(X509 *x509)
 }
 
 /**
- *
+ * check 'host' against all subjectAltNames and the CN subject
+ * name. If any of them match, return true. Else false.
  */
 bool
 X509Wrap::check_hostname(const std::string &host)
@@ -107,7 +109,7 @@ X509Wrap::check_hostname(const std::string &host)
 }
 
 /**
- *
+ * get Common Name of cert
  */
 std::string
 X509Wrap::get_common_name() const
@@ -128,7 +130,7 @@ X509Wrap::get_common_name() const
 }
 
 /**
- *
+ * get issuer of cert
  */
 std::string
 X509Wrap::get_issuer() const
@@ -140,7 +142,7 @@ X509Wrap::get_issuer() const
 }
 
 /**
- *
+ * get subject name only (no /CN or anything). E.g. bob.users.domain.com
  */
 std::string
 X509Wrap::get_subject() const
@@ -152,7 +154,7 @@ X509Wrap::get_subject() const
 }
 
 /**
- *
+ * X509Wrap destructor
  */
 X509Wrap::~X509Wrap()
 {
@@ -178,7 +180,7 @@ X509Wrap::ErrSSL::ErrSSL(const Err::ErrData &errdata, const std::string &m,
 }
 
 /**
- *
+ * Set up OpenSSL stuff
  */
 SSLSocket::SSLSocket(int fd)
 	:Socket(fd)
@@ -189,7 +191,9 @@ SSLSocket::SSLSocket(int fd)
 }
 
 /**
+ * get a new X509 object that represents the cert
  *
+ * @return the cert
  */
 std::auto_ptr<X509Wrap>
 SSLSocket::get_cert()
@@ -259,7 +263,9 @@ X509Wrap::errstr(int err)
 }
 
 /**
+ * Return error description for SSL errors.
  *
+ * @todo there must be a built-in library function for this
  */
 const std::string
 SSLSocket::ssl_errstr(int err)
@@ -288,24 +294,15 @@ SSLSocket::ssl_errstr(int err)
 }
 
 /**
- *
+ * destroy SSLSocket object
  */
 SSLSocket::~SSLSocket()
 {
-	shutdown();
+        shutdown();
 }
 
 /**
- *
- */
-void
-SSLSocket::release()
-{
-	fd.close();
-}
-
-/**
- *
+ * undo everything that ssl_connect()/ssl_accept() did
  */
 void
 SSLSocket::shutdown()
@@ -315,11 +312,14 @@ SSLSocket::shutdown()
 		SSL_free(ssl);
 		ssl = 0;
 	}
-	ctx = 0;
+        if (ctx) {
+                SSL_CTX_free(ctx);
+                ctx = 0;
+        }
 }
 
 /**
- *
+ * make this sslsocket take over the fd of a normal socket object
  */
 void
 SSLSocket::ssl_attach(Socket &sock)
@@ -329,7 +329,7 @@ SSLSocket::ssl_attach(Socket &sock)
 }
 
 /**
- *
+ * start handshake as SSL client
  */
 void
 SSLSocket::ssl_connect(const std::string &inhost)
@@ -339,7 +339,7 @@ SSLSocket::ssl_connect(const std::string &inhost)
 }
 
 /**
- *
+ * start handshake as SSL server
  */
 void
 SSLSocket::ssl_accept()
@@ -347,6 +347,9 @@ SSLSocket::ssl_accept()
 	ssl_accept_connect(false);
 }
 
+/**
+ * setup Diffie-Hellman parameters
+ */
 DH*
 SSLSocket::ssl_setup_dh()
 {
@@ -370,8 +373,11 @@ SSLSocket::ssl_setup_dh()
 
         return dh;
 }
+
 /**
+ * combinded server and client handshake code.
  *
+ * @param[in] isconnect  true if we are client, false if we are server
  */
 void
 SSLSocket::ssl_accept_connect(bool isconnect)
@@ -511,6 +517,8 @@ SSLSocket::ssl_accept_connect(bool isconnect)
 
 /**
  * http://etutorials.org/Programming/secure+programming/Chapter+10.+Public+Key+Infrastructure/10.12+Checking+Revocation+Status+via+OCSP+with+OpenSSL/
+ *
+ * @todo Implement OSCP
  */
 void
 SSLSocket::check_ocsp()
@@ -615,6 +623,7 @@ SSLSocket::check_ocsp()
 
 /**
  * check CRL.
+ *
  * @todo CRL only works if cafile is used, not capath
  * http://etutorials.org/Programming/secure+programming/Chapter+10.+Public+Key+Infrastructure/10.5+Performing+X.509+Certificate+Verification+with+OpenSSL/
  */
@@ -688,21 +697,31 @@ SSLSocket::check_crl()
 }
 
 /**
+ * write to socket. Not everthing may be written
  *
+ * @param[in] buf  Data to write
+ *
+ * @return number of bytes actually written. Can be 0.
  */
 size_t
 SSLSocket::write(const std::string &buf)
 {
         int ret;
 	ret = SSL_write(ssl, buf.data(), buf.length());
-        if (ret <= 0) {
+        if (ret < 0) {
                 THROW(ErrSSL, "SSL_write()", ssl, SSL_get_error(ssl, ret));
         }
 	return ret;
 }
 
 /**
+ * read at most 'm' bytes of data
  *
+ * @param[in] m Max bytes to read
+ *
+ * @return Data read
+ *
+ * Throws exception on error or EOF 
  */
 std::string
 SSLSocket::read(size_t m)
@@ -722,7 +741,7 @@ SSLSocket::read(size_t m)
 }
 	
 /**
- *
+ * @return true if there is any data waiting to be read
  */
 bool
 SSLSocket::ssl_pending()
@@ -731,7 +750,7 @@ SSLSocket::ssl_pending()
 }
 
 /**
- *
+ * Set list of ciphers that are acceptable. See ciphers(1SSL)
  */
 void
 SSLSocket::ssl_set_cipher_list(const std::string &lst)
@@ -740,7 +759,7 @@ SSLSocket::ssl_set_cipher_list(const std::string &lst)
 }
 
 /**
- *
+ * Set path where root CAs can be found.
  */
 void
 SSLSocket::ssl_set_capath(const std::string &s)
@@ -749,7 +768,7 @@ SSLSocket::ssl_set_capath(const std::string &s)
 }
 
 /**
- *
+ * Set CRL file name
  */
 void
 SSLSocket::ssl_set_crlfile(const std::string &s)
@@ -758,7 +777,7 @@ SSLSocket::ssl_set_crlfile(const std::string &s)
 }
 
 /**
- *
+ * set path to a root CA file
  */
 void
 SSLSocket::ssl_set_cafile(const std::string &s)
@@ -767,7 +786,8 @@ SSLSocket::ssl_set_cafile(const std::string &s)
 }
 
 /**
- *
+ * Set path to .crt file (can be a combined crt/keyfile, but then
+ * ssl_set_keyfile() must also be called)
  */
 void
 SSLSocket::ssl_set_certfile(const std::string &s)
@@ -776,7 +796,8 @@ SSLSocket::ssl_set_certfile(const std::string &s)
 }
 
 /**
- *
+ * Set path to .key file (can be a combined crt/keyfile, but then
+ * ssl_set_certfile() must also be called)
  */
 void
 SSLSocket::ssl_set_keyfile(const std::string &s)
@@ -785,7 +806,7 @@ SSLSocket::ssl_set_keyfile(const std::string &s)
 }
 
 /**
- *
+ * Extract a full SSL error queue of data
  */
 SSLSocket::ErrSSL::ErrSSL(const Err::ErrData &errdata,
                           const std::string &s,
@@ -823,7 +844,7 @@ SSLSocket::ErrSSL::ErrSSL(const Err::ErrData &errdata,
 }
 
 /**
- *
+ * Construct a string of human-readable messages from the error queue
  */
 std::string
 SSLSocket::ErrSSL::what_verbose() const throw()

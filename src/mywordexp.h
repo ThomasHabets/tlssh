@@ -1,3 +1,7 @@
+/**
+ * @file src/mywordexp.h
+ * wordexp.h implementation for OSs that don't have it.
+ */
 #ifdef HAVE_WORDEXP_H
 #include<wordexp.h>
 #else

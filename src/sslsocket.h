@@ -148,8 +148,6 @@ public:
 
 	std::auto_ptr<X509Wrap> get_cert();
 
-	void release();
-
 	void shutdown();
 	void ssl_accept();
 	void ssl_connect(const std::string &s);

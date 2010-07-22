@@ -1,5 +1,8 @@
-/* ind/pty_solaris.c
- *
+/**
+ * @file src/openpty_solaris.c
+ * openpty() implementation for Solaris
+ */
+/*
  * (BSD license without advertising clause below)
  *
  * Copyright (c) 2005-2010 Thomas Habets. All rights reserved.

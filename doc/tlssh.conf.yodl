@@ -19,6 +19,9 @@ manpagedescription()
   dit(bf(ServerCAPath) /path/to/certs)
       Directory containing CAs that have signed tlsshd server certificates.
   dit(em(OPTIONAL))
+  dit(bf(L3Protocol) IPv4)
+      Either IPv4 or IPv6. Will force one or the other. Command line options
+      -4 and -6 overrides.
   dit(bf(ServerCRL) /path/to/file)
       CRL file. If the CRL is out of date or missing you will NOT be able
       to connect.

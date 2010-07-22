@@ -28,6 +28,8 @@ Installing - short version
 
  Install server cert in /etc/tlssh/tlsshd.key and /etc/tlssh/tlssd.crt
 
+ /usr/local/sbin/tlsshd
+
 
 Creating server cert
 --------------------
@@ -65,3 +67,6 @@ YMMV. Feedback in welcome.
 Solaris:
   ./configure LDFLAGS="-L/opt/csw/lib -R/opt/csw/lib" \
               CPPFLAGS="-I/opt/csw/include"
+
+--------------------------------------------------------------------------
+Send questions/suggestions/patches/rants/0days to synscan@googlegroups.com

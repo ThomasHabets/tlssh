@@ -9,7 +9,8 @@
 
 #include "xgetpwnam.h"
 
-/**
+/** portable xgetpwnam_r()
+ *
  * There are two getpwnam_r() implementations. POSIX and DRAFT. This wrapper
  * presents POSIX no matter what the backend is.
  * POSIX: Linux

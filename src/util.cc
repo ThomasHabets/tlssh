@@ -21,6 +21,9 @@ SysLogger::SysLogger(const std::string &inid, int fac)
         openlog(id.c_str(), LOG_CONS | LOG_NDELAY | LOG_PID, fac);
 }
 
+/** copy whatever was written to the terminal (stderr) too
+ *
+ */
 void
 Logger::copyterminal(int prio, const char *fmt, va_list ap) const
 {
@@ -42,9 +45,10 @@ StreamLogger::StreamLogger(std::ostream &os, const std::string timestring)
         :os(os),
          timestring(timestring)
 {
-        os << "starting logging..." << std::endl;
 }
 
+/** return a vsprintf()ed string
+ */
 std::string
 xvsprintf(const char *fmt, va_list ap)
 {
@@ -73,6 +77,8 @@ xvsprintf(const char *fmt, va_list ap)
         return std::string(&buf[0]);
 }
 
+/** log to a stream, with time string
+ */
 void
 StreamLogger::vlog(int prio, const char *fmt, va_list ap) const
 {
@@ -89,8 +95,9 @@ StreamLogger::vlog(int prio, const char *fmt, va_list ap) const
 }
 
 
-/**
+/** C++ wordexp wrapper
  *
+ * @return The first 'hit' of wordexp
  */
 std::string
 xwordexp(const std::string &in)
@@ -116,8 +123,9 @@ xwordexp(const std::string &in)
 	return ret;
 }
 
-/**
- * FIXME: handle doublequotes
+/** Tokenize a string, separated by space or tab
+ *
+ * @todo handle doublequotes
  */
 std::vector<std::string>
 tokenize(const std::string &s)
@@ -145,8 +153,9 @@ tokenize(const std::string &s)
 	return ret;
 }
 
-/**
+/** cur off spaces and tabs at beginning and end of string
  *
+ * @return trimmed string
  */
 std::string
 trim(const std::string &str)
@@ -161,8 +170,13 @@ trim(const std::string &str)
 	return str.substr(startpos, endpos-startpos+1);
 }
 
-/**
+/** c++ wrapper of getpwnam_r()
  *
+ * @param[in] name    Username to lookup
+ * @param[in] buffer  std::vector<char> owned by the caller that can't be freed
+ *                    until the returned struct will no longer be used.
+ *
+ * @return passwd struct for user
  */
 struct passwd
 xgetpwnam(const std::string &name, std::vector<char> &buffer)
@@ -172,14 +186,16 @@ xgetpwnam(const std::string &name, std::vector<char> &buffer)
 	struct passwd *ppw = 0;
 	if (xgetpwnam_r(name.c_str(), &pw, &buffer[0], buffer.capacity(), &ppw)
 	    || !ppw) {
-                // don't throw the name. It may be a password written
-                // as a name by mistake
-		THROW(Err::ErrBase, "xgetpwnam()");
+                // throw name, it can't accidentally be a password since we
+                // don't have passwords
+		THROW(Err::ErrBase, "xgetpwnam(" + name + ")");
 	}
 
 	return pw;
 }
 
+/** return pointer to the first character after the last "/"
+ */
 char*
 gnustyle_basename(const char *fn)
 {

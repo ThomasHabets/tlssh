@@ -8,7 +8,7 @@
 /*
  * (BSD license without advertising clause below)
  *
- * Copyright (c) 2005-2009 Thomas Habets. All rights reserved.
+ * Copyright (c) 2010 Thomas Habets. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -345,6 +345,20 @@ read_config_file(const std::string &fn)
 		} else if (conf->keyword == "Port"
                            && conf->parms.size() == 1) {
 			options.port = conf->parms[0];
+
+		} else if (conf->keyword == "L3Protocol"
+                           && conf->parms.size() == 1) {
+                        if (conf->parms[1] == "IPv4") {
+                                options.af = AF_INET;
+                        } else if (conf->parms[1] == "IPv6") {
+                                options.af = AF_INET6;
+                        } else {
+                                THROW(Err::ErrBase,
+                                      "Unknown L3Protocol: "
+                                      + conf->parms[1]
+                                      + ", must be IPv4 or IPv6");
+                        }
+
 		} else if (conf->keyword == "ServerCAFile"
                            && conf->parms.size() == 1) {
 			options.servercafile = conf->parms[0];
@@ -388,6 +402,7 @@ read_config_file(const std::string &fn)
 
 /** Parse options given on command line
  *
+ * Overrides config file.
  */
 void
 parse_options(int argc, char * const *argv)
@@ -534,9 +549,6 @@ main(int argc, char **argv)
 	} catch (const std::exception &e) {
 		std::cerr << "tlssh std::exception: "
 			  << e.what() << std::endl;
-	} catch (const char *e) {
-		std::cerr << "tlssh: const char*: "
-			  << e << std::endl;
 	} catch (...) {
 		std::cerr << "tlssh: Unknown exception!" << std::endl;
                 throw;

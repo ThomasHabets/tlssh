@@ -1,3 +1,7 @@
+/**
+ * @file src/daemon.c
+ * daemon(3) for systems that don't have it.
+ */
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -12,7 +16,12 @@ static const int ISO_C_forbids_an_empty_source_file = 1;
 #ifndef HAVE_DAEMON
 
 /**
+ * fork() and detach from current terminal.
  *
+ * @param[in] nochdir     If 0, chdir(/)
+ * @param[in] nonoclose   If 0, re-open /dev/null as stdin/out/err
+ *
+ * @return -1 on error, else 0
  */
 int
 daemon(int nochdir, int noclose)
@@ -28,6 +37,7 @@ daemon(int nochdir, int noclose)
 	pid = fork();
 	switch (pid) {
 	case -1:
+		close(fd);
 		return -1;
 	case 0:
 		break;
@@ -55,7 +65,7 @@ daemon(int nochdir, int noclose)
 /**
  * Local Variables:
  * mode: c
- * c-basic-offset: 2
+ * c-basic-offset: 8
  * fill-column: 79
  * End:
  */

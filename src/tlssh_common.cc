@@ -12,6 +12,7 @@
 #include"tlssh.h"
 
 BEGIN_NAMESPACE(tlssh_common)
+
 /** Print version info according to GNU coding standards
  *
  */

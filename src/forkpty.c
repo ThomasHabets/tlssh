@@ -1,3 +1,7 @@
+/**
+ * @file src/forkpty.c
+ * forkpty() for OSs that don't have it.
+ */
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -14,6 +18,17 @@ static const int ISO_C_forbids_an_empty_source_file = 1;
 #include<unistd.h>
 #include<termios.h>
 
+/**
+ * fork() a child that has a newly connected terminal pair as controlling
+ * terminal.
+ *
+ * Both parent and child of fork() returns.
+ *
+ * @param[in] amaster   In parent process, this is the master side of the tty
+ * @param[in] name      Store name of new tty here (done by openpty())
+ * @param[in] termp     Initial terminal settings for tty (openpty() again)
+ * @param[in] winp      Initial terminal window size (openpty())
+ */
 pid_t
 forkpty(int *amaster, char *name, struct termios *termp,
 	struct winsize *winp)
@@ -32,7 +47,7 @@ forkpty(int *amaster, char *name, struct termios *termp,
   }
 
   if (!pid) {
-    close(*amaster);
+    //close(*amaster); // FIXME: this isn't needed, or even correct, is it?
     if (login_tty(aslave)) {
       _exit(1);
     }

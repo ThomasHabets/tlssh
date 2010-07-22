@@ -2,7 +2,9 @@
 
 include $(top_srcdir)/Makefile.am.common
 
-bin_PROGRAMS = tlssh tlsshd
+bin_PROGRAMS = tlssh
+sbin_PROGRAMS = tlsshd
+
 tlssh_SOURCES = \
 tlssh.cc sslsocket.cc socket.cc fdwrap.cc configparser.cc util.cc \
 xgetpwnam.c tlssh_common.cc cfmakeraw.c wordexp.c

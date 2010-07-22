@@ -360,8 +360,6 @@ main(int argc, char **argv)
                 }
 	} catch (const std::exception &e) {
 		logger->err("tlsshd std::exception: %s", e.what());
-	} catch (const char *e) {
-		logger->err("tlsshd const char*: %s", e);
 	} catch (...) {
 		logger->err("tlsshd: Unknown exception!");
                 throw;

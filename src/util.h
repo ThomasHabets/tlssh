@@ -29,6 +29,13 @@ n(const char *fmt, ...) \
 	va_end(ap); \
 }
 
+/**
+ * Abstract base logger class.
+ @code
+ Logger *log = new StreamLogger(std::cerr);
+ log.warning("Hello %s", "World");
+ @endcode
+ */
 class Logger {
 private:
 	Logger(const Logger&);
@@ -54,6 +61,9 @@ public:
 	virtual void vlog(int prio, const char *fmt, va_list ap) const = 0;
 };
 
+/** Logger class that logs to syslog
+ *
+ */
 class SysLogger: public Logger {
         const std::string id;
 public:
@@ -92,6 +102,9 @@ public:
 	}
 };
 
+/** Logger class that logs to an std::ostream
+ *
+ */
 class StreamLogger: public Logger {
 	std::ostream &os;
 	std::string timestring;

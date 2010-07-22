@@ -18,6 +18,12 @@ subvert security. Yet it doesn't have the features that I want
 I wanted a minimal crypto layer on top of the SSL crypto model.
 
 
+Where can I get it?
+-------------------
+http://github.com/ThomasHabets/tlssh
+git clone git://github.com/ThomasHabets/tlssh.git
+
+
 Installing
 ----------
 See INSTALL file.
@@ -28,3 +34,7 @@ Notes
 * Support for TCP MD5 in Linux is always on since 2.6.27
 * Cacert.org Class 1 CRL: http://crl.cacert.org/revoke.crl
 * Telnet protocol RFC: http://www.faqs.org/rfcs/rfc854.html
+
+
+--------------------------------------------------------------------------
+Send questions/suggestions/patches/rants/0days to synscan@googlegroups.com

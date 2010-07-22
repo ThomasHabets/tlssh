@@ -1,3 +1,7 @@
+/**
+ * @file src/wordexp.c
+ * minimal wordexp() implementation for OSs that don't have it
+ */
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -8,8 +12,13 @@
 #include<sys/syslimits.h>
 #include"wordexp.h"
 
-/**
- * Mimimal wordexp() implementation that only handles "~"
+/** Mimimal wordexp() implementation that only handles "~"
+ *
+ * @param[in]  s     String to process
+ * @param[out] w     List of hits, caller frees using wordfree()
+ * @param[in] flags  Not implemented in this hack
+ *
+ * @return 0 on success
  */
 int
 wordexp(const char *s, wordexp_t *w, int flags)
@@ -53,7 +62,9 @@ wordexp(const char *s, wordexp_t *w, int flags)
   return 0;
 }
 
-
+/** free() a wordexp() result
+ *
+ */
 void
 wordfree(wordexp_t *p)
 {

@@ -1,18 +1,22 @@
 TODO before 0.04
 ----------------
-* anti-dos (many connections)
-* proper logging
-
+* proper logging - done
+* Manpage - done
 
 TODO before 0.05
+----------------
+* Listen option - actually enforce it
+
+
+TODO before 0.06
 ----------------
 * proper wtmp update at logout
 
 
 TODO before 1.00
 ---------------
-* Listen option
 * Provide grsec RBAC config
+* anti-dos (many connections)
 * port to Solaris
 ** cfmakeraw - done?
 ** forkpty - done?
@@ -25,11 +29,11 @@ TODO before 1.00
 * port to OpenBSD
 ** wordexp
 ** tcpmd5
-* Manpage - done
 * other documentation (README, INSTALL, HACKING)
 * kill connection when cert expires
 * document the code
 * get someone to audit the code
+* check allowed shells before spawning it
 
 
 TODO after 1.00

@@ -1,3 +1,7 @@
+/**
+ * @file src/cfmakeraw.c
+ * cfmakeraw() for systems that don't have it
+ */
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -7,7 +11,8 @@
 #include <string.h>
 
 /**
- *
+ * Set terminal (termios struct) to "raw" mode.
+ * exact settings here taken from Linux manpage.
  */
 void
 cfmakeraw(struct termios *termios_p)

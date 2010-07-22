@@ -323,6 +323,8 @@ log_login(const struct passwd *pw, const std::string &peer_addr)
 /**
  * Write logout info to wtmp
  *
+ * Run as: logged in user. The fd of wtmp was opened before dropping privs.
+ *
  * @todo This is not pretty. I feel like it at least needs locking.
  *       What I'd really like is a updwtmp() that uses FILE* or int fd.
  */
@@ -475,8 +477,6 @@ new_ssl_connection(SSLSocket &sock)
  *
  * input: newly connected fd, and newly forked process
  * output: calls new_ssl_connection() with up-and-running SSL connection
- *
- * @todo Eventually don't catch const char*
  */
 int
 forkmain(FDWrap&fd)
@@ -510,8 +510,6 @@ forkmain(FDWrap&fd)
                 logger->err("%s",
                             (std::string("sslproc: std::exception: ")
                              + e.what() + "\n").c_str());
-	} catch (const char *e) {
-		logger->err("%s", (std::string("FIXME: ") + e).c_str());
 	} catch (...) {
 		logger->err("Unknown exception happened");
 	}

@@ -8,7 +8,13 @@
 #include"fdwrap.h"
 
 /**
+ * read at most 'm' bytes from fd
  *
+ * @param[in] m   Max bytes to read
+ *
+ * @return Data read. At least 1 byte.
+ *
+ * On error or EOF, throws exception
  */
 std::string
 FDWrap::read(size_t m)
@@ -19,11 +25,20 @@ FDWrap::read(size_t m)
 	if (n < 0) {
 		THROW(ErrBase, "read()");
 	}
+	if (!n) {
+		THROW0(ErrEOF);
+	}
 	return std::string(&buf[0], &buf[n]);
 }
 
 /**
+ * try to write some data
  *
+ * @param[in] data  Data to be written
+ *
+ * @return Number of bytes written. May be 0.
+ *
+ * On error, throws exception.
  */
 size_t
 FDWrap::write(const std::string &data)
@@ -33,14 +48,15 @@ FDWrap::write(const std::string &data)
 	if (n < 0) {
 		THROW(ErrBase, "write()");
 	}
-	if (!n) {
-		THROW0(ErrEOF);
-	}
 	return n;
 }
 
 /**
+ * write some data. all of it. Keep retrying until it's all written.
  *
+ * @param[in] data to be written
+ *
+ * On error, throws exception.
  */
 void
 FDWrap::full_write(const std::string &data)
