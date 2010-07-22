@@ -3,7 +3,7 @@
 #
 
 AC_PREREQ(2.61)
-AC_INIT([tlssh], [0.03], [thomas@habets.pp.se])
+AC_INIT([tlssh], [0.04], [thomas@habets.pp.se])
 AC_CONFIG_AUX_DIR([config])
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE
