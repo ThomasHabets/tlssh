@@ -1,11 +1,7 @@
-TODO before 0.04
-----------------
-* proper logging - done
-* Manpage - done
-
 TODO before 0.05
 ----------------
 * Listen option - actually enforce it
+* check allowed shells before spawning users
 
 
 TODO before 0.06
@@ -13,41 +9,44 @@ TODO before 0.06
 * proper wtmp update at logout
 
 
+TODO before 0.07
+----------------
+* kill connection when cert expires
+* Provide grsec RBAC config
+
+
 TODO before 1.00
 ---------------
-* Provide grsec RBAC config
-* anti-dos (many connections)
 * port to Solaris
 ** cfmakeraw - done?
 ** forkpty - done?
 ** tcpmd5 - done?
-** clearenv - skeleton
+** clearenv - done?
 ** setres[ug]id - done?
 ** logwtmp (whole utmp handling)
 ** basename - done?
 ** daemon - done?
 * port to OpenBSD
-** wordexp
+** wordexp - done?
 ** tcpmd5
-* other documentation (README, INSTALL, HACKING)
-* kill connection when cert expires
-* document the code
+** utmp?
+* document the code. There can always be more docs.
 * get someone to audit the code
-* check allowed shells before spawning it
 
 
 TODO after 1.00
 -------------
+* anti-dos (many connections)
 * pick a proper port number
 * HUP re-reads config file and re-overrides using the old cmdline
-* Client has send-local-file-as-typed support.
+* Give client send-local-file-as-typed support.
 * xmodem file send/recv
 * EGADS / EGD support (RAND_egd())
-* after auth, reset TCP signatures to something secret so that the
+* after auth, reset TCP signatures to something secret ephemeral so that the
   connection is unresettable
 * set QoS
-* TCP MD5 should be on the listening socket.
-* pipe:ing.  tlssh host.com echo foo > foo 2>/dev/null
+* TCP MD5 should be on the listening socket. Is it possible?
+* pipe:ing/batching.  tlssh host.com echo foo > foo 2>/dev/null
 * support for online CRL check (OCSP)
 
 
