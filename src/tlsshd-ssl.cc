@@ -280,7 +280,7 @@ drop_privs(const struct passwd *pw)
 void
 log_login(const struct passwd *pw, const std::string &peer_addr)
 {
-#if 0
+#if 1
         struct utmp ut;
         // write to utmp file (who / w)
         if (1) {
@@ -331,7 +331,7 @@ log_login(const struct passwd *pw, const std::string &peer_addr)
 void
 log_logout()
 {
-#if 0
+#if 1
         if (!fd_wtmp.valid()) {
                 return;
         }
