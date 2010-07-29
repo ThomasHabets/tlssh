@@ -5,7 +5,8 @@ doc: manpages
 	ln -fs ../src
 	doxygen Doxyfile
 
-manpages: tlssh.1 tlsshd.8 tlssh.conf.5 tlsshd.conf.5
+man_MANS=tlssh.1 tlsshd.8 tlssh.conf.5 tlsshd.conf.5
+manpages: $(man_MANS)
 
 %.1 %.5 %.8: %.yodl
 	yodl2man -o $@ $<

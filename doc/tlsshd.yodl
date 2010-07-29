@@ -23,7 +23,7 @@ manpagesection(SIGNALS)
 startdit()
     dit(em(SIGHUP)) Reload configuration file.
     dit(em(SIGINT)) Kills listener process, but not logged in users.
-        For use with commands like em(pkill tlsshd).
+        For use with commands like em(pkill -INT tlsshd).
     dit(em(SIGTERM)) Kills process, be it the listener or a connection handling
         process.
 enddit()

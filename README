@@ -17,6 +17,28 @@ subvert security. Yet it doesn't have the features that I want
 
 I wanted a minimal crypto layer on top of the SSL crypto model.
 
+Compared to OpenSSH
+-------------------
+Pros:
+* TCP-MD5
+* Write contents of local file as if I typed it (not done yet, but
+  OpenSSH don't want it)
+* xmodem file xfer (not done yet)
+* TLS is the only manner of authentication = only thing security
+  depends on (besides kernel, firmware and hardware that are all out of scope)
+* CA model. Server can have VeriSign signed server cert.
+* Expiring keys
+* Revoking keys
+
+Cons:
+* Less portable
+* Less tested
+* Less audited
+* Fewer features (channels, etc)
+* Requires CA
+* SSL data structs are pure madness, odds of OpenSSL being perfect
+  when parsing them is less than 100%
+
 
 Where can I get it?
 -------------------
