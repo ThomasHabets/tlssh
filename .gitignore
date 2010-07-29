@@ -17,4 +17,3 @@ src/tlssh
 src/tlsshd
 config.h
 config.status
-*.[1-9]

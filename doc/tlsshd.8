@@ -1,0 +1,48 @@
+.TH "tlsshd" "8" "20th Jul, 2010" "tlsshd" ""
+
+.PP 
+.SH "NAME"
+tlsshd \- TLSSH daemon
+.PP 
+.SH "SYNOPSIS"
+\fBtlsshd\fP [ -hfvV ] [ -c \fIconfig\fP ]
+.PP 
+.SH "DESCRIPTION"
+tlsshd is the server for tlssh(1)\&. It takes very few options and is instead
+configured using a configuration file\&.
+.PP 
+.SH "OPTIONS"
+.IP "-c \fIconfig file\fP"
+Config file\&. Default is /etc/tlssh/tlsshd\&.conf
+.IP "-h, --help"
+Show brief usage info and exit\&. 
+.IP "-f"
+Run in foreground\&. Default is to daemonize\&.
+.IP "-v"
+Increase verbosity (debug output)\&.
+.IP "-V, --version"
+Show version and exit\&.
+.IP "--copying"
+Show license and exit\&.
+
+.PP 
+.SH "SIGNALS"
+.IP "\fISIGHUP\fP"
+Reload configuration file\&.
+.IP "\fISIGINT\fP"
+Kills listener process, but not logged in users\&.
+For use with commands like \fIpkill -INT tlsshd\fP\&.
+.IP "\fISIGTERM\fP"
+Kills process, be it the listener or a connection handling
+process\&.
+
+.PP 
+.SH "BUGS"
+No known bugs\&.
+.PP 
+.SH "SEE ALSO"
+\fBtlssh(1)\fP, \fBtlsshd\&.conf(5)\fP
+.PP 
+.SH "AUTHOR"
+
+    TLSSH was written by Thomas Habets <thomas@habets\&.pp\&.se>\&.

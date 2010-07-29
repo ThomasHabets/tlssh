@@ -1,0 +1,45 @@
+.TH "tlssh\&.conf" "8" "20th Jul, 2010" "tlssh\&.conf" ""
+
+.PP 
+.SH "NAME"
+tlssh\&.conf \- TLSSH client configuration file
+.PP 
+.SH "SYNOPSIS"
+~/\&.tlssh/tlssh\&.conf
+/etc/tlssh/tlssh\&.conf
+.PP 
+.SH "DESCRIPTION"
+.IP "\fIBASIC\fP"
+.IP "\fBKeyFile\fP /path/to/keyfile"
+Private key for tlsshd\&. Default is ~/\&.tlssh/keys/default\&.key\&.
+.IP "\fBCertFile\fP /path/to/certfile"
+Public key for tlsshd\&. Default is ~/\&.tlssh/keys/default\&.crt\&.
+.IP "\fBServerCAFile\fP /path/to/file\&.crt"
+CA certificate file that has signed the tlsshd server certificates\&.
+Default is /etc/tlssh/ServerCA\&.crt\&.
+Either a working ServerCAFile or ServerCAPath is needed\&.
+.IP "\fBServerCAPath\fP /path/to/certs"
+Directory containing CAs that have signed tlsshd server certificates\&.
+.IP "\fIOPTIONAL\fP"
+.IP "\fBL3Protocol\fP IPv4"
+Either IPv4 or IPv6\&. Will force one or the other\&. Command line options
+-4 and -6 overrides\&.
+.IP "\fBServerCRL\fP /path/to/file"
+CRL file\&. If the CRL is out of date or missing you will NOT be able
+to connect\&.
+.IP "\fBCipherlist\fP HIGH"
+List of crypto ciphers allowed, in OpenSSL format\&.
+Default is HIGH\&.
+.IP "\fBinclude\fP /path/to/config"
+Include other config file\&.
+.IP "\fB-include\fP /path/to/config"
+Include other config file, but don\&'t error out if the file doesn\&'t exist\&.
+It\&'s by using \fB-include\fP that /etc/tlssh/tlssh\&.conf includes
+~/\&.tlssh/tlssh\&.conf\&.
+.PP 
+.SH "SEE ALSO"
+\fBtlssh(1)\fP, \fBtlsshd\&.conf(5)\fP
+.PP 
+.SH "AUTHOR"
+
+    TLSSH was written by Thomas Habets <thomas@habets\&.pp\&.se>\&.

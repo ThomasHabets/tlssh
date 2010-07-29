@@ -1,0 +1,50 @@
+.TH "tlssh" "1" "20th Jul, 2010" "tlssh" ""
+
+.PP 
+.SH "NAME"
+tlssh \- TLSSH client
+.PP 
+.SH "SYNOPSIS"
+\fBtlssh\fP \fIdestination\fP
+.PP 
+.SH "DESCRIPTION"
+TLSSH is a program for logging into a remote host using TLS and
+certificates\&. The server does not ask for a username or password, it
+only verifies the client certificate and logs the client in using the
+username written on the certificate\&.  
+.PP 
+To log in as a different user you must obtain a certificate for that
+user\&.
+.PP 
+.SH "OPTIONS"
+.IP "-4"
+Force IPv4\&. Default is auto-detect\&.
+.IP "-6"
+Force IPv6\&. Default is auto-detect\&.
+.IP "-c \fIconfig file\fP"
+Config file\&. Default is /etc/tlssh/tlssh\&.conf
+.IP "-C \fIcipher list\fP"
+Cipher list\&. Default is HIGH
+.IP "-h, --help"
+Show brief usage info and exit\&. 
+.IP "-p \fIcert/key file\fP"
+.IP "-v"
+Increase verbosity (debug output)\&.
+.IP "-V, --version"
+Show version and exit\&.
+.IP "--copying"
+Show license and exit\&.
+
+.PP 
+.SH "EXAMPLES"
+FIXME
+.PP 
+.SH "BUGS"
+No known bugs\&.
+.PP 
+.SH "SEE ALSO"
+\fBtlsshd(8)\fP, \fBtlssh\&.conf(5)\fP
+.PP 
+.SH "AUTHOR"
+
+    TLSSH was written by Thomas Habets <thomas@habets\&.pp\&.se>\&.

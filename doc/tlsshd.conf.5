@@ -1,0 +1,54 @@
+.TH "tlsshd\&.conf" "8" "20th Jul, 2010" "tlsshd\&.conf" ""
+
+.PP 
+.SH "NAME"
+tlsshd\&.conf \- TLSSH daemon configuration file
+.PP 
+.SH "SYNOPSIS"
+/etc/tlssh/tlsshd\&.conf
+.PP 
+.SH "DESCRIPTION"
+.IP "\fIBASIC\fP"
+.IP "\fBKeyFile\fP /path/to/keyfile"
+Private key for tlsshd\&. Default is /etc/tlssh/tlsshd\&.key\&.
+.IP "\fBCertFile\fP /path/to/certfile"
+Public key for tlsshd\&. Default is /etc/tlssh/tlsshd\&.crt\&.
+.IP "\fBClientCAFile\fP /path/to/file\&.crt"
+CA certificate file that has signed the client certificates\&.
+Default is /etc/tlssh/ClientCA\&.crt\&.
+Either a working ClientCAFile or ClientCAPath is needed\&.
+.IP "\fBClientCAPath\fP /path/to/certs"
+Directory containing CAs that have signed client certificates\&.
+.IP "\fBClientDomain\fP \&.users\&.domain\&.com"
+Under what domain users certs are named\&. User "bob" would have a cert
+with the CommonName bob\&.users\&.domain\&.com in this case\&. Default is empty,
+so CommonName is the username itself\&.
+.IP "\fIOPTIONAL\fP"
+.IP "\fBListen\fP 2001:db8:1:2::3"
+Address to listen to\&. Can be IPv4 or IPv6\&. An IPv6 address of "::" will
+listen to any IPv4 or IPv6 connection, and "0\&.0\&.0\&.0" will listen to
+a IPv4 port only\&. Default is to leave it unspecified\&.
+.IP "\fBClientCRL\fP /path/to/file"
+CRL file\&. If the CRL is out of date or missing the clients will
+NOT be able to log in\&.
+.IP "\fBChroot\fP /path/to/dir"
+If present, tlsshd will chroot(1) to this directory as soon as possible
+after a new connection is made\&. If set to "/" will not attempt chroot\&.
+Default is /var/empty\&.
+.IP "\fBPort\fP 12345"
+Port to listen to\&. Default is FIXME\&.
+.IP "\fBCipherlist\fP HIGH"
+List of crypto ciphers allowed, in OpenSSL format\&.
+Default is HIGH:!ADH:!LOW:!MD5:@STRENGTH\&.
+.IP "\fBinclude\fP /path/to/config"
+Include other config file\&.
+.IP "\fB-include\fP /path/to/config"
+Include other config file, but don\&'t error out if the file doesn\&'t exist\&.
+
+.PP 
+.SH "SEE ALSO"
+\fBtlsshd(8)\fP, \fBtlssh\&.conf(5)\fP
+.PP 
+.SH "AUTHOR"
+
+    TLSSH was written by Thomas Habets <thomas@habets\&.pp\&.se>\&.
