@@ -17,7 +17,7 @@ AC_PROG_INSTALL
 # Checks for libraries.
 AC_CHECK_LIB([m], [sqrt])
 AC_CHECK_LIB([util], [openpty])
-AC_CHECK_LIB([ssl], [SSL_new])
+AC_CHECK_LIB([ssl], [SSL_pending])
 AC_CHECK_LIB([crypto], [X509_STORE_new])
 AC_SEARCH_LIBS([socket], [socket])
 AC_SEARCH_LIBS([recv], [socket])
