@@ -20,7 +20,7 @@
 #include<vector>
 
 #include"tlssh.h"
-#include"util.h"
+#include"util2.h"
 
 using namespace tlssh_common;
 using tlsshd::protocol_version;
@@ -57,6 +57,7 @@ parse_header_line(const std::string &s)
 void
 forkmain2(const struct passwd *pw, int fd_control)
 {
+        logger->debug("shellproc::forkmain2()");
 	if (clearenv()) {
 		perror("clearenv()");
 		exit(1);
@@ -96,6 +97,7 @@ forkmain2(const struct passwd *pw, int fd_control)
                 THROW(Err::ErrBase, "client did not provide protocol version");
         }
 
+        logger->debug("shellproc::forkmain2(): spawning shell");
 	execl(pw->pw_shell, pw->pw_shell, "-i", NULL);
 
         // while the below works, it requires root and I want to drop

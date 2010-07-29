@@ -7,10 +7,9 @@
 #endif
 
 #include<stdio.h>
-#include<wordexp.h>
 
 #include"mywordexp.h"
-#include"util.h"
+#include"util2.h"
 #include"xgetpwnam.h"
 #include"errbase.h"
 
@@ -28,6 +27,9 @@ void
 Logger::copyterminal(int prio, const char *fmt, va_list ap) const
 {
         if (!flag_copyterminal) {
+                return;
+        }
+        if (!(get_logmask() & LOG_MASK(prio))) {
                 return;
         }
 
@@ -82,6 +84,10 @@ xvsprintf(const char *fmt, va_list ap)
 void
 StreamLogger::vlog(int prio, const char *fmt, va_list ap) const
 {
+        if (!(get_logmask() & LOG_MASK(prio))) {
+                return;
+        }
+
         char tbuf[1024];
         struct tm tm;
         time_t t;

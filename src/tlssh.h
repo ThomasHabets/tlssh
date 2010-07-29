@@ -10,7 +10,7 @@
 
 #include"fdwrap.h"
 #include"errbase.h"
-#include"util.h"
+#include"util2.h"
 
 extern Logger *logger;
 

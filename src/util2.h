@@ -1,6 +1,6 @@
 // -*- c++ -*-
 /**
- * @file src/util.h
+ * @file src/util2.h
  * Random utility functions
  */
 #ifndef __INCLUDE_UTIL_H__
@@ -55,7 +55,7 @@ public:
 
         void set_copyterminal(bool y) { flag_copyterminal = y; }
         virtual void set_logmask(int m) { logmask = m; }
-        int get_logmask() { return logmask; }
+        int get_logmask() const { return logmask; }
         void copyterminal(int prio, const char *fmt, va_list ap) const;
 
 	virtual void vlog(int prio, const char *fmt, va_list ap) const = 0;
