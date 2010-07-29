@@ -24,7 +24,7 @@
  socklen_t salen = sizeof(sa);
  struct sockaddr_storage sa;
 
- sock.listen_any(AF_UNSPEC, "12345");
+ sock.listen(AF_UNSPEC, "", "12345");
  clifd.set(accept(sock.getfd(), (struct sockaddr*)&sa, &salen));
  Socket newsock(clifd.get());
  newsock.write("Hello World");
@@ -90,7 +90,7 @@ public:
 
         std::string get_peer_addr_string() const;
 
-	void listen_any(int af, const std::string &port);
+	void listen(int af, const std::string &host, const std::string &port);
 	void connect(int af, const std::string &host, const std::string &port);
 
 	virtual std::string read(size_t m = 4096);

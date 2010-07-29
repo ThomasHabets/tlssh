@@ -17,7 +17,6 @@
  // something something gai.fixme()
  @endcode
  *
- * @todo Make a proper results-fetcher
  */
 class GetAddrInfo {
 	struct addrinfo *addrs;
@@ -43,7 +42,7 @@ public:
 		    const struct addrinfo *hints);
 	~GetAddrInfo();
 
-	struct addrinfo *fixme() { return addrs; }
+	const struct addrinfo *get_results() const { return addrs; }
 };
 
 /**

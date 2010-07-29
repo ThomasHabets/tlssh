@@ -90,15 +90,21 @@ Socket::set_reuseaddr(bool ion)
 /**
  * Connect to a hostname or address. Address agnostic if af is AF_UNSPEC.
  *
+ * RFC3484:
+ *   Well-behaved applications SHOULD iterate through the list of
+ *   addresses returned from getaddrinfo() until they find a working
+ *   address.
+ *
  * @param[in] af AF_UNSPEC, AF_INET or AF_INET6. Others may work to.
  * @param[in] host Hostname to connect to
  * @param[in] port Port name or number
+ *
+ * @todo Some debug logging for the connect() that fail
  */
 void
 Socket::connect(int af, const std::string &host, const std::string &port)
 {
 	struct addrinfo hints;
-	struct addrinfo *p;
 	int err;
 
 
@@ -108,11 +114,15 @@ Socket::connect(int af, const std::string &host, const std::string &port)
         hints.ai_socktype = SOCK_STREAM;
 
 	GetAddrInfo gai(host, port, &hints);
-	p = gai.fixme();
-	if (!fd.valid()) {
-		create_socket(p);
-	}
-	err = ::connect(fd.get(), p->ai_addr, p->ai_addrlen);
+        const struct addrinfo *p;
+        err = -1;
+        for (p = gai.get_results(); p; p = p->ai_next) {
+                create_socket(p);
+                err = ::connect(fd.get(), p->ai_addr, p->ai_addrlen);
+                if (!err) {
+                        break;
+                }
+        }
 	if (0 > err) {
                 THROW(ErrSys, "connect()");
 	}
@@ -126,7 +136,7 @@ Socket::connect(int af, const std::string &host, const std::string &port)
  * @param[in] port Port name or number.
  */
 void
-Socket::listen_any(int af, const std::string &port)
+Socket::listen(int af, const std::string &host, const std::string &port)
 {
 	int err;
 	struct addrinfo hints;
@@ -135,19 +145,24 @@ Socket::listen_any(int af, const std::string &port)
         hints.ai_family = af;
         hints.ai_socktype = SOCK_STREAM;
 
-	GetAddrInfo gai("", port, &hints);
-	struct addrinfo *p;
-	p = gai.fixme();
+	GetAddrInfo gai(host, port, &hints);
+	const struct addrinfo *p;
 
-	create_socket(p);
-	set_reuseaddr(true);
+        err = -1;
+        for (p = gai.get_results(); p; p = p->ai_next) {
+                create_socket(p);
+                set_reuseaddr(true);
 
-	err = bind(fd.get(), p->ai_addr, p->ai_addrlen);
+                err = bind(fd.get(), p->ai_addr, p->ai_addrlen);
+                if (!err) {
+                        break;
+                }
+        }
 	if (err) {
                 THROW(ErrSys, "bind()");
 	}
 
-	if (listen(fd.get(), 5)) {
+	if (::listen(fd.get(), 5)) {
                 THROW(ErrSys, "listen()");
 	}
 }

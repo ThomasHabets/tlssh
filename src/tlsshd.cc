@@ -338,7 +338,7 @@ main2(int argc, char * const argv[])
                                     | LOG_MASK(LOG_DEBUG));
         }
         //tlsshd::listen.set_tcp_md5(options.tcp_md5);
-	tlsshd::listen.listen_any(options.af, options.port);
+	tlsshd::listen.listen(options.af, options.listen, options.port);
 
         if (options.daemon) {
                 if (daemon(0,0)) {
