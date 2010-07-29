@@ -32,9 +32,11 @@
 #include<sys/types.h>
 #include<sys/types.h>
 #include<sys/stat.h>
+#include<sys/ioctl.h>
 #include<fcntl.h>
 #include<termios.h>
 #include<signal.h>
+#include<util.h>
 
 #include<iostream>
 
@@ -42,7 +44,7 @@
 #include"sslsocket.h"
 #include"xgetpwnam.h"
 #include"configparser.h"
-#include"util.h"
+#include"util2.h"
 
 using namespace tlssh_common;
 using tlsshd::options;
@@ -218,6 +220,7 @@ connect_fd_sock(FDWrap &fd,
 void
 user_loop(FDWrap &terminal, SSLSocket &sock, FDWrap &control)
 {
+        logger->debug("sslproc::user_loop");
 	std::string to_client;
 	std::string to_terminal;
         std::string from_sock;
@@ -281,7 +284,7 @@ drop_privs(const struct passwd *pw)
 void
 log_login(const struct passwd *pw, const std::string &peer_addr)
 {
-#if 1
+#if 0
         struct utmp ut;
         // write to utmp file (who / w)
         if (1) {
@@ -332,7 +335,7 @@ log_login(const struct passwd *pw, const std::string &peer_addr)
 void
 log_logout()
 {
-#if 1
+#if 0
         if (!fd_wtmp.valid()) {
                 return;
         }
@@ -360,6 +363,8 @@ spawn_child(const struct passwd *pw,
             const std::string &peer_addr
             )
 {
+        logger->debug("sslproc::spawn_child");
+
         int fd_control[2];
         char tty_name[PATH_MAX];
 
@@ -404,7 +409,7 @@ spawn_child(const struct passwd *pw,
                 exit(tlsshd_shellproc::forkmain(pw, fd_control[0]));
 	}
 
-        fd_wtmp.set(open(WTMP_FILE, O_WRONLY | O_APPEND));
+        //fd_wtmp.set(open(WTMP_FILE, O_WRONLY | O_APPEND));
 
         // parent
         if (!options.chroot.empty()) {
@@ -432,6 +437,7 @@ spawn_child(const struct passwd *pw,
 void
 new_ssl_connection(SSLSocket &sock)
 {
+        logger->debug("tlsshd-ssl::new_ssl_connection()");
 	std::auto_ptr<X509Wrap> cert = sock.get_cert();
 	if (!cert.get()) {
 		sock.write("You are the no-cert client. Goodbye.");
@@ -493,6 +499,7 @@ sigint(int)
 int
 forkmain(FDWrap&fd)
 {
+        logger->debug("tlsshd-ssl:forkmain()");
 	try {
                 if (SIG_ERR == signal(SIGINT, sigint)) {
                         THROW(Err::ErrBase, "signal(SIGINT, sigint)");

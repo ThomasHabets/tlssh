@@ -13,7 +13,7 @@
 #include<openssl/err.h>
 
 #include"sslsocket.h"
-#include"util.h"
+#include"util2.h"
 #include"tlssh.h"
 
 #if 0
@@ -431,6 +431,7 @@ SSLSocket::ssl_accept_connect(bool isconnect)
 	}
 
         // set approved cipher list
+        logger->debug("setting up cipher list");
 	if (!cipher_list.empty()) {
 		if (!SSL_CTX_set_cipher_list(ctx, cipher_list.c_str())) {
                         THROW(ErrSSL, "SSL_CTX_set_cipher_list()");
@@ -438,6 +439,7 @@ SSLSocket::ssl_accept_connect(bool isconnect)
         }
 
         // if server, set up DH
+        logger->debug("setting up DH");
         if (!isconnect) {
                 if (!SSL_CTX_set_tmp_dh(ctx, ssl_setup_dh())) {
                         THROW(ErrSSL, "SSL_CTX_set_tmp_dh()");
@@ -480,6 +482,7 @@ SSLSocket::ssl_accept_connect(bool isconnect)
         }
 
         // do handshake
+        logger->debug("doing SSL handshake");
 	if (isconnect) {
 		err = SSL_connect(ssl);
 		if (err == -1) {

@@ -11,8 +11,16 @@ typedef struct {
   char **we_wordv;
   size_t we_offs;
 } wordexp_t;
+
+#ifdef __cplusplus
 extern "C" {
+#endif
+
 int wordexp(const char *s, wordexp_t *p, int flags);
 void wordfree(wordexp_t *p);
+
+#ifdef __cplusplus
 };
+#endif
+
 #endif

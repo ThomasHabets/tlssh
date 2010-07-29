@@ -52,7 +52,7 @@
 #include"sslsocket.h"
 #include"xgetpwnam.h"
 #include"configparser.h"
-#include"util.h"
+#include"util2.h"
 
 using namespace tlssh_common;
 using namespace Err;

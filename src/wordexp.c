@@ -10,7 +10,7 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<sys/syslimits.h>
-#include"wordexp.h"
+#include"mywordexp.h"
 
 /** Mimimal wordexp() implementation that only handles "~"
  *

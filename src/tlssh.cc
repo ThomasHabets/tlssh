@@ -39,7 +39,6 @@
 #include<poll.h>
 #include<termios.h>
 #include<unistd.h>
-#include<wordexp.h>
 #include<signal.h>
 #include<sys/ioctl.h>
 #include<sys/socket.h>
@@ -48,8 +47,9 @@
 #include<iostream>
 #include<fstream>
 
+#include"mywordexp.h"
 #include"tlssh.h"
-#include"util.h"
+#include"util2.h"
 #include"sslsocket.h"
 #include"configparser.h"
 
