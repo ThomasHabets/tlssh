@@ -103,6 +103,20 @@ Options options = {
  af:             DEFAULT_AF,
 };
 
+/** SIGINT handler
+ *
+ * Listener process just logs a message and quits if it gets SIGINT.
+ * Ongoing connections do not. pkill -INT tlsshd is therefore safe in
+ * that it will not cause you to shoot down the connection you are
+ * using.
+ */
+void
+sigint(int)
+{
+        logger->info("Listener killed by SIGINT");
+        exit(1);
+}
+
 /** Listen-loop.
  *
  * Run as: root
@@ -312,6 +326,10 @@ main2(int argc, char * const argv[])
 {
         if (SIG_ERR == signal(SIGCHLD, SIG_IGN)) {
                 THROW(Err::ErrBase, "signal(SIGCHLD, SIG_IGN)");
+        }
+
+        if (SIG_ERR == signal(SIGINT, sigint)) {
+                THROW(Err::ErrBase, "signal(SIGINT, sigint)");
         }
 
 	parse_options(argc, argv);

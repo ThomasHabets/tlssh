@@ -34,6 +34,7 @@
 #include<sys/stat.h>
 #include<fcntl.h>
 #include<termios.h>
+#include<signal.h>
 
 #include<iostream>
 
@@ -468,6 +469,17 @@ new_ssl_connection(SSLSocket &sock)
         log_logout();
 }
 
+/** SIGINT handler for tlssh-sslproc
+ *
+ * only the listener gets killed by pkill -INT tlsshd, not existing
+ * connections.
+ */
+void
+sigint(int)
+{
+        logger->info("tlsshd-sslproc got SIGINT, ignoring");
+}
+
 /**
  * Run as: root
  *
@@ -482,6 +494,10 @@ int
 forkmain(FDWrap&fd)
 {
 	try {
+                if (SIG_ERR == signal(SIGINT, sigint)) {
+                        THROW(Err::ErrBase, "signal(SIGINT, sigint)");
+                }
+
                 SSLSocket sock(fd.get());
 		fd.forget();
 
