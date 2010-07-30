@@ -2,7 +2,7 @@ TODO before 0.05
 ----------------
 * Listen option - actually enforce it - done
 * check allowed shells before spawning users - done
-* show help even if there is no config file
+* show help even if there is no config file - done
 * client should work without a config file
 * port to OpenBSD
 ** wordexp - done?

@@ -266,9 +266,11 @@ parse_options(int argc, char * const *argv)
 	for (c = 1; c < argc; c++) {
 		if (!strcmp(argv[c], "--")) {
 			break;
-		} else if (!strcmp(argv[c], "--help")) {
+		} else if (!strcmp(argv[c], "--help")
+                           || !strcmp(argv[c], "-h")) {
 			usage(0);
-		} else if (!strcmp(argv[c], "--version")) {
+		} else if (!strcmp(argv[c], "--version")
+                           || !strcmp(argv[c], "-V")) {
 			print_version();
 			exit(0);
 		} else if (!strcmp(argv[c], "--copying")) {
@@ -285,7 +287,8 @@ parse_options(int argc, char * const *argv)
 	} catch(const ConfigParser::ErrStream&) {
                 THROW(ErrBase,
                       "I/O error accessing config file: "
-                      + options.config);
+                      + options.config + "\n"
+                      + "tlsshd requires a valid config file.");
 	}
 
 	int opt;
