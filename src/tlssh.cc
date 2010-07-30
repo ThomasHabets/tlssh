@@ -335,6 +335,9 @@ void
 read_config_file(const std::string &fn)
 {
 	std::ifstream fi(fn.c_str());
+        if (!fi.is_open()) {
+                return;
+        }
 	ConfigParser conf(fi);
 	ConfigParser end;
 	for (;conf != end; ++conf) {
@@ -434,7 +437,7 @@ parse_options(int argc, char * const *argv)
 	try {
 		read_config_file(options.config);
 	} catch(const ConfigParser::ErrStream&) {
-		THROW(Err::ErrBase,
+                THROW(Err::ErrBase,
                       "I/O error accessing config file: " + options.config);
 	}
 	int opt;
