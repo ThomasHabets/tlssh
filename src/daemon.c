@@ -58,7 +58,10 @@ daemon(int nochdir, int noclose)
 		dup2(fd, 2);
 		close(fd);
 	}
-	setsid();
+	if (setsid() == (pid_t)-1) {
+		return -1;
+	}
+	return 0;
 }
 
 
