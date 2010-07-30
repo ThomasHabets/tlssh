@@ -118,6 +118,8 @@ parse_iac(FDWrap &fd, std::string &from_sock)
 
 /**
  * Run as: user
+ *
+ * @return true if all done
  */
 bool
 connect_fd_sock(FDWrap &fd,
@@ -127,7 +129,7 @@ connect_fd_sock(FDWrap &fd,
 		std::string &to_sock)
 {
 	struct pollfd fds[2];
-	bool active[2] = {true, true};
+	bool active[2] = {true, true}; // terminal, client
 	int err;
 
 	fds[0].fd = sock.getfd();
@@ -153,6 +155,11 @@ connect_fd_sock(FDWrap &fd,
 	// if both sockets closed, return done
 	if (!active[0]
 	    && !active[1]) {
+		return true;
+	}
+
+	// if shell has exited and there's nothing more to write to socket
+	if (!active[1] && to_sock.empty()) {
 		return true;
 	}
 
@@ -190,10 +197,6 @@ connect_fd_sock(FDWrap &fd,
 		fd.close();
 		fds[1].revents = 0;
 		active[1] = false;
-	}
-	// if shell has exited and 
-	if (!active[1] && to_sock.empty()) {
-		return true;
 	}
 
 	// output
