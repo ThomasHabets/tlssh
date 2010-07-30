@@ -452,10 +452,11 @@ uninstall-man: uninstall-man1 uninstall-man5 uninstall-man8
 doc: manpages
 	ln -fs ../src
 	doxygen Doxyfile
-manpages: $(man_MANS)
-
-%.1 %.5 %.8: %.yodl
-	yodl2man -o $@ $<
+manpages:
+	yodl2man -o tlssh.1 tlssh.yodl
+	yodl2man -o tlssh.conf.5 tlssh.conf.yodl
+	yodl2man -o tlsshd.8 tlsshd.yodl
+	yodl2man -o tlsshd.conf.5 tlsshd.conf.yodl
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
