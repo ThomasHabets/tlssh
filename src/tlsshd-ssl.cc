@@ -36,7 +36,10 @@
 #include<fcntl.h>
 #include<termios.h>
 #include<signal.h>
+
+#ifdef HAVE_UTIL_H
 #include<util.h>
+#endif
 
 #include<iostream>
 

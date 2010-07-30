@@ -62,7 +62,7 @@ am_tlsshd_OBJECTS = tlsshd.$(OBJEXT) sslsocket.$(OBJEXT) \
 	cfmakeraw.$(OBJEXT) forkpty.$(OBJEXT) \
 	openpty_solaris.$(OBJEXT) setresuid.$(OBJEXT) \
 	clearenv.$(OBJEXT) daemon.$(OBJEXT) logwtmp.$(OBJEXT) \
-	wordexp.$(OBJEXT)
+	wordexp.$(OBJEXT) login_tty.$(OBJEXT)
 tlsshd_OBJECTS = $(am_tlsshd_OBJECTS)
 tlsshd_LDADD = $(LDADD)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
@@ -182,7 +182,8 @@ xgetpwnam.c tlssh_common.cc cfmakeraw.c wordexp.c
 tlsshd_SOURCES = \
 tlsshd.cc sslsocket.cc socket.cc xgetpwnam.c fdwrap.cc configparser.cc \
 util.cc tlsshd-ssl.cc tlsshd-shell.cc tlssh_common.cc cfmakeraw.c forkpty.c \
-openpty_solaris.c setresuid.c clearenv.c daemon.c logwtmp.c wordexp.c
+openpty_solaris.c setresuid.c clearenv.c daemon.c logwtmp.c wordexp.c \
+login_tty.c
 
 all: all-am
 
@@ -282,6 +283,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/daemon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fdwrap.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/forkpty.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/login_tty.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/logwtmp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/openpty_solaris.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/setresuid.Po@am__quote@

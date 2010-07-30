@@ -12,4 +12,5 @@ xgetpwnam.c tlssh_common.cc cfmakeraw.c wordexp.c
 tlsshd_SOURCES = \
 tlsshd.cc sslsocket.cc socket.cc xgetpwnam.c fdwrap.cc configparser.cc \
 util.cc tlsshd-ssl.cc tlsshd-shell.cc tlssh_common.cc cfmakeraw.c forkpty.c \
-openpty_solaris.c setresuid.c clearenv.c daemon.c logwtmp.c wordexp.c
+openpty_solaris.c setresuid.c clearenv.c daemon.c logwtmp.c wordexp.c \
+login_tty.c

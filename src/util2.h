@@ -29,6 +29,10 @@ n(const char *fmt, ...) \
 	va_end(ap); \
 }
 
+#ifndef LOG_AUTHPRIV
+#define LOG_AUTHPRIV LOG_AUTH
+#endif
+
 /**
  * Abstract base logger class.
  @code
