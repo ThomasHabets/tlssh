@@ -443,7 +443,7 @@ new_ssl_connection(SSLSocket &sock)
         logger->debug("tlsshd-ssl::new_ssl_connection()");
 	std::auto_ptr<X509Wrap> cert = sock.get_cert();
 	if (!cert.get()) {
-		sock.write("You are the no-cert client. Goodbye.");
+		sock.full_write("You are the no-cert client. Goodbye.");
                 THROW(Err::ErrBase, "client provided no cert");
 	}
 

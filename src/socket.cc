@@ -213,12 +213,17 @@ Socket::write(const std::string &data)
 /**
  * Write exactly all of a std::string
  *
+ * Can't use fd.full_write() since this->write() may be from a subclass
+ *
  * @param[in] data Data to write
  */
 void
 Socket::full_write(const std::string &data)
 {
-        fd.full_write(data);
+        size_t n;
+        for (n = 0; n < data.size();) {
+                n += write(data.substr(n));
+        }
 }
 
 /**

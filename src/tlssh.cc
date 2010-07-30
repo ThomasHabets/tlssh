@@ -278,9 +278,9 @@ int
 new_connection()
 {
 	sock.ssl_connect(options.host);
-        sock.write("version " + protocol_version + "\n");
-        sock.write("env TERM " + terminal_type() + "\n");
-        sock.write("\n");
+        sock.full_write("version " + protocol_version + "\n");
+        sock.full_write("env TERM " + terminal_type() + "\n");
+        sock.full_write("\n");
 
 	FDWrap terminal(0, false);
 
