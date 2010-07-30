@@ -88,6 +88,8 @@ struct Options {
 	std::string tcp_md5;
 	unsigned int verbose;
         int af;
+        bool terminal;
+        std::string remote_command;
 };
 Options options = {
  port:         DEFAULT_PORT,
@@ -102,6 +104,8 @@ Options options = {
  tcp_md5:      DEFAULT_TCP_MD5,
  verbose:      0,
  af:           AF_UNSPEC,
+ terminal:     true,
+ remote_command: "",
 };
 	
 SSLSocket sock;
@@ -280,6 +284,9 @@ new_connection()
 	sock.ssl_connect(options.host);
         sock.full_write("version " + protocol_version + "\n");
         sock.full_write("env TERM " + terminal_type() + "\n");
+        if (!options.terminal) {
+                sock.full_write("terminal off\n");
+        }
         sock.full_write("\n");
 
 	FDWrap terminal(0, false);
@@ -298,7 +305,6 @@ new_connection()
                 THROW(Err::ErrSys, "tcsetattr(,TCSADRAIN,)");
         }
 
-
 	mainloop(terminal);
         return 0;
 }
@@ -311,7 +317,7 @@ usage(int err)
 {
         printf("%s [ -46hvV ] "
 	       "[ -c <config> ] "
-	       "[ -C <cipher-list> ] "
+	       "[ -C <cipher-list> ] <hostname> [command]"
                "\n"
                "\t[ -p <cert+keyfile> ]"
 	       "\n"
@@ -418,8 +424,14 @@ parse_options(int argc, char * const *argv)
 
 	// special options
 	for (c = 1; c < argc; c++) {
-		if (!strcmp(argv[c], "--")) {
+		if (!strcmp(argv[c], "--")
+                    || (*argv[c] != '-')) {
+                        // end of options
 			break;
+		} else if (!strcmp(argv[c], "-C")
+                           || !strcmp(argv[c], "-p")) {
+                        // skip parameters for options that have them
+			c++;
 		} else if (!strcmp(argv[c], "--help")) {
 			usage(0);
 		} else if (!strcmp(argv[c], "--version")) {
@@ -430,7 +442,7 @@ parse_options(int argc, char * const *argv)
 			exit(0);
 		} else if (!strcmp(argv[c], "-c")) {
                         if (c != argc - 1) {
-                                options.config = argv[c+1];
+                                options.config = argv[++c];
                         }
 		}
 	}
@@ -441,7 +453,7 @@ parse_options(int argc, char * const *argv)
                       "I/O error accessing config file: " + options.config);
 	}
 	int opt;
-	while ((opt = getopt(argc, argv, "46c:C:hp:vV")) != -1) {
+	while ((opt = getopt(argc, argv, "+46c:C:hp:vV")) != -1) {
 		switch (opt) {
                 case '4':
                         options.af = AF_INET;
@@ -474,7 +486,12 @@ parse_options(int argc, char * const *argv)
 	}
 
 	if (optind + 1 != argc) {
-		usage(1);
+                c = optind;
+                options.remote_command = argv[c++];
+                for (; c < argc; c++) {
+                        options.remote_command += std::string(" ") + argv[c];
+                }
+                options.terminal = false;
 	}
 	options.host = argv[optind];
 }
