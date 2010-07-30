@@ -1,3 +1,16 @@
+tlssh (0.05) unstable; urgency=low
+
+  * SIGINT only kills listener, not logged in users
+  * Listen config option
+  * Ported to Solaris and OpenBSD
+  * Check /etc/shells
+  * Client works without config file
+  * Server allows -h and -V without existing config file
+  * TCP MD5 still disabled for now
+  * wtmp/utmp disabled for now, since it's nontrivial to do portably
+
+ -- Thomas Habets <thomas@habets.pp.se>  Fri, 30 Jul 2010 17:54:17 +0200
+
 tlssh (0.04) unstable; urgency=low
 
   * utmp/wtmp logging support
