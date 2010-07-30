@@ -1,13 +1,22 @@
 TODO before 0.05
 ----------------
-* Listen option - actually enforce it
-* check allowed shells before spawning users
+* Listen option - actually enforce it - done
+* check allowed shells before spawning users - done
 * show help even if there is no config file
 * client should work without a config file
 * port to OpenBSD
 ** wordexp - done?
 ** clearenv - done
 ** tcpmd5
+** utmp/wtmp
+* port to Solaris
+** cfmakeraw - done?
+** forkpty - done?
+** tcpmd5 - done?
+** clearenv - done
+** setres[ug]id - done?
+** basename - done?
+** daemon - done?
 ** utmp/wtmp
 
 TODO before 0.06
@@ -19,19 +28,6 @@ TODO before 0.07
 ----------------
 * kill connection when cert expires
 * Provide grsec RBAC config
-
-
-TODO before 0.08
-----------------
-* port to Solaris
-** cfmakeraw - done?
-** forkpty - done?
-** tcpmd5 - done?
-** clearenv - done?
-** setres[ug]id - done?
-** utmp/wtmp
-** basename - done?
-** daemon - done?
 
 
 TODO before 1.00

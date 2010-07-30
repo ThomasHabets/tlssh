@@ -18,6 +18,7 @@
 #include<iostream>
 #include<string>
 #include<vector>
+#include<fstream>
 
 #include"tlssh.h"
 #include"util2.h"
@@ -26,6 +27,23 @@ using namespace tlssh_common;
 using tlsshd::protocol_version;
 
 BEGIN_NAMESPACE(tlsshd_shellproc);
+
+/** Check /etc/shells for a binary and return true if it's there
+ *
+ */
+bool
+shell_in_etc_shells(const std::string &sh)
+{
+        std::ifstream fi("/etc/shells");
+        std::string line;
+        while(!fi.eof()) {
+                getline(fi, line);
+                if (line == sh) {
+                        return true;
+                }
+        }
+        return false;
+}
 
 /** Parse protocol header line where client gives some environment
  *  variables like TERM
@@ -95,6 +113,11 @@ forkmain2(const struct passwd *pw, int fd_control)
 
         if (protocol_version.empty()) {
                 THROW(Err::ErrBase, "client did not provide protocol version");
+        }
+
+        if (!shell_in_etc_shells(pw->pw_shell)) {
+                logger->warning("shellproc::forkmain2(): shell not in shells");
+                THROW(Err::ErrBase, "user shell is not in /etc/shells");
         }
 
         logger->debug("shellproc::forkmain2(): spawning shell");
