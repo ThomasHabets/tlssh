@@ -68,7 +68,7 @@ xvsprintf(const char *fmt, va_list ap)
                 va_end(ap_count);
                 );
 
-        std::vector<char> buf(n + 1);
+        std::vector<char> buf(++n);
         va_copy(ap_write, ap);
         FINALLY(
                 vsnprintf(&buf[0], n, fmt, ap_write);
