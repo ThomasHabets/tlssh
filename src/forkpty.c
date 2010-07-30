@@ -18,6 +18,8 @@ static const int ISO_C_forbids_an_empty_source_file = 1;
 #include<unistd.h>
 #include<termios.h>
 
+#include"login_tty.h"
+
 /**
  * fork() a child that has a newly connected terminal pair as controlling
  * terminal.
@@ -36,7 +38,7 @@ forkpty(int *amaster, char *name, struct termios *termp,
   int aslave;
   pid_t pid;
 
-  if (openpty(amaster, aslave, name, termp, winp)) {
+  if (openpty(amaster, &aslave, name, termp, winp)) {
     goto errout;
   }
 
