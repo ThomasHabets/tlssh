@@ -36,7 +36,14 @@
 #include<fcntl.h>
 #include<termios.h>
 #include<signal.h>
+
+#ifdef HAVE_UTMPX_H
 #include<utmpx.h>
+#endif
+
+#ifdef HAVE_UTMP_H
+#include<utmp.h>
+#endif
 
 #ifdef HAVE_UTIL_H
 #include<util.h>
@@ -299,20 +306,34 @@ log_login(const struct passwd *pw, const std::string &peer_addr)
         struct utmp ut;
         struct timeval tv;
         memset(&ut, 0, sizeof(ut));
+#ifdef HAVE_UTMP_TYPE
         ut.ut_type = USER_PROCESS;
+#endif
+#ifdef HAVE_UTMP_PID
         ut.ut_pid = getpid();
+#endif
         strncpy(ut.ut_line,
                 short_ttyname.c_str(),
                 sizeof(ut.ut_line) - 1);
+#ifdef HAVE_UTMP_ID
         strncpy(ut.ut_id,
                 short2_ttyname.c_str(),
                 sizeof(ut.ut_id) - 1);
+#endif
+
+#ifdef HAVE_UTMP_TV
         gettimeofday(&tv, NULL);
         ut.ut_tv.tv_sec = tv.tv_sec;
         ut.ut_tv.tv_usec = tv.tv_usec;
-        strncpy(ut.ut_user,
+#endif
+
+#ifdef HAVE_UTMP_TIME
+        time(&ut.ut_time);
+#endif
+
+        strncpy(ut.ut_name,
                 pw->pw_name,
-                sizeof(ut.ut_user) - 1);
+                sizeof(ut.ut_name) - 1);
         strncpy(ut.ut_host,
                 peer_addr.c_str(),
                 sizeof(ut.ut_host) - 1);
@@ -365,6 +386,7 @@ log_login(const struct passwd *pw, const std::string &peer_addr)
  *
  * @todo This is not pretty. I feel like it at least needs locking.
  *       What I'd really like is a updwtmp() that uses FILE* or int fd.
+ *       This racy way is how OpenBSD does it though.
  */
 void
 log_logout()

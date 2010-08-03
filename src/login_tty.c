@@ -32,13 +32,14 @@
 
 static const int ISO_C_forbids_an_empty_source_file = 1;
 
+#ifndef HAVE_LOGIN_TTY
+
 #include <unistd.h>
 #include <stropts.h>
 #include <termios.h>
 
 #include <sys/ioctl.h>
 
-#ifndef HAVE_LOGIN_TTY
 /**
  *
  */
