@@ -57,6 +57,11 @@
 #include"configparser.h"
 #include"util2.h"
 
+// OpenBSD
+#ifndef WTMP_FILE
+#define WTMP_FILE _PATH_WTMP
+#endif
+
 using namespace tlssh_common;
 using tlsshd::options;
 
