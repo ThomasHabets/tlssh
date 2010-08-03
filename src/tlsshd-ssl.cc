@@ -297,6 +297,9 @@ drop_privs(const struct passwd *pw)
 /**
  * Log user login to utmp and wtmp.
  *
+ * If login(3) exists then it'll take a struct utmp, so use that. Else assume
+ * that there's a utmpx and use pututxline() (utmp) and updwtmpx() (wtmp)
+ *
  * Run as: root
  */
 void
@@ -339,7 +342,8 @@ log_login(const struct passwd *pw, const std::string &peer_addr)
                 sizeof(ut.ut_host) - 1);
         //ut.ut_addr = 0;
         login(&ut);
-#else
+
+#else /* HAVE_LOGIN */
         struct utmpx ut;
         // write to utmp file (who / w)
         if (1) {
@@ -382,16 +386,21 @@ log_login(const struct passwd *pw, const std::string &peer_addr)
 /**
  * Write logout info to wtmp
  *
- * Run as: logged in user. The fd of wtmp was opened before dropping privs.
  *
  * @todo This is not pretty. I feel like it at least needs locking.
  *       What I'd really like is a updwtmp() that uses FILE* or int fd.
  *       This racy way is how OpenBSD does it though.
+ *
+ * Linux and OpenBSD have struct utmp, so use that. Solaris cleans up after
+ * logged out users, so maybe we don't need to do anything.
+ *
+ * Run as: logged in user. The fd of wtmp was opened before chroot()
+ *         and dropping privs
  */
 void
 log_logout()
 {
-#if 0
+#if HAVE_UTMP_H
         if (!fd_wtmp.valid()) {
                 return;
         }
@@ -465,7 +474,7 @@ spawn_child(const struct passwd *pw,
                 exit(tlsshd_shellproc::forkmain(pw, fd_control[0]));
 	}
 
-        //fd_wtmp.set(open(WTMP_FILE, O_WRONLY | O_APPEND));
+        fd_wtmp.set(open(WTMP_FILE, O_WRONLY | O_APPEND));
 
         // parent
         if (!options.chroot.empty()) {
