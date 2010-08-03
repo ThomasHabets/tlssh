@@ -295,7 +295,30 @@ drop_privs(const struct passwd *pw)
 void
 log_login(const struct passwd *pw, const std::string &peer_addr)
 {
-#if 1
+#ifdef HAVE_LOGIN
+        struct utmp ut;
+        struct timeval tv;
+        memset(&ut, 0, sizeof(ut));
+        ut.ut_type = USER_PROCESS;
+        ut.ut_pid = getpid();
+        strncpy(ut.ut_line,
+                short_ttyname.c_str(),
+                sizeof(ut.ut_line) - 1);
+        strncpy(ut.ut_id,
+                short2_ttyname.c_str(),
+                sizeof(ut.ut_id) - 1);
+        gettimeofday(&tv, NULL);
+        ut.ut_tv.tv_sec = tv.tv_sec;
+        ut.ut_tv.tv_usec = tv.tv_usec;
+        strncpy(ut.ut_user,
+                pw->pw_name,
+                sizeof(ut.ut_user) - 1);
+        strncpy(ut.ut_host,
+                peer_addr.c_str(),
+                sizeof(ut.ut_host) - 1);
+        //ut.ut_addr = 0;
+        login(&ut);
+#else
         struct utmpx ut;
         // write to utmp file (who / w)
         if (1) {
@@ -323,14 +346,14 @@ log_login(const struct passwd *pw, const std::string &peer_addr)
         if (1) {
                 setutent();
                 if (!pututxline(&ut)) {
-                        THROW(Err::ErrSys, "pututline()");
+                        THROW(Err::ErrSys, "pututxline()");
                 }
                 endutent();
         }
 
         // write to wtmp file (last -10)
         if (1) {
-                updwtmpx(_WTMPX_FILE, &ut);
+                updwtmpx(WTMPX_FILE, &ut);
         }
 #endif
 }

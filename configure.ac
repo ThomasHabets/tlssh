@@ -42,7 +42,7 @@ AC_C_VOLATILE
 AC_TYPE_SIGNAL
 AC_CHECK_FUNCS([memcpy gettimeofday memset socket sqrt strerror strtoul \
 daemon setresuid setresgid logwtmp basename forkpty clearenv cfmakeraw \
-wordexp login_tty \
+wordexp login_tty login \
 ])
 
 EL_GETPW_R_POSIX

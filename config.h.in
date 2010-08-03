@@ -47,6 +47,9 @@
 /* Define to 1 if you have the `util' library (-lutil). */
 #undef HAVE_LIBUTIL
 
+/* Define to 1 if you have the `login' function. */
+#undef HAVE_LOGIN
+
 /* Define to 1 if you have the `login_tty' function. */
 #undef HAVE_LOGIN_TTY
 
