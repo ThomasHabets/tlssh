@@ -97,6 +97,7 @@ forkmain2(const struct passwd *pw, int fd_control)
 		exit(1);
 	}
 
+        logger->debug("shellproc::forkmain2() reading headers");
         FDWrap fdin(fd_control);
         std::string line;
         for(;;) {
@@ -116,6 +117,7 @@ forkmain2(const struct passwd *pw, int fd_control)
                 }
         }
 
+        logger->debug("shellproc::forkmain2() done reading headers");
 
         if (protocol_version.empty()) {
                 THROW(Err::ErrBase, "client did not provide protocol version");
@@ -127,7 +129,9 @@ forkmain2(const struct passwd *pw, int fd_control)
         }
 
         logger->debug("shellproc::forkmain2(): spawning shell");
-	execl(pw->pw_shell, pw->pw_shell, "-i", NULL);
+	execl(pw->pw_shell,
+              ("-" + std::string(gnustyle_basename(pw->pw_shell))).c_str(),
+              NULL);
 
         // while the below works, it requires root and I want to drop
         // root privs before this
