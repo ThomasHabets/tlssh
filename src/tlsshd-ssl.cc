@@ -36,6 +36,7 @@
 #include<fcntl.h>
 #include<termios.h>
 #include<signal.h>
+#include<utmpx.h>
 
 #ifdef HAVE_UTIL_H
 #include<util.h>
@@ -290,8 +291,8 @@ drop_privs(const struct passwd *pw)
 void
 log_login(const struct passwd *pw, const std::string &peer_addr)
 {
-#if 0
-        struct utmp ut;
+#if 1
+        struct utmpx ut;
         // write to utmp file (who / w)
         if (1) {
                 struct timeval tv;
@@ -313,9 +314,11 @@ log_login(const struct passwd *pw, const std::string &peer_addr)
                 strncpy(ut.ut_host,
                         peer_addr.c_str(),
                         sizeof(ut.ut_host) - 1);
-                ut.ut_addr = 0;
+                //ut.ut_addr = 0;
+        }
+        if (1) {
                 setutent();
-                if (!pututline(&ut)) {
+                if (!pututxline(&ut)) {
                         THROW(Err::ErrSys, "pututline()");
                 }
                 endutent();
@@ -323,9 +326,7 @@ log_login(const struct passwd *pw, const std::string &peer_addr)
 
         // write to wtmp file (last -10)
         if (1) {
-                logwtmp(short_ttyname.c_str(),
-                        pw->pw_name,
-                        peer_addr.c_str());
+                updwtmpx(_WTMPX_FILE, &ut);
         }
 #endif
 }
