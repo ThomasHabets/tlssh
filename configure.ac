@@ -58,31 +58,41 @@ AC_CHECK_MEMBER(struct utmp.ut_time,
 		       [AC_DEFINE([HAVE_UTMP_TIME], 1,
 		       [Define if you have struct utmp.ut_time])],
 		       [],
-		       [[#include <utmp.h>]])
+		       [[#include <utmp.h>
+		         #include <time.h>
+]])
 
 AC_CHECK_MEMBER(struct utmp.ut_pid,
 		       [AC_DEFINE([HAVE_UTMP_PID], 1,
 		       [Define if you have struct utmp.ut_pid])],
 		       [],
-		       [[#include <utmp.h>]])
+		       [[#include <utmp.h>
+		         #include <time.h>
+]])
 
 AC_CHECK_MEMBER(struct utmp.ut_id,
 		       [AC_DEFINE([HAVE_UTMP_ID], 1,
 		       [Define if you have struct utmp.ut_id])],
 		       [],
-		       [[#include <utmp.h>]])
+		       [[#include <utmp.h>
+		         #include <time.h>
+]])
 
 AC_CHECK_MEMBER(struct utmp.ut_tv,
 		       [AC_DEFINE([HAVE_UTMP_TV], 1,
 		       [Define if you have struct utmp.ut_tv])],
 		       [],
-		       [[#include <utmp.h>]])
+		       [[#include <utmp.h>
+		         #include <time.h>
+]])
 
 AC_CHECK_MEMBER(struct utmp.ut_user,
 		       [AC_DEFINE([HAVE_UTMP_USER], 1,
 		       [Define if you have struct utmp.ut_user])],
 		       [],
-		       [[#include <utmp.h>]])
+		       [[#include <utmp.h>
+		         #include <time.h>
+]])
 
 # Output
 AC_CONFIG_FILES([Makefile src/Makefile doc/Makefile])
