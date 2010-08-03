@@ -35,8 +35,14 @@ bool
 shell_in_etc_shells(const std::string &sh)
 {
         std::ifstream fi("/etc/shells");
+
+        // if file doesn't exist, all shells are OK
+        if (!fi.is_open()) {
+                return true;
+        }
+
         std::string line;
-        while(!fi.eof()) {
+        while(fi.good()) {
                 getline(fi, line);
                 if (line == sh) {
                         return true;
