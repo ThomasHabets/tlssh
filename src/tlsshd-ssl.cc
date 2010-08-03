@@ -250,11 +250,15 @@ user_loop(FDWrap &terminal, SSLSocket &sock, FDWrap &control)
 
         memset(iac_len, 2, sizeof(iac_len));
 	for (;;) {
-                if (connect_fd_sock(terminal,
-                                    sock,
-                                    to_client,
-                                    from_sock,
-                                    to_terminal)) {
+                try {
+                        if (connect_fd_sock(terminal,
+                                            sock,
+                                            to_client,
+                                            from_sock,
+                                            to_terminal)) {
+                                break;
+                        }
+                } catch(const FDWrap::ErrEOF &e) {
                         break;
                 }
 	}
