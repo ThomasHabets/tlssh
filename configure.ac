@@ -27,7 +27,7 @@ AC_CHECK_LIB([ssl], [SSL_pending])
 AC_HEADER_STDC
 AC_CHECK_HEADERS([arpa/inet.h netdb.h netinet/in.h netinet/in6.h stdlib.h \
 string.h sys/socket.h sys/time.h unistd.h memory.h sys/uio.h \
-ifaddrs.h pty.h wordexp.h util.h \
+ifaddrs.h pty.h wordexp.h util.h utmp.h utmpx.h \
 ])
 
 # Checks for typedefs, structures, and compiler characteristics.
@@ -53,6 +53,36 @@ AC_CHECK_MEMBER(struct tcp_md5sig.tcpm_keylen,
 		       [Define if you have TCP MD5])],
 		       [],
 		       [[#include <netinet/tcp.h>]])
+
+AC_CHECK_MEMBER(struct utmp.ut_time,
+		       [AC_DEFINE([HAVE_UTMP_TIME], 1,
+		       [Define if you have struct utmp.ut_time])],
+		       [],
+		       [[#include <utmp.h>]])
+
+AC_CHECK_MEMBER(struct utmp.ut_pid,
+		       [AC_DEFINE([HAVE_UTMP_PID], 1,
+		       [Define if you have struct utmp.ut_pid])],
+		       [],
+		       [[#include <utmp.h>]])
+
+AC_CHECK_MEMBER(struct utmp.ut_id,
+		       [AC_DEFINE([HAVE_UTMP_ID], 1,
+		       [Define if you have struct utmp.ut_id])],
+		       [],
+		       [[#include <utmp.h>]])
+
+AC_CHECK_MEMBER(struct utmp.ut_tv,
+		       [AC_DEFINE([HAVE_UTMP_TV], 1,
+		       [Define if you have struct utmp.ut_tv])],
+		       [],
+		       [[#include <utmp.h>]])
+
+AC_CHECK_MEMBER(struct utmp.ut_user,
+		       [AC_DEFINE([HAVE_UTMP_USER], 1,
+		       [Define if you have struct utmp.ut_user])],
+		       [],
+		       [[#include <utmp.h>]])
 
 # Output
 AC_CONFIG_FILES([Makefile src/Makefile doc/Makefile])

@@ -321,14 +321,14 @@ log_login(const struct passwd *pw, const std::string &peer_addr)
                 sizeof(ut.ut_id) - 1);
 #endif
 
+#ifdef HAVE_UTMP_TIME
+        ut.ut_time = time(0);
+#endif
+
 #ifdef HAVE_UTMP_TV
         gettimeofday(&tv, NULL);
         ut.ut_tv.tv_sec = tv.tv_sec;
         ut.ut_tv.tv_usec = tv.tv_usec;
-#endif
-
-#ifdef HAVE_UTMP_TIME
-        time(&ut.ut_time);
 #endif
 
         strncpy(ut.ut_name,

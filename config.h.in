@@ -131,6 +131,27 @@
 /* Define to 1 if you have the <util.h> header file. */
 #undef HAVE_UTIL_H
 
+/* Define to 1 if you have the <utmpx.h> header file. */
+#undef HAVE_UTMPX_H
+
+/* Define to 1 if you have the <utmp.h> header file. */
+#undef HAVE_UTMP_H
+
+/* Define if you have struct utmp.ut_id */
+#undef HAVE_UTMP_ID
+
+/* Define if you have struct utmp.ut_pid */
+#undef HAVE_UTMP_PID
+
+/* Define if you have struct utmp.ut_time */
+#undef HAVE_UTMP_TIME
+
+/* Define if you have struct utmp.ut_tv */
+#undef HAVE_UTMP_TV
+
+/* Define if you have struct utmp.ut_user */
+#undef HAVE_UTMP_USER
+
 /* Define to 1 if you have the `wordexp' function. */
 #undef HAVE_WORDEXP
 
