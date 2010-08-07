@@ -142,6 +142,28 @@ X509Wrap::get_issuer() const
 }
 
 /**
+ * get the common name of the issuer of the cert
+ */
+std::string
+X509Wrap::get_issuer_common_name() const
+{
+	char buf[1024];
+        X509_NAME *issuer;
+
+        issuer = X509_get_issuer_name(x509);
+        if (!issuer) {
+                THROW(ErrSSL, "X509_get_issuer_name()");
+        }
+
+	if (!X509_NAME_get_text_by_NID(issuer, NID_commonName,
+				       buf, sizeof(buf))) {
+                THROW(ErrSSL, "X509_NAME_get_text_by_NID()");
+	}
+	buf[sizeof(buf) - 1] = 0;
+	return std::string(buf);
+}
+
+/**
  * get subject name only (no /CN or anything). E.g. bob.users.domain.com
  */
 std::string
@@ -151,6 +173,37 @@ X509Wrap::get_subject() const
 	X509_NAME_oneline(X509_get_subject_name(x509),
 			  buf, sizeof(buf));
 	return std::string(buf);
+}
+
+/**
+ *
+ */
+std::string
+X509Wrap::get_fingerprint() const
+{
+        const EVP_MD *md = EVP_get_digestbyname("SHA1");
+        if (!md) {
+                THROW(ErrSSL, "EVP_get_digestbyname()");
+        }
+
+        unsigned char buf[1024];
+        unsigned int len = 0;
+        int n = X509_digest(x509, md, buf, &len);
+        if (n != 1 || len != 20) {
+                THROW(ErrSSL,
+                      xsprintf("X509_digest() failed (ret=%d, len=%d)",
+                               n, len));
+        }
+
+        std::string ret;
+        unsigned int c;
+        for (c = 0; c < len; c++) {
+                if (c) {
+                        ret += ":";
+                }
+                ret += xsprintf("%.2X", buf[c]);
+        }
+        return ret;
 }
 
 /**
@@ -198,12 +251,8 @@ SSLSocket::SSLSocket(int fd)
 std::auto_ptr<X509Wrap>
 SSLSocket::get_cert()
 {
-	try {
-                return std::auto_ptr<X509Wrap>
-                        (new X509Wrap(SSL_get_peer_certificate(ssl)));
-	} catch(...) {
-		return std::auto_ptr<X509Wrap>(0);
-	}
+        return std::auto_ptr<X509Wrap>
+                (new X509Wrap(SSL_get_peer_certificate(ssl)));
 }
 
 /**
@@ -505,12 +554,14 @@ SSLSocket::ssl_accept_connect(bool isconnect)
         // if debug, show cert info
 	X509Wrap x(SSL_get_peer_certificate(ssl));
         logger->debug("Issuer: %s\nSubject: %s\n"
-                      "Cipher: %s (Version %d bits) %s",
+                      "Cipher: %s (Version %d bits) %s\n"
+                      "Fingerprint: %s",
                       x.get_issuer().c_str(),
                       x.get_subject().c_str(),
                       SSL_get_cipher_name(ssl),
                       SSL_get_cipher_bits(ssl, 0),
-                      SSL_get_cipher_version(ssl));
+                      SSL_get_cipher_version(ssl),
+                      x.get_fingerprint().c_str());
 
         check_crl();
         if (isconnect) {

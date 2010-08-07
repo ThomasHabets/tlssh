@@ -24,7 +24,11 @@ int
 wordexp(const char *s, wordexp_t *w, int flags)
 {
   char home[PATH_MAX + 1];
-  if (strlcpy(home, getenv("HOME"), sizeof(home)) > PATH_MAX) {
+  const char *thome = getenv("HOME");
+  if (!thome) {
+    return -1;
+  }
+  if (strlcpy(home, thome, sizeof(home)) >= sizeof(home)) {
     return -1;
   }
 
@@ -75,5 +79,12 @@ wordfree(wordexp_t *p)
   free(p->we_wordv);
 }
 
+}
+/* ---- Emacs Variables ----
+ * Local Variables:
+ * c-basic-offset: 2
+ * indent-tabs-mode: nil
+ * End:
+ */
 
 #endif

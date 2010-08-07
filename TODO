@@ -18,6 +18,7 @@ TODO before 1.00
 
 TODO after 1.00
 ---------------
+* warn if the certificate *path* changes, not just if the server *cert* changes
 * Solaris TCPMD5
 * BSD TCPMD5
 * anti-dos (many connections)

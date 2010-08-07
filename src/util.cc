@@ -49,6 +49,18 @@ StreamLogger::StreamLogger(std::ostream &os, const std::string timestring)
 {
 }
 
+/** return a sprintf()ed string
+ */
+std::string
+xsprintf(const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+        std::string ret(xvsprintf(fmt, ap));
+	va_end(ap);
+        return ret;
+}
+
 /** return a vsprintf()ed string
  */
 std::string

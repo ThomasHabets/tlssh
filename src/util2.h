@@ -123,6 +123,8 @@ struct passwd xgetpwnam(const std::string &name, std::vector<char> &buffer);
 std::string xwordexp(const std::string &in);
 std::vector<std::string> tokenize(const std::string &s);
 std::string trim(const std::string &str);
+std::string xsprintf(const char *fmt, ...);
+std::string xvsprintf(const char *fmt, va_list ap);
 
 char *gnustyle_basename(const char *filename);
 

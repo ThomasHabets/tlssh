@@ -21,6 +21,13 @@ startdit()
   dit(-c em(config file)) Config file. Default is /etc/tlssh/tlssh.conf
   dit(-C em(cipher list)) Cipher list. Default is HIGH
   dit(-h, --help) Show brief usage info and exit. 
+  dit(-s) Don't check ~/.tlssh/certdb for old versions of server cert. Default
+          is to question any new cert, even if properly signed by the CA. With
+          or without this switch the SSL cert will have to be signed by the CA,
+          not expired, match the given server name, etc..., so supplying -s
+          will only skip a paranoid check that no other program is doing today.
+          So in summary: -s is safe, but will never go the extra mile to ask
+          if a cert looks reasonable to you.
   dit(-p em(cert/key file))
   dit(-v) Increase verbosity (debug output).
   dit(-V, --version) Show version and exit.

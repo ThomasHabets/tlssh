@@ -53,8 +53,10 @@ public:
 	bool check_hostname(const std::string &host);
 
 	std::string get_issuer() const;
+        std::string get_issuer_common_name() const;
 	std::string get_common_name() const;
 	std::string get_subject() const;
+        std::string get_fingerprint() const;
 
         static const std::string errstr(int err);
 

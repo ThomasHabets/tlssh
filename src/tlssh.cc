@@ -90,6 +90,7 @@ struct Options {
         int af;
         bool terminal;
         std::string remote_command;
+        bool check_certdb;
 };
 Options options = {
  port:         DEFAULT_PORT,
@@ -106,6 +107,7 @@ Options options = {
  af:           AF_UNSPEC,
  terminal:     true,
  remote_command: "",
+ check_certdb: true,
 };
 	
 SSLSocket sock;
@@ -281,7 +283,6 @@ reset_tio(void)
 int
 new_connection()
 {
-	sock.ssl_connect(options.host);
         sock.full_write("version " + protocol_version + "\n");
         sock.full_write("env TERM " + terminal_type() + "\n");
         if (!options.terminal) {
@@ -315,7 +316,7 @@ new_connection()
 void
 usage(int err)
 {
-        printf("%s [ -46hvV ] "
+        printf("%s [ -46hsvV ] "
 	       "[ -c <config> ] "
 	       "[ -C <cipher-list> ] <hostname> [command]"
                "\n"
@@ -325,9 +326,10 @@ usage(int err)
                "\t-C <cipher-list>     Acceptable ciphers\n"
                "\t                     (default %s)\n"
 	       "\t-h, --help           Help\n"
+	       "\t-p <cert+keyfile>    Load login cert+key from file\n"
+	       "\t-s                   Don't check cert database cache.\n"
 	       "\t-V, --version        Print version and exit\n"
 	       "\t--copying            Print license and exit\n"
-	       "\t-p <cert+keyfile>    Load login cert+key from file\n"
 	       , argv0,
 	       DEFAULT_CONFIG.c_str(), DEFAULT_CIPHER_LIST.c_str());
 	exit(err);
@@ -453,7 +455,7 @@ parse_options(int argc, char * const *argv)
                       "I/O error accessing config file: " + options.config);
 	}
 	int opt;
-	while ((opt = getopt(argc, argv, "+46c:C:hp:vV")) != -1) {
+	while ((opt = getopt(argc, argv, "+46c:C:hp:svV")) != -1) {
 		switch (opt) {
                 case '4':
                         options.af = AF_INET;
@@ -473,8 +475,14 @@ parse_options(int argc, char * const *argv)
 			options.certfile = optarg;
 			options.keyfile = optarg;
 			break;
+                case 's':
+                        options.check_certdb = false;
+                        break;
 		case 'v':
-			options.verbose++;
+                        if (++options.verbose > 1) {
+                                logger->set_logmask(logger->get_logmask()
+                                                    | LOG_MASK(LOG_DEBUG));
+                        }
 			break;
 		case 'V':
 			print_version();
@@ -494,6 +502,98 @@ parse_options(int argc, char * const *argv)
                 options.terminal = false;
 	}
 	options.host = argv[optind];
+}
+
+/**
+ *
+ */
+std::string
+certdb_filename()
+{
+        const char *home;
+        home = getenv("HOME");
+        if (!home) {
+                home = "";
+        }
+        return std::string(home) + "/.tlssh/certdb";
+}
+
+bool
+certdb_check()
+{
+        std::auto_ptr<X509Wrap> x509(sock.get_cert());
+        std::ifstream f(certdb_filename().c_str());
+
+        while (f.good()) {
+                std::string line;
+                getline(f, line);
+                std::vector<std::string> tokens(tokenize(trim(line)));
+
+                // host cert [ca path... ]
+                if (tokens.size() < 2) {
+                        logger->debug("Parse error in certdb");
+                        continue;
+                }
+
+                // check for wrong hostname
+                if (tokens[0] != options.host) {
+                        continue;
+                }
+
+                // check for wrong cert
+                if (tokens[1] != x509->get_fingerprint()) {
+                        continue;
+                }
+
+                // FIXME: check that tokens[2].. match current CA path
+                return true;
+        }
+        return false;
+}
+
+/**
+ *
+ */
+void
+do_certdatabase()
+{
+        if (certdb_check()) {
+                // same cert as last time.
+                return;
+        }
+
+        std::auto_ptr<X509Wrap> x509(sock.get_cert());
+
+        fprintf(stderr,
+                "It appears that you have never logged into this host before"
+                " (when it had\nthis cert):\n    %s\n"
+                "Its certificate fingerprint is:\n    %s\n"
+                "and the cert was issued by:\n    %s\n"
+                "Does this sound reasonable (yes/no)? ",
+                options.host.c_str(),
+                x509->get_fingerprint().c_str(),
+                x509->get_issuer_common_name().c_str());
+
+        std::string ans;
+        getline(std::cin, ans);
+        if (!(ans == "y"
+              || ans == "yes")) {
+                THROW(Err::ErrBase, "Unacceptable server certificate");
+        }
+
+        logger->debug("First time logging into %s, saving cert fingerprint",
+                      options.host.c_str());
+
+        std::fstream of(certdb_filename().c_str(),
+                        std::ios_base::out |std::ios_base::app);
+        if (!of.good()) {
+                logger->warning("Can't open cert DB file!");
+                return;
+        }
+
+        // FIXME: save the whole CA path
+        of << options.host
+           << " " << x509->get_fingerprint() << std::endl;
 }
 
 END_NAMESPACE(tlssh)
@@ -532,6 +632,12 @@ main2(int argc, char * const argv[])
         rawsock.set_nodelay(true);
         rawsock.set_keepalive(true);
 	sock.ssl_attach(rawsock);
+
+        sock.ssl_connect(options.host);
+
+        if (options.check_certdb) {
+                do_certdatabase();
+        }
 
 	return new_connection();
 }

@@ -27,6 +27,14 @@ Config file\&. Default is /etc/tlssh/tlssh\&.conf
 Cipher list\&. Default is HIGH
 .IP "-h, --help"
 Show brief usage info and exit\&. 
+.IP "-s"
+Don\&'t check ~/\&.tlssh/certdb for old versions of server cert\&. Default
+is to question any new cert, even if properly signed by the CA\&. With
+or without this switch the SSL cert will have to be signed by the CA,
+not expired, match the given server name, etc\&.\&.\&., so supplying -s
+will only skip a paranoid check that no other program is doing today\&.
+So in summary: -s is safe, but will never go the extra mile to ask
+if a cert looks reasonable to you\&.
 .IP "-p \fIcert/key file\fP"
 .IP "-v"
 Increase verbosity (debug output)\&.
