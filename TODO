@@ -19,6 +19,7 @@ TODO before 1.00
 TODO after 1.00
 ---------------
 * warn if the certificate *path* changes, not just if the server *cert* changes
+* ability to configure so that some servers can only be signed by a given CA
 * Solaris TCPMD5
 * make cert verification talk to terminal, not stderr/stdin
 * BSD TCPMD5
