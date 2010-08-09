@@ -105,16 +105,17 @@ Options options = {
 
 /** SIGINT handler
  *
- * Listener process just logs a message and quits if it gets SIGINT.
+ * Listener process just quits if it gets SIGINT.
  * Ongoing connections do not. pkill -INT tlsshd is therefore safe in
  * that it will not cause you to shoot down the connection you are
  * using.
+ *
+ * @todo Find a clean way to always log a message here
  */
 void
 sigint(int)
 {
-        logger->info("Listener killed by SIGINT");
-        exit(1);
+        _exit(1);
 }
 
 /** Listen-loop.

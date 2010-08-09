@@ -549,11 +549,13 @@ new_ssl_connection(SSLSocket &sock)
  *
  * only the listener gets killed by pkill -INT tlsshd, not existing
  * connections.
+ *
+ * @todo Find a clean way to always log a message here
  */
 void
 sigint(int)
 {
-        logger->info("tlsshd-sslproc got SIGINT, ignoring");
+        /* ignore SIGINT */
 }
 
 /**

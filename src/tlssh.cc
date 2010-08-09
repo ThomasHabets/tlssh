@@ -112,7 +112,7 @@ Options options = {
 	
 SSLSocket sock;
 
-bool sigwinch_received = true;
+volatile sig_atomic_t sigwinch_received = false;
 /** SIGWINCH handler
  *
  */
