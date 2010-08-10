@@ -42,6 +42,7 @@
 #include<sys/types.h>
 #include<sys/stat.h>
 #include<sys/socket.h>
+#include<sys/mman.h>
 
 #include<memory>
 #include<iostream>
@@ -149,6 +150,13 @@ listen_loop()
                 if (0 > pid) {          // error
                         logger->err("accept()-loop fork() failed");
                 } else if (pid == 0) {  // child
+                        if (mlockall(MCL_CURRENT | MCL_FUTURE)) {
+                                logger->err("mlockall(MCL_CURRENT "
+                                            "| MCL_FUTURE) failed: %s\n",
+                                            strerror(errno));
+                                exit(1);
+                        }
+
                         listen.close();
 			exit(tlsshd_sslproc::forkmain(clifd));
 		} else {
@@ -364,6 +372,13 @@ main(int argc, char **argv)
 {
         if (getuid()) {
                 fprintf(stderr, "tlsshd must run as root\n");
+                exit(1);
+        }
+
+        if (mlockall(MCL_CURRENT | MCL_FUTURE)) {
+                fprintf(stderr,
+                        "mlockall(MCL_CURRENT | MCL_FUTURE) failed: %s\n",
+                        strerror(errno));
                 exit(1);
         }
 
