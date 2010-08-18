@@ -80,14 +80,13 @@ xvsprintf(const char *fmt, va_list ap)
                 va_end(ap_count);
                 );
 
-        std::vector<char> buf(++n);
+        std::vector<char> buf(++n + 1, '\0');
         va_copy(ap_write, ap);
         FINALLY(
                 vsnprintf(&buf[0], n, fmt, ap_write);
                 ,
                 va_end(ap_write);
                 );
-        buf[n] = 0;
         return std::string(&buf[0]);
 }
 
