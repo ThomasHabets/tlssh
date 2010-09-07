@@ -29,6 +29,8 @@ AC_CHECK_HEADERS([arpa/inet.h netdb.h netinet/in.h netinet/in6.h stdlib.h \
 string.h sys/socket.h sys/time.h unistd.h memory.h sys/uio.h \
 ifaddrs.h pty.h wordexp.h util.h utmp.h utmpx.h \
 ])
+AC_CHECK_HEADER([openssl/ssl.h],[],
+	AC_ERROR("can't find openssl development files"))
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -43,6 +45,7 @@ AC_TYPE_SIGNAL
 AC_CHECK_FUNCS([memcpy gettimeofday memset socket sqrt strerror strtoul \
 daemon setresuid setresgid logwtmp basename forkpty clearenv cfmakeraw \
 wordexp login_tty login \
+SSL_new \
 ])
 
 EL_GETPW_R_POSIX
