@@ -67,7 +67,7 @@ const std::string DEFAULT_PORT         = "12345";
 const std::string DEFAULT_CERTFILE     = "~/.tlssh/keys/default.crt";
 const std::string DEFAULT_KEYFILE      = "~/.tlssh/keys/default.key";
 const std::string DEFAULT_SERVERCAFILE = "/etc/tlssh/ServerCA.crt";
-const std::string DEFAULT_SERVERCRL    = "/etc/tlssh/ServerCRL.der";
+const std::string DEFAULT_SERVERCRL    = "";
 const std::string DEFAULT_SERVERCAPATH = "";
 const std::string DEFAULT_CONFIG       = "/etc/tlssh/tlssh.conf";
 const std::string DEFAULT_CIPHER_LIST  = "HIGH";
@@ -492,6 +492,10 @@ parse_options(int argc, char * const *argv)
 			usage(1);
 		}
 	}
+
+        if (options.servercrl.empty()) {
+                logger->warning("WARNING: Not using ServerCRL");
+        }
 
 	if (optind + 1 != argc) {
                 c = optind;
