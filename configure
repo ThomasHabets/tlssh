@@ -1773,6 +1773,7 @@ ac_config_sub="$SHELL $ac_aux_dir/config.sub"  # Please don't use this var.
 ac_configure="$SHELL $ac_aux_dir/configure"  # Please don't use this var.
 
 
+#AC_CONFIG_MACRO_DIR(config)
 am__api_version='1.10'
 
 # Find a good install program.  We prefer a C program (faster),
@@ -6193,7 +6194,7 @@ fi
 fi
 { echo "$as_me:$LINENO: result: $ac_cv_have_clock_monotonic" >&5
 echo "${ECHO_T}$ac_cv_have_clock_monotonic" >&6; }
- if test x$ac_cv_have_CLOCK_MONOTONIC = xyes; then
+ if test x$ac_cv_have_clock_monotonic = xyes; then
   HAVE_CLOCK_MONOTONIC_TRUE=
   HAVE_CLOCK_MONOTONIC_FALSE='#'
 else
@@ -6201,7 +6202,13 @@ else
   HAVE_CLOCK_MONOTONIC_FALSE=
 fi
 
+if test x$ac_cv_have_clock_monotonic = xyes; then
 
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_CLOCK_MONOTONIC 1
+_ACEOF
+
+fi
 
 
 { echo "$as_me:$LINENO: checking for struct tcp_md5sig.tcpm_keylen" >&5
