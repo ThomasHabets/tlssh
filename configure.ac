@@ -10,6 +10,7 @@ AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE
 AC_CONFIG_SRCDIR([src/tlssh.cc])
 AC_CONFIG_HEADER(config.h)
+AC_CONFIG_SUBDIRS([monotonic_clock])
 
 # Checks for programs.
 AC_PROG_CXX
@@ -21,6 +22,7 @@ AC_CHECK_LIB([util], [openpty])
 AC_SEARCH_LIBS([socket], [socket])
 AC_SEARCH_LIBS([recv], [socket])
 AC_SEARCH_LIBS([send], [socket])
+AC_SEARCH_LIBS([clock_gettime], [rt])
 AC_CHECK_LIB([crypto], [X509_STORE_new])
 AC_CHECK_LIB([ssl], [SSL_pending])
 
@@ -55,7 +57,6 @@ SSL_new \
 
 EL_GETPW_R_POSIX
 EL_GETPW_R_DRAFT
-EL_CLOCK_MONOTONIC
 
 AC_CHECK_MEMBER(struct tcp_md5sig.tcpm_keylen,
 		       [AC_DEFINE([HAVE_TCPMD5], 1,
