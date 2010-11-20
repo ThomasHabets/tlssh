@@ -205,6 +205,8 @@ mainloop(FDWrap &terminal)
         double last_keepalive_sent = 0;
         double now;
 
+        sigwinch_received = true;
+
 	for (;;) {
                 if (sigwinch_received) {
                         sigwinch_received = false;
