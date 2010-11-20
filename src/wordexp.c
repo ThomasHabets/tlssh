@@ -79,7 +79,6 @@ wordfree(wordexp_t *p)
   free(p->we_wordv);
 }
 
-}
 /* ---- Emacs Variables ----
  * Local Variables:
  * c-basic-offset: 2

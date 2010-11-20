@@ -62,7 +62,7 @@ and .crt to the user)
 
 Hints for compiling on different systems
 ----------------------------------------
-YMMV. Feedback in welcome.
+YMMV. Feedback is welcome.
 
 Solaris:
   ./configure LDFLAGS="-L/opt/csw/lib -R/opt/csw/lib" \
