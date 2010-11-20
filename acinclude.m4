@@ -25,11 +25,12 @@ AC_DEFUN([EL_GETPW_R_DRAFT],
                 #include <pwd.h>],
                [getpwnam_r(NULL, NULL, NULL, (size_t)0);
                 getpwuid_r((uid_t)0, NULL, NULL, (size_t)0);],
-      [AC_DEFINE([HAVE_GETPW_R_DRAFT], 1, [Define to 1 if you have getpwnam_r and getpwuid_r that are draft POSIX.1 versions.]) 
+      [AC_DEFINE([HAVE_GETPW_R_DRAFT], 1, [Define to 1 if you have getpwnam_r and getpwuid_r that are draft POSIX.1 versions.])
        AC_MSG_RESULT(yes)],
       [AC_MSG_RESULT(no)])
 ])
 
+# check for clock_gettime(CLOCK_MONOTONIC, ...)
 AC_DEFUN([EL_CLOCK_MONOTONIC],
 [
     AC_SEARCH_LIBS([clock_gettime], [rt])
@@ -44,10 +45,13 @@ struct timespec ts;
 exit(!!clock_gettime(CLOCK_MONOTONIC, &ts));
 }
                                 ],
-                        [ ac_cv_have_clock_monotonic="yes" ],
+                        [ ac_cv_have_clock_monotonic="yes"],
                         [ ac_cv_have_clock_monotonic="no" ]
                           )
 ])
-AM_CONDITIONAL(HAVE_CLOCK_MONOTONIC, test x$ac_cv_have_CLOCK_MONOTONIC = xyes)
-]
-)
+AM_CONDITIONAL(HAVE_CLOCK_MONOTONIC, test x$ac_cv_have_clock_monotonic = xyes)
+if test x$ac_cv_have_clock_monotonic = xyes; then
+   AC_DEFINE([HAVE_CLOCK_MONOTONIC], 1, [Have symbol CLOCK_MONOTONIC])
+fi
+])
+
