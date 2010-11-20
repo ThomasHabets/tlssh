@@ -11,6 +11,25 @@ Packaging
 debuild
 
 
+Release process
+===============
+* Test on:
+  * debian stable
+  * debian testing
+  * openbsd
+  * solaris
+* Up version
+* autoreconf -i
+* commit
+* git tag tlssh-0.0x
+* git push
+* make dist
+* sign
+* upload
+* freshmeat
+* my database
+
+
 Protocol
 ========
 Normal TLS connection with both client and server cert, as well as
