@@ -23,6 +23,9 @@ startdit()
       with the CommonName bob.users.domain.com in this case. Default is empty,
       so CommonName is the username itself.
   dit(em(OPTIONAL))
+  dit(bf(Keepalive) seconds)
+      Send keepalive every n seconds. 0 disables keepalive.
+      Default is 60.
   dit(bf(Listen) 2001:db8:1:2::3)
       Address to listen to. Can be IPv4 or IPv6. An IPv6 address of "::" will
       listen to any IPv4 or IPv6 connection, and "0.0.0.0" will listen to

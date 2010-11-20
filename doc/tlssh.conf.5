@@ -21,15 +21,18 @@ Either a working ServerCAFile or ServerCAPath is needed\&.
 .IP "\fBServerCAPath\fP /path/to/certs"
 Directory containing CAs that have signed tlsshd server certificates\&.
 .IP "\fIOPTIONAL\fP"
+.IP "\fBCipherlist\fP HIGH"
+List of crypto ciphers allowed, in OpenSSL format\&.
+Default is HIGH\&.
+.IP "\fBKeepalive\fP seconds"
+Send keepalive every n seconds\&. 0 disables keepalive\&.
+Default is 60\&.
 .IP "\fBL3Protocol\fP IPv4"
 Either IPv4 or IPv6\&. Will force one or the other\&. Command line options
 -4 and -6 overrides\&.
 .IP "\fBServerCRL\fP /path/to/file"
 CRL file\&. If the CRL is out of date or missing you will NOT be able
 to connect\&.
-.IP "\fBCipherlist\fP HIGH"
-List of crypto ciphers allowed, in OpenSSL format\&.
-Default is HIGH\&.
 .IP "\fBinclude\fP /path/to/config"
 Include other config file\&.
 .IP "\fB-include\fP /path/to/config"
