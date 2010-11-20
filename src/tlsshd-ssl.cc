@@ -139,8 +139,8 @@ connect_fd_sock(FDWrap &fd,
 
         int timeout = -1;
         if (options.keepalive != 0) {
-                timeout = 1000 * (options.keepalive
-                                  - (now - last_keepalive_sent));
+                timeout = (int)(1000 * (options.keepalive
+                                        - (now - last_keepalive_sent)));
                 // protect against rounding errors
                 timeout = std::max(timeout, 0);
         }
