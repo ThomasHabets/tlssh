@@ -13,6 +13,22 @@
 
 BEGIN_NAMESPACE(tlssh_common)
 
+const int iac_len[256] = {
+        2, // reserved
+        6, // IAC_WINDOW_SIZE   (struct {uint16 cols,rows})
+        6, // IAC_ECHO_REQUEST  (uint32 echo_cookie)
+        6, // IAC_ECHO_REPLY    (uint32 echo_cookie)
+        2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+        2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+        2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+        2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+        2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+        2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+        2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+        2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+        2,  // IAC_LITERAL
+};
+
 /** Print version info according to GNU coding standards
  *
  */

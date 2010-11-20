@@ -45,6 +45,7 @@ typedef union {
         char buf[];
 } IACCommand;
 #pragma pack()
+extern const int iac_len[256];
 END_NAMESPACE(tlssh_common)
 
 

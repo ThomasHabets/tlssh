@@ -76,8 +76,6 @@ FDWrap fd_wtmp;
 std::string short_ttyname;
 std::string short2_ttyname;
 
-size_t iac_len[256];
-
 /**
  * Run as: user
  *
@@ -119,8 +117,6 @@ parse_iac(FDWrap &fd, std::string &buffer)
         size_t iac_pos;
 
         const IACCommand *cmd;
-
-        iac_len[1] = 6;
 
         for (;;) {
                 if (buffer.empty()) {
@@ -302,7 +298,6 @@ user_loop(FDWrap &terminal, SSLSocket &sock, FDWrap &control)
         }
         control.close();
 
-        memset(iac_len, 2, sizeof(iac_len));
         // main loop
 	for (;;) {
                 try {
