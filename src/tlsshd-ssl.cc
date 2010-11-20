@@ -13,6 +13,11 @@
  * Then it shuffles data between the SSL socket and the user shell.
  *
  * Some of this code is run as root. Those functions are clearly labeled.
+ *
+ * Note that even though this process runs as the end-user we do *not*
+ * want it to have security holes. This process has the SSL private
+ * key in memory and there is apparently no way to scrub it, even if
+ * we give up the possibility to renegotiate.
  */
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -75,56 +80,93 @@ size_t iac_len[256];
 
 /**
  * Run as: user
+ *
+ * All plaintext from socket is filtered through this function in
+ * order to extract any IAC (Interpret As Command) stuff.
+ *
+ * 'buffer' contains data from the socket (after SSL has decrypted
+ * it).
+ *
+ * case 1: The buffer starts with user data
+ * Extract all consecutive user data bytes from the buffer and return
+ * them.  The buffer is at this point either empty or starts with
+ * IAC_LITERAL (0xff).
+ *
+ * case 2: The buffer starts with a partially transferred IAC
+ * The buffer is unchanged and an empty string is returned.
+ *
+ * case 3: The buffer starts with a full IAC
+ * The IAC is extracted from the buffer and handled. The process is then
+ * then restarted with the remaining bytes of the buffer.
+ *
+ * IACs therefore create 'syncronization points' so that user data
+ * before an IAC is returned before the IAC is handled, and user data
+ * after an IAC will only be returned once the IAC is handled.
+ *
+ * A literal IAC could in theory be special-cased as user data, but
+ * that isn't being done.
+ *
+ * An invalid IAC throws an error.
+ *
+ * @param[in,out] fd        PTY master, in case we need to run ioctl() on it
+ * @param[in,out] buffer    Raw data we got from socket.
+ * @return                  User data to be sent on to the terminal fd as data.
  */
 std::string
-parse_iac(FDWrap &fd, std::string &from_sock)
+parse_iac(FDWrap &fd, std::string &buffer)
 {
         std::string ret;
-        size_t pos;
+        size_t iac_pos;
 
         const IACCommand *cmd;
 
         iac_len[1] = 6;
 
         for (;;) {
-                // fast path: no IAC
-                pos = from_sock.find('\xff');
-                if (pos == std::string::npos) {
-                        ret += from_sock;
-                        from_sock = "";
+                if (buffer.empty()) {
                         break;
                 }
 
-                ret += from_sock.substr(0,pos);
+                iac_pos = buffer.find((char)IAC_LITERAL);
 
-                // no command yet
-                if (from_sock.size() - 1 == pos) {
+                // fast path: *only* user data in the buffer
+                if (iac_pos == std::string::npos) {
+                        ret += buffer;
+                        buffer = "";
                         break;
                 }
 
-                cmd = reinterpret_cast<const IACCommand*>(from_sock.data());
-
-                // incomplete command
-                if (iac_len[cmd->s.command] > from_sock.size()) {
+                // case 1: buffer starts with user data. Extract it and return.
+                if (iac_pos > 0) {
+                        ret += buffer.substr(0, iac_pos);
+                        buffer.erase(0, iac_pos);
                         break;
                 }
 
+                cmd = reinterpret_cast<const IACCommand*>(buffer.data());
+
+                // case 2: incomplete IAC. Do nothing.
+                if (iac_len[cmd->s.command] > buffer.size()) {
+                        break;
+                }
+
+                // case 3: complete IAC. Handle it and continue eating buffer
                 switch (cmd->s.command) {
-                case 255:
-                        ret += "\xff";
+                case IAC_LITERAL:
+                        ret.append(1, IAC_LITERAL);
                         break;
-                case 1:
+                case IAC_WINDOW_SIZE:
                         struct winsize ws;
-                        ws.ws_col = ntohs(cmd->s.commands.ws.cols);
-                        ws.ws_row = ntohs(cmd->s.commands.ws.rows);
+                        ws.ws_col = ntohs(cmd->s.commands.window_size.cols);
+                        ws.ws_row = ntohs(cmd->s.commands.window_size.rows);
                         if (0 > ioctl(fd.get(), TIOCSWINSZ, &ws)) {
                                 THROW(Err::ErrSys, "ioctl(TIOCSWINSZ)");
                         }
                         break;
                 default:
-                        THROW(Err::ErrBase, "Unknown IAC!");
+                        THROW(Err::ErrBase, "Invalid IAC!");
                 }
-                from_sock.erase(0, iac_len[cmd->s.command]);
+                buffer.erase(0, iac_len[cmd->s.command]);
         }
         return ret;
 }
@@ -261,6 +303,7 @@ user_loop(FDWrap &terminal, SSLSocket &sock, FDWrap &control)
         control.close();
 
         memset(iac_len, 2, sizeof(iac_len));
+        // main loop
 	for (;;) {
                 try {
                         if (connect_fd_sock(terminal,
@@ -499,10 +542,15 @@ spawn_child(const struct passwd *pw,
 /**
  * Run as: root
  *
- * verify cert information
+ * 1) verify client cert information
+ * 2) start up tlsshd_shellproc
+ * 3) run I/O loop for whole session
+ * 4) shut down session
  *
  * At this point the cert is guaranteed to be signed by the ClientCA.
  * We now check who the client subject is.
+ *
+ * @param[in,out] sock   SSL socket. Handshake complete, ready to use.
  */
 void
 new_ssl_connection(SSLSocket &sock)

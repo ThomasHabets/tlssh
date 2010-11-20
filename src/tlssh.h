@@ -1,7 +1,7 @@
 // -*- c++ -*-
 /**
  * @file src/tlssh.h
- * TLSSH header file
+ * TLSSH client and server header file
  */
 #define BEGIN_NAMESPACE(a) namespace a {
 #define END_NAMESPACE(a) }
@@ -14,6 +14,9 @@
 
 extern Logger *logger;
 
+/***********************************************************************
+ * common tlssh client and server part
+ */
 BEGIN_NAMESPACE(tlssh_common)
 
 void print_copying();
@@ -23,8 +26,11 @@ void print_version();
 /**
  * Interpret As Command
  *
- * Inline commands structure. For now only "change window size".
  */
+enum {
+        IAC_WINDOW_SIZE = 1,
+        IAC_LITERAL = 255,
+};
 typedef union {
         struct {
                 uint8_t iac;
@@ -34,18 +40,20 @@ typedef union {
                                 uint16_t cols;
                                 uint16_t rows;
                         } ws;
-                        char terminal[32];
                 } commands;
         } s;
         char buf[];
 } IACCommand;
 #pragma pack()
-
 END_NAMESPACE(tlssh_common)
 
+
+/*************************************************************************
+ * tlsshd server part
+ */
 BEGIN_NAMESPACE(tlsshd)
 /**
- * TLSSHD Daemon options
+ * TLSSH server options
  */
 struct Options {
 	std::string listen;
@@ -66,9 +74,7 @@ struct Options {
 };
 extern Options options;
 extern std::string protocol_version;
-
 END_NAMESPACE(tlsshd)
-
 
 BEGIN_NAMESPACE(tlsshd_shellproc)
 int forkmain(const struct passwd *pw, int fd_control);
