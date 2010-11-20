@@ -36,7 +36,7 @@ const int iac_len[256] = {
 std::string
 iac_echo_request(uint32_t cookie)
 {
-        logger->debug("Generating IAC echo request %d", cookie);
+        logger->debug("Generating IAC echo request %u", cookie);
         IACCommand cmd;
         cmd.s.iac = IAC_LITERAL;
         cmd.s.command = IAC_ECHO_REQUEST;
@@ -51,7 +51,7 @@ iac_echo_request(uint32_t cookie)
 std::string
 iac_echo_reply(uint32_t cookie)
 {
-        logger->debug("Generating IAC echo reply %d", cookie);
+        logger->debug("Generating IAC echo reply %u", cookie);
         IACCommand cmd;
         cmd.s.iac = IAC_LITERAL;
         cmd.s.command = IAC_ECHO_REPLY;

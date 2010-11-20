@@ -264,15 +264,19 @@ mainloop(FDWrap &terminal)
                 for (std::vector<IACCommand>::iterator itr = pb.first.begin();
                      itr != pb.first.end();
                      ++itr) {
+                        uint32_t cookie;
                         switch (itr->s.command) {
                         case IAC_LITERAL:
                                 to_terminal.append(1, IAC_LITERAL);
                                 break;
                         case IAC_ECHO_REQUEST:
-                                logger->debug("Got echo request");
+                                cookie = htonl(itr->s.commands.echo_cookie);
+                                logger->debug("Got echo request %u", cookie);
+                                to_server += iac_echo_reply(cookie);
                                 break;
                         case IAC_ECHO_REPLY:
-                                logger->debug("Got echo reply");
+                                cookie = htonl(itr->s.commands.echo_cookie);
+                                logger->debug("Got echo reply %u", cookie);
                                 break;
                         default:
                                 THROW(Err::ErrBase, "Invalid IAC!");
