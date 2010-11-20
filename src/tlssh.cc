@@ -57,6 +57,11 @@ using namespace tlssh_common;
 
 Logger *logger;
 
+BEGIN_LOCAL_NAMESPACE();
+volatile sig_atomic_t sigwinch_received = false;
+void sigwinch(int);
+END_LOCAL_NAMESPACE();
+
 BEGIN_NAMESPACE(tlssh)
 
 // Constants
@@ -112,16 +117,6 @@ Options options = {
 	
 SSLSocket sock;
 
-volatile sig_atomic_t sigwinch_received = false;
-/** SIGWINCH handler
- *
- */
-void
-sigwinch(int)
-{
-        sigwinch_received = true;
-}
-
 /** Get local terminal size
  * @return Height & width of terminal connected to stdin.
  */
@@ -136,7 +131,7 @@ terminal_size()
 }
 
 /** Generate IAC sequence for new terminal size.
- *
+ * Compare Telnet RFC854 and Telnet Window Size Option (RFC1073)
  */
 std::string
 iac_window_size()
@@ -144,11 +139,11 @@ iac_window_size()
         std::pair<int,int> ts(terminal_size());
 
         IACCommand cmd;
-        cmd.s.iac = 255;
-        cmd.s.command = 1;
-        cmd.s.commands.ws.rows = htons(ts.first);
-        cmd.s.commands.ws.cols = htons(ts.second);
-        return std::string(&cmd.buf[0], &cmd.buf[6]);
+        cmd.s.iac = IAC_LITERAL;
+        cmd.s.command = IAC_WINDOW_SIZE;
+        cmd.s.commands.window_size.rows = htons(ts.first);
+        cmd.s.commands.window_size.cols = htons(ts.second);
+        return std::string(&cmd.buf[0], &cmd.buf[iac_len[IAC_WINDOW_SIZE]]);
 }
 
 /** Get terminal type of local terminal.
@@ -191,8 +186,9 @@ escape_iac(const std::string &in)
 
 /** Main loop reading from terminal and writing to socket, and vice versa.
  *
+ * @return    Unix-style exit code, will be used by main()
  */
-void
+int
 mainloop(FDWrap &terminal)
 {
 	struct pollfd fds[2];
@@ -233,7 +229,8 @@ mainloop(FDWrap &terminal)
 					to_terminal += sock.read();
 				} while (sock.ssl_pending());
 			} catch(const Socket::ErrPeerClosed &e) {
-				return;
+                                // FIXME: return 1?
+				return 0;
 			}
 		}
 
@@ -256,6 +253,7 @@ mainloop(FDWrap &terminal)
 			to_terminal = to_terminal.substr(n);
 		}
 	}
+        return 0;
 }
 
 
@@ -285,6 +283,7 @@ new_connection()
 {
         sock.full_write("version " + protocol_version + "\n");
         sock.full_write("env TERM " + terminal_type() + "\n");
+        sock.full_write("env LANG " + std::string(getenv("LANG")) + "\n");
         if (!options.terminal) {
                 sock.full_write("terminal off\n");
         }
@@ -306,8 +305,7 @@ new_connection()
                 THROW(Err::ErrSys, "tcsetattr(,TCSADRAIN,)");
         }
 
-	mainloop(terminal);
-        return 0;
+	return mainloop(terminal);
 }
 
 /** Show usage info (-h, --help) and exit
@@ -605,6 +603,15 @@ END_NAMESPACE(tlssh)
 
 BEGIN_LOCAL_NAMESPACE()
 using namespace tlssh;
+
+/** SIGWINCH handler
+ *
+ */
+void
+sigwinch(int)
+{
+        sigwinch_received = true;
+}
 
 /** exception-wrapped version of main()
  *
