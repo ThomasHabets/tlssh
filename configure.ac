@@ -24,6 +24,10 @@ AC_SEARCH_LIBS([send], [socket])
 AC_CHECK_LIB([crypto], [X509_STORE_new])
 AC_CHECK_LIB([ssl], [SSL_pending])
 
+AC_SUBST([AM_CFLAGS])
+AC_SUBST([AM_CXXFLAGS])
+AC_SUBST([AM_LDFLAGS])
+
 # Checks for header files.
 AC_HEADER_STDC
 AC_CHECK_HEADERS([arpa/inet.h netdb.h netinet/in.h netinet/in6.h stdlib.h \
