@@ -1,8 +1,3 @@
-TODO before 0.06
-----------------
-* portable wtmp/utmp
-
-
 TODO before 0.07
 ----------------
 * kill connection when cert expires, not just deny new connections
