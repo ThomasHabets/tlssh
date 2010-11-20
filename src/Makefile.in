@@ -36,10 +36,10 @@ DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(top_srcdir)/Makefile.am.common
 bin_PROGRAMS = tlssh$(EXEEXT)
 sbin_PROGRAMS = tlsshd$(EXEEXT)
-@HAVE_CLOCK_MONOTONIC_TRUE@am__append_1 = ../monotonic_clock/src/monotonic_clock.c
-@HAVE_CLOCK_MONOTONIC_TRUE@am__append_2 = ../monotonic_clock/src/monotonic_clock.c
-@HAVE_CLOCK_MONOTONIC_FALSE@am__append_3 = ../monotonic_clock/src/monotonic_generic.c
-@HAVE_CLOCK_MONOTONIC_FALSE@am__append_4 = ../monotonic_clock/src/monotonic_generic.c
+@HAVE_CLOCK_MONOTONIC_TRUE@am__append_1 = $(top_srcdir)/monotonic_clock/src/monotonic_clock.c
+@HAVE_CLOCK_MONOTONIC_TRUE@am__append_2 = $(top_srcdir)/monotonic_clock/src/monotonic_clock.c
+@HAVE_CLOCK_MONOTONIC_FALSE@am__append_3 = $(top_srcdir)/monotonic_clock/src/monotonic_generic.c
+@HAVE_CLOCK_MONOTONIC_FALSE@am__append_4 = $(top_srcdir)/monotonic_clock/src/monotonic_generic.c
 subdir = src
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/acinclude.m4 \
@@ -55,24 +55,28 @@ sbinPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS) $(sbin_PROGRAMS)
 am__tlssh_SOURCES_DIST = tlssh.cc sslsocket.cc socket.cc fdwrap.cc \
 	configparser.cc util.cc xgetpwnam.c tlssh_common.cc \
-	cfmakeraw.c wordexp.c ../monotonic_clock/src/monotonic_clock.c \
-	../monotonic_clock/src/monotonic_generic.c
+	cfmakeraw.c wordexp.c \
+	$(top_srcdir)/monotonic_clock/src/monotonic_common.c \
+	$(top_srcdir)/monotonic_clock/src/monotonic_clock.c \
+	$(top_srcdir)/monotonic_clock/src/monotonic_generic.c
 @HAVE_CLOCK_MONOTONIC_TRUE@am__objects_1 = monotonic_clock.$(OBJEXT)
 @HAVE_CLOCK_MONOTONIC_FALSE@am__objects_2 =  \
 @HAVE_CLOCK_MONOTONIC_FALSE@	monotonic_generic.$(OBJEXT)
 am_tlssh_OBJECTS = tlssh.$(OBJEXT) sslsocket.$(OBJEXT) \
 	socket.$(OBJEXT) fdwrap.$(OBJEXT) configparser.$(OBJEXT) \
 	util.$(OBJEXT) xgetpwnam.$(OBJEXT) tlssh_common.$(OBJEXT) \
-	cfmakeraw.$(OBJEXT) wordexp.$(OBJEXT) $(am__objects_1) \
-	$(am__objects_2)
+	cfmakeraw.$(OBJEXT) wordexp.$(OBJEXT) \
+	monotonic_common.$(OBJEXT) $(am__objects_1) $(am__objects_2)
 tlssh_OBJECTS = $(am_tlssh_OBJECTS)
 tlssh_LDADD = $(LDADD)
 am__tlsshd_SOURCES_DIST = tlsshd.cc sslsocket.cc socket.cc xgetpwnam.c \
 	fdwrap.cc configparser.cc util.cc tlsshd-ssl.cc \
 	tlsshd-shell.cc tlssh_common.cc cfmakeraw.c forkpty.c \
 	openpty_solaris.c setresuid.c clearenv.c daemon.c logwtmp.c \
-	wordexp.c login_tty.c ../monotonic_clock/src/monotonic_clock.c \
-	../monotonic_clock/src/monotonic_generic.c
+	wordexp.c login_tty.c \
+	$(top_srcdir)/monotonic_clock/src/monotonic_common.c \
+	$(top_srcdir)/monotonic_clock/src/monotonic_clock.c \
+	$(top_srcdir)/monotonic_clock/src/monotonic_generic.c
 am_tlsshd_OBJECTS = tlsshd.$(OBJEXT) sslsocket.$(OBJEXT) \
 	socket.$(OBJEXT) xgetpwnam.$(OBJEXT) fdwrap.$(OBJEXT) \
 	configparser.$(OBJEXT) util.$(OBJEXT) tlsshd-ssl.$(OBJEXT) \
@@ -80,8 +84,8 @@ am_tlsshd_OBJECTS = tlsshd.$(OBJEXT) sslsocket.$(OBJEXT) \
 	cfmakeraw.$(OBJEXT) forkpty.$(OBJEXT) \
 	openpty_solaris.$(OBJEXT) setresuid.$(OBJEXT) \
 	clearenv.$(OBJEXT) daemon.$(OBJEXT) logwtmp.$(OBJEXT) \
-	wordexp.$(OBJEXT) login_tty.$(OBJEXT) $(am__objects_1) \
-	$(am__objects_2)
+	wordexp.$(OBJEXT) login_tty.$(OBJEXT) \
+	monotonic_common.$(OBJEXT) $(am__objects_1) $(am__objects_2)
 tlsshd_OBJECTS = $(am_tlsshd_OBJECTS)
 tlsshd_LDADD = $(LDADD)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
@@ -103,6 +107,9 @@ CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
+AM_CFLAGS = -I$(top_srcdir)/monotonic_clock/include
+AM_CXXFLAGS = @AM_CXXFLAGS@
+AM_LDFLAGS = @AM_LDFLAGS@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
@@ -196,12 +203,16 @@ AUTOMAKE_OPTIONS = foreign
 DISTCLEANFILES = *~
 tlssh_SOURCES = tlssh.cc sslsocket.cc socket.cc fdwrap.cc \
 	configparser.cc util.cc xgetpwnam.c tlssh_common.cc \
-	cfmakeraw.c wordexp.c $(am__append_1) $(am__append_3)
+	cfmakeraw.c wordexp.c \
+	$(top_srcdir)/monotonic_clock/src/monotonic_common.c \
+	$(am__append_1) $(am__append_3)
 tlsshd_SOURCES = tlsshd.cc sslsocket.cc socket.cc xgetpwnam.c \
 	fdwrap.cc configparser.cc util.cc tlsshd-ssl.cc \
 	tlsshd-shell.cc tlssh_common.cc cfmakeraw.c forkpty.c \
 	openpty_solaris.c setresuid.c clearenv.c daemon.c logwtmp.c \
-	wordexp.c login_tty.c $(am__append_2) $(am__append_4)
+	wordexp.c login_tty.c \
+	$(top_srcdir)/monotonic_clock/src/monotonic_common.c \
+	$(am__append_2) $(am__append_4)
 all: all-am
 
 .SUFFIXES:
@@ -303,6 +314,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/login_tty.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/logwtmp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/monotonic_clock.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/monotonic_common.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/monotonic_generic.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/openpty_solaris.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/setresuid.Po@am__quote@
@@ -331,33 +343,47 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(COMPILE) -c `$(CYGPATH_W) '$<'`
 
-monotonic_clock.o: ../monotonic_clock/src/monotonic_clock.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT monotonic_clock.o -MD -MP -MF $(DEPDIR)/monotonic_clock.Tpo -c -o monotonic_clock.o `test -f '../monotonic_clock/src/monotonic_clock.c' || echo '$(srcdir)/'`../monotonic_clock/src/monotonic_clock.c
+monotonic_common.o: $(top_srcdir)/monotonic_clock/src/monotonic_common.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT monotonic_common.o -MD -MP -MF $(DEPDIR)/monotonic_common.Tpo -c -o monotonic_common.o `test -f '$(top_srcdir)/monotonic_clock/src/monotonic_common.c' || echo '$(srcdir)/'`$(top_srcdir)/monotonic_clock/src/monotonic_common.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/monotonic_common.Tpo $(DEPDIR)/monotonic_common.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(top_srcdir)/monotonic_clock/src/monotonic_common.c' object='monotonic_common.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o monotonic_common.o `test -f '$(top_srcdir)/monotonic_clock/src/monotonic_common.c' || echo '$(srcdir)/'`$(top_srcdir)/monotonic_clock/src/monotonic_common.c
+
+monotonic_common.obj: $(top_srcdir)/monotonic_clock/src/monotonic_common.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT monotonic_common.obj -MD -MP -MF $(DEPDIR)/monotonic_common.Tpo -c -o monotonic_common.obj `if test -f '$(top_srcdir)/monotonic_clock/src/monotonic_common.c'; then $(CYGPATH_W) '$(top_srcdir)/monotonic_clock/src/monotonic_common.c'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/monotonic_clock/src/monotonic_common.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/monotonic_common.Tpo $(DEPDIR)/monotonic_common.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(top_srcdir)/monotonic_clock/src/monotonic_common.c' object='monotonic_common.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o monotonic_common.obj `if test -f '$(top_srcdir)/monotonic_clock/src/monotonic_common.c'; then $(CYGPATH_W) '$(top_srcdir)/monotonic_clock/src/monotonic_common.c'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/monotonic_clock/src/monotonic_common.c'; fi`
+
+monotonic_clock.o: $(top_srcdir)/monotonic_clock/src/monotonic_clock.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT monotonic_clock.o -MD -MP -MF $(DEPDIR)/monotonic_clock.Tpo -c -o monotonic_clock.o `test -f '$(top_srcdir)/monotonic_clock/src/monotonic_clock.c' || echo '$(srcdir)/'`$(top_srcdir)/monotonic_clock/src/monotonic_clock.c
 @am__fastdepCC_TRUE@	mv -f $(DEPDIR)/monotonic_clock.Tpo $(DEPDIR)/monotonic_clock.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='../monotonic_clock/src/monotonic_clock.c' object='monotonic_clock.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(top_srcdir)/monotonic_clock/src/monotonic_clock.c' object='monotonic_clock.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o monotonic_clock.o `test -f '../monotonic_clock/src/monotonic_clock.c' || echo '$(srcdir)/'`../monotonic_clock/src/monotonic_clock.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o monotonic_clock.o `test -f '$(top_srcdir)/monotonic_clock/src/monotonic_clock.c' || echo '$(srcdir)/'`$(top_srcdir)/monotonic_clock/src/monotonic_clock.c
 
-monotonic_clock.obj: ../monotonic_clock/src/monotonic_clock.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT monotonic_clock.obj -MD -MP -MF $(DEPDIR)/monotonic_clock.Tpo -c -o monotonic_clock.obj `if test -f '../monotonic_clock/src/monotonic_clock.c'; then $(CYGPATH_W) '../monotonic_clock/src/monotonic_clock.c'; else $(CYGPATH_W) '$(srcdir)/../monotonic_clock/src/monotonic_clock.c'; fi`
+monotonic_clock.obj: $(top_srcdir)/monotonic_clock/src/monotonic_clock.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT monotonic_clock.obj -MD -MP -MF $(DEPDIR)/monotonic_clock.Tpo -c -o monotonic_clock.obj `if test -f '$(top_srcdir)/monotonic_clock/src/monotonic_clock.c'; then $(CYGPATH_W) '$(top_srcdir)/monotonic_clock/src/monotonic_clock.c'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/monotonic_clock/src/monotonic_clock.c'; fi`
 @am__fastdepCC_TRUE@	mv -f $(DEPDIR)/monotonic_clock.Tpo $(DEPDIR)/monotonic_clock.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='../monotonic_clock/src/monotonic_clock.c' object='monotonic_clock.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(top_srcdir)/monotonic_clock/src/monotonic_clock.c' object='monotonic_clock.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o monotonic_clock.obj `if test -f '../monotonic_clock/src/monotonic_clock.c'; then $(CYGPATH_W) '../monotonic_clock/src/monotonic_clock.c'; else $(CYGPATH_W) '$(srcdir)/../monotonic_clock/src/monotonic_clock.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o monotonic_clock.obj `if test -f '$(top_srcdir)/monotonic_clock/src/monotonic_clock.c'; then $(CYGPATH_W) '$(top_srcdir)/monotonic_clock/src/monotonic_clock.c'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/monotonic_clock/src/monotonic_clock.c'; fi`
 
-monotonic_generic.o: ../monotonic_clock/src/monotonic_generic.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT monotonic_generic.o -MD -MP -MF $(DEPDIR)/monotonic_generic.Tpo -c -o monotonic_generic.o `test -f '../monotonic_clock/src/monotonic_generic.c' || echo '$(srcdir)/'`../monotonic_clock/src/monotonic_generic.c
+monotonic_generic.o: $(top_srcdir)/monotonic_clock/src/monotonic_generic.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT monotonic_generic.o -MD -MP -MF $(DEPDIR)/monotonic_generic.Tpo -c -o monotonic_generic.o `test -f '$(top_srcdir)/monotonic_clock/src/monotonic_generic.c' || echo '$(srcdir)/'`$(top_srcdir)/monotonic_clock/src/monotonic_generic.c
 @am__fastdepCC_TRUE@	mv -f $(DEPDIR)/monotonic_generic.Tpo $(DEPDIR)/monotonic_generic.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='../monotonic_clock/src/monotonic_generic.c' object='monotonic_generic.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(top_srcdir)/monotonic_clock/src/monotonic_generic.c' object='monotonic_generic.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o monotonic_generic.o `test -f '../monotonic_clock/src/monotonic_generic.c' || echo '$(srcdir)/'`../monotonic_clock/src/monotonic_generic.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o monotonic_generic.o `test -f '$(top_srcdir)/monotonic_clock/src/monotonic_generic.c' || echo '$(srcdir)/'`$(top_srcdir)/monotonic_clock/src/monotonic_generic.c
 
-monotonic_generic.obj: ../monotonic_clock/src/monotonic_generic.c
-@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT monotonic_generic.obj -MD -MP -MF $(DEPDIR)/monotonic_generic.Tpo -c -o monotonic_generic.obj `if test -f '../monotonic_clock/src/monotonic_generic.c'; then $(CYGPATH_W) '../monotonic_clock/src/monotonic_generic.c'; else $(CYGPATH_W) '$(srcdir)/../monotonic_clock/src/monotonic_generic.c'; fi`
+monotonic_generic.obj: $(top_srcdir)/monotonic_clock/src/monotonic_generic.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT monotonic_generic.obj -MD -MP -MF $(DEPDIR)/monotonic_generic.Tpo -c -o monotonic_generic.obj `if test -f '$(top_srcdir)/monotonic_clock/src/monotonic_generic.c'; then $(CYGPATH_W) '$(top_srcdir)/monotonic_clock/src/monotonic_generic.c'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/monotonic_clock/src/monotonic_generic.c'; fi`
 @am__fastdepCC_TRUE@	mv -f $(DEPDIR)/monotonic_generic.Tpo $(DEPDIR)/monotonic_generic.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='../monotonic_clock/src/monotonic_generic.c' object='monotonic_generic.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(top_srcdir)/monotonic_clock/src/monotonic_generic.c' object='monotonic_generic.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o monotonic_generic.obj `if test -f '../monotonic_clock/src/monotonic_generic.c'; then $(CYGPATH_W) '../monotonic_clock/src/monotonic_generic.c'; else $(CYGPATH_W) '$(srcdir)/../monotonic_clock/src/monotonic_generic.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o monotonic_generic.obj `if test -f '$(top_srcdir)/monotonic_clock/src/monotonic_generic.c'; then $(CYGPATH_W) '$(top_srcdir)/monotonic_clock/src/monotonic_generic.c'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/monotonic_clock/src/monotonic_generic.c'; fi`
 
 .cc.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<

@@ -699,6 +699,9 @@ ac_ct_CC
 CCDEPMODE
 am__fastdepCC_TRUE
 am__fastdepCC_FALSE
+AM_CFLAGS
+AM_CXXFLAGS
+AM_LDFLAGS
 CPP
 GREP
 EGREP
@@ -4431,6 +4434,10 @@ _ACEOF
 fi
 
 
+
+
+
+
 # Checks for header files.
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
@@ -7617,6 +7624,9 @@ ac_ct_CC!$ac_ct_CC$ac_delim
 CCDEPMODE!$CCDEPMODE$ac_delim
 am__fastdepCC_TRUE!$am__fastdepCC_TRUE$ac_delim
 am__fastdepCC_FALSE!$am__fastdepCC_FALSE$ac_delim
+AM_CFLAGS!$AM_CFLAGS$ac_delim
+AM_CXXFLAGS!$AM_CXXFLAGS$ac_delim
+AM_LDFLAGS!$AM_LDFLAGS$ac_delim
 CPP!$CPP$ac_delim
 GREP!$GREP$ac_delim
 EGREP!$EGREP$ac_delim
@@ -7626,7 +7636,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 91; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 94; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
