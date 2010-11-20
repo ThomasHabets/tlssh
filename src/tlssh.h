@@ -8,6 +8,9 @@
 #define BEGIN_LOCAL_NAMESPACE() namespace {
 #define END_LOCAL_NAMESPACE() }
 
+#include<vector>
+#include<string>
+
 #include"fdwrap.h"
 #include"errbase.h"
 #include"util2.h"
@@ -19,9 +22,6 @@ extern Logger *logger;
  */
 BEGIN_NAMESPACE(tlssh_common)
 
-void print_copying();
-void print_version();
-
 #pragma pack(1)
 /**
  * Interpret As Command
@@ -29,6 +29,8 @@ void print_version();
  */
 enum {
         IAC_WINDOW_SIZE = 1,
+        IAC_ECHO_REQUEST = 2,
+        IAC_ECHO_REPLY = 3,
         IAC_LITERAL = 255,
 };
 typedef union {
@@ -39,13 +41,25 @@ typedef union {
                         struct {
                                 uint16_t cols;
                                 uint16_t rows;
-                        } ws;
+                        } window_size;
+                        uint32_t echo_cookie;
                 } commands;
         } s;
         char buf[];
 } IACCommand;
 #pragma pack()
+
+typedef std::pair<std::vector<IACCommand>,std::string> parsed_buffer_t;
+
+void print_copying();
+void print_version();
+std::string iac_echo_reply(uint32_t cookie);
+std::string iac_echo_request(uint32_t cookie);
+parsed_buffer_t parse_iac(std::string &buffer);
+
 extern const int iac_len[256];
+
+
 END_NAMESPACE(tlssh_common)
 
 
@@ -72,6 +86,7 @@ struct Options {
         int verbose;
         bool daemon;
         int af;
+        uint32_t keepalive;
 };
 extern Options options;
 extern std::string protocol_version;

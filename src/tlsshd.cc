@@ -80,6 +80,7 @@ const std::string DEFAULT_CHROOT       = "/var/empty";
 const unsigned    DEFAULT_VERBOSE      = 0;
 const bool        DEFAULT_DAEMON       = true;
 const int         DEFAULT_AF           = AF_UNSPEC;
+const uint32_t    DEFAULT_KEEPALIVE    = 60;
 
 /* Process-wide variables */
 
@@ -102,6 +103,7 @@ Options options = {
  verbose:        DEFAULT_VERBOSE,
  daemon:         DEFAULT_DAEMON,
  af:             DEFAULT_AF,
+ keepalive:      DEFAULT_KEEPALIVE,
 };
 
 /** SIGINT handler
@@ -232,6 +234,10 @@ read_config_file(const std::string &fn)
 		} else if (conf->keyword == "KeyFile"
                            && conf->parms.size() == 1) {
 			options.keyfile = conf->parms[0];
+		} else if (conf->keyword == "Keepalive"
+                           && conf->parms.size() == 1) {
+			options.keepalive = strtoul(conf->parms[0].c_str(),
+                                                    0, 0);
 		} else if (conf->keyword == "CertFile"
                            && conf->parms.size() == 1) {
 			options.certfile = conf->parms[0];

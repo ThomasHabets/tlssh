@@ -47,6 +47,8 @@
 #include<iostream>
 #include<fstream>
 
+#include"../monotonic_clock/include/monotonic_clock.h"
+
 #include"mywordexp.h"
 #include"tlssh.h"
 #include"util2.h"
@@ -78,6 +80,7 @@ const std::string DEFAULT_CONFIG       = "/etc/tlssh/tlssh.conf";
 const std::string DEFAULT_CIPHER_LIST  = "HIGH";
 const std::string DEFAULT_TCP_MD5      = "tlssh";
 const int         DEFAULT_AF           = AF_UNSPEC;
+const uint32_t    DEFAULT_KEEPALIVE    = 60;
 
 
 struct Options {
@@ -96,6 +99,7 @@ struct Options {
         bool terminal;
         std::string remote_command;
         bool check_certdb;
+        uint32_t keepalive;
 };
 Options options = {
  port:         DEFAULT_PORT,
@@ -113,6 +117,7 @@ Options options = {
  terminal:     true,
  remote_command: "",
  check_certdb: true,
+ keepalive:    DEFAULT_KEEPALIVE,
 };
 	
 SSLSocket sock;
@@ -143,7 +148,8 @@ iac_window_size()
         cmd.s.command = IAC_WINDOW_SIZE;
         cmd.s.commands.window_size.rows = htons(ts.first);
         cmd.s.commands.window_size.cols = htons(ts.second);
-        return std::string(&cmd.buf[0], &cmd.buf[iac_len[IAC_WINDOW_SIZE]]);
+        return std::string(&cmd.buf[0],
+                           &cmd.buf[iac_len[IAC_WINDOW_SIZE]]);
 }
 
 /** Get terminal type of local terminal.
@@ -195,11 +201,22 @@ mainloop(FDWrap &terminal)
 	int err;
 	std::string to_server;
 	std::string to_terminal;
+        std::string buffer_from_sock;
+        double last_keepalive_sent = 0;
+        double now;
 
 	for (;;) {
                 if (sigwinch_received) {
                         sigwinch_received = false;
                         to_server += iac_window_size();
+                }
+
+                if (options.keepalive != 0) {
+                        now = clock_get_dbl();
+                        if (last_keepalive_sent + options.keepalive < now) {
+                                last_keepalive_sent = now;
+                                to_server += iac_echo_request((uint32_t)now);
+                        }
                 }
 
 		fds[0].fd = sock.getfd();
@@ -214,7 +231,15 @@ mainloop(FDWrap &terminal)
 			fds[1].events |= POLLOUT;
 		}
 
-		err = poll(fds, 2, -1);
+                int timeout = -1;
+                if (options.keepalive != 0) {
+                        timeout = 1000 * (options.keepalive
+                                          - (now - last_keepalive_sent));
+                        // protect against rounding errors
+                        timeout = std::max(timeout, 0);
+                }
+
+                err = poll(fds, 2, timeout);
 		if (!err) { // timeout
 			continue;
 		}
@@ -222,17 +247,39 @@ mainloop(FDWrap &terminal)
 			continue;
 		}
 
-		// from client
+                // read from client into buffer
 		if (fds[0].revents & POLLIN) {
 			try {
 				do {
-					to_terminal += sock.read();
+                                        buffer_from_sock += sock.read();
 				} while (sock.ssl_pending());
 			} catch(const Socket::ErrPeerClosed &e) {
                                 // FIXME: return 1?
 				return 0;
 			}
 		}
+
+                // extract and handle IAC
+                parsed_buffer_t pb = parse_iac(buffer_from_sock);
+                for (std::vector<IACCommand>::iterator itr = pb.first.begin();
+                     itr != pb.first.end();
+                     ++itr) {
+                        switch (itr->s.command) {
+                        case IAC_LITERAL:
+                                to_terminal.append(1, IAC_LITERAL);
+                                break;
+                        case IAC_ECHO_REQUEST:
+                                logger->debug("Got echo request");
+                                break;
+                        case IAC_ECHO_REPLY:
+                                logger->debug("Got echo reply");
+                                break;
+                        default:
+                                THROW(Err::ErrBase, "Invalid IAC!");
+                        }
+                }
+
+                to_terminal += pb.second;
 
 		// from terminal
 		if (fds[1].revents & POLLIN) {
@@ -383,6 +430,10 @@ read_config_file(const std::string &fn)
 		} else if (conf->keyword == "KeyFile"
                            && conf->parms.size() == 1) {
 			options.keyfile = xwordexp(conf->parms[0]);
+		} else if (conf->keyword == "Keepalive"
+                           && conf->parms.size() == 1) {
+			options.keepalive = strtoul(conf->parms[0].c_str(),
+                                                    0, 0);
 		} else if (conf->keyword == "CipherList"
                            && conf->parms.size() == 1) {
 			options.cipher_list = conf->parms[0];

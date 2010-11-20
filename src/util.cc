@@ -108,6 +108,7 @@ StreamLogger::vlog(int prio, const char *fmt, va_list ap) const
                       timestring.c_str(), &tm)) {
                 strcpy(tbuf, "0000-00-00 00:00:00 UTC ");
         }
+        // FIXME: check status of output stream, we may need \r\n, not just \n
         os << tbuf << xvsprintf(fmt, ap) << std::endl;
 }
 

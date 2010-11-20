@@ -56,6 +56,8 @@
 
 #include<iostream>
 
+#include"../monotonic_clock/include/monotonic_clock.h"
+
 #include"tlssh.h"
 #include"sslsocket.h"
 #include"xgetpwnam.h"
@@ -79,97 +81,6 @@ std::string short2_ttyname;
 /**
  * Run as: user
  *
- * All plaintext from socket is filtered through this function in
- * order to extract any IAC (Interpret As Command) stuff.
- *
- * 'buffer' contains data from the socket (after SSL has decrypted
- * it).
- *
- * case 1: The buffer starts with user data
- * Extract all consecutive user data bytes from the buffer and return
- * them.  The buffer is at this point either empty or starts with
- * IAC_LITERAL (0xff).
- *
- * case 2: The buffer starts with a partially transferred IAC
- * The buffer is unchanged and an empty string is returned.
- *
- * case 3: The buffer starts with a full IAC
- * The IAC is extracted from the buffer and handled. The process is then
- * then restarted with the remaining bytes of the buffer.
- *
- * IACs therefore create 'syncronization points' so that user data
- * before an IAC is returned before the IAC is handled, and user data
- * after an IAC will only be returned once the IAC is handled.
- *
- * A literal IAC could in theory be special-cased as user data, but
- * that isn't being done.
- *
- * An invalid IAC throws an error.
- *
- * @param[in,out] fd        PTY master, in case we need to run ioctl() on it
- * @param[in,out] buffer    Raw data we got from socket.
- * @return                  User data to be sent on to the terminal fd as data.
- */
-std::string
-parse_iac(FDWrap &fd, std::string &buffer)
-{
-        std::string ret;
-        size_t iac_pos;
-
-        const IACCommand *cmd;
-
-        for (;;) {
-                if (buffer.empty()) {
-                        break;
-                }
-
-                iac_pos = buffer.find((char)IAC_LITERAL);
-
-                // fast path: *only* user data in the buffer
-                if (iac_pos == std::string::npos) {
-                        ret += buffer;
-                        buffer = "";
-                        break;
-                }
-
-                // case 1: buffer starts with user data. Extract it and return.
-                if (iac_pos > 0) {
-                        ret += buffer.substr(0, iac_pos);
-                        buffer.erase(0, iac_pos);
-                        break;
-                }
-
-                cmd = reinterpret_cast<const IACCommand*>(buffer.data());
-
-                // case 2: incomplete IAC. Do nothing.
-                if (iac_len[cmd->s.command] > buffer.size()) {
-                        break;
-                }
-
-                // case 3: complete IAC. Handle it and continue eating buffer
-                switch (cmd->s.command) {
-                case IAC_LITERAL:
-                        ret.append(1, IAC_LITERAL);
-                        break;
-                case IAC_WINDOW_SIZE:
-                        struct winsize ws;
-                        ws.ws_col = ntohs(cmd->s.commands.window_size.cols);
-                        ws.ws_row = ntohs(cmd->s.commands.window_size.rows);
-                        if (0 > ioctl(fd.get(), TIOCSWINSZ, &ws)) {
-                                THROW(Err::ErrSys, "ioctl(TIOCSWINSZ)");
-                        }
-                        break;
-                default:
-                        THROW(Err::ErrBase, "Invalid IAC!");
-                }
-                buffer.erase(0, iac_len[cmd->s.command]);
-        }
-        return ret;
-}
-
-/**
- * Run as: user
- *
  * @return true if all done
  */
 bool
@@ -182,6 +93,16 @@ connect_fd_sock(FDWrap &fd,
 	struct pollfd fds[2];
 	bool active[2] = {true, true}; // terminal, client
 	int err;
+        double now;
+        static double last_keepalive_sent = 0;
+
+        if (options.keepalive != 0) {
+                now = clock_get_dbl();
+                if (last_keepalive_sent + options.keepalive < now) {
+                        last_keepalive_sent = now;
+                        to_sock += iac_echo_request((uint32_t)now);
+                }
+        }
 
 	fds[0].fd = sock.getfd();
 	fds[0].events = POLLIN;
@@ -214,12 +135,25 @@ connect_fd_sock(FDWrap &fd,
 		return true;
 	}
 
+        int timeout = -1;
+        if (options.keepalive != 0) {
+                timeout = 1000 * (options.keepalive
+                                  - (now - last_keepalive_sent));
+                // protect against rounding errors
+                timeout = std::max(timeout, 0);
+        }
+
+        // FIXME: why do we wait at most 1s?
+        if (timeout < 0 || timeout > 1000) {
+                timeout = 1000;
+        }
+
 	if (!active[0]) {
-		err = poll(&fds[1], 1, 1000);
+		err = poll(&fds[1], 1, timeout);
 	} if (!active[1]) {
-		err = poll(fds, 1, 1000);
+		err = poll(fds, 1, timeout);
 	} else {
-		err = poll(fds, 2, 1000);
+		err = poll(fds, 2, timeout);
 	}
 
 	if (!err) { // timeout
@@ -236,7 +170,36 @@ connect_fd_sock(FDWrap &fd,
 		} while (sock.ssl_pending());
 	}
 
-        to_fd += parse_iac(fd, from_sock);
+        // handle IAC
+        parsed_buffer_t pb = parse_iac(from_sock);
+        for (std::vector<IACCommand>::iterator itr = pb.first.begin();
+             itr != pb.first.end();
+             ++itr) {
+                switch (itr->s.command) {
+                case IAC_LITERAL:
+                        to_fd.append(1, IAC_LITERAL);
+                        break;
+                case IAC_ECHO_REQUEST:
+                        logger->debug("Got echo request");
+                        break;
+                case IAC_ECHO_REPLY:
+                        logger->debug("Got echo reply");
+                        break;
+                case IAC_WINDOW_SIZE:
+                        struct winsize ws;
+                        ws.ws_col = ntohs(itr->s.commands.window_size.cols);
+                        ws.ws_row = ntohs(itr->s.commands.window_size.rows);
+                        if (0 > ioctl(fd.get(), TIOCSWINSZ, &ws)) {
+                                THROW(Err::ErrSys, "ioctl(TIOCSWINSZ)");
+                        }
+                        break;
+                default:
+                        THROW(Err::ErrBase, "Invalid IAC!");
+                }
+        }
+
+        // add user data to output queue
+        to_fd += pb.second;
 
 	// from shell
 	if (fds[1].revents & POLLIN) {
