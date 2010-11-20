@@ -29,6 +29,8 @@
 #include<time.h>
 #include<utmp.h>
 #include<unistd.h>
+#include<limits.h>
+#include<stdlib.h>
 #include<grp.h>
 #include<poll.h>
 #include<pwd.h>

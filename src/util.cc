@@ -217,7 +217,7 @@ xgetpwnam(const std::string &name, std::vector<char> &buffer)
 char*
 gnustyle_basename(const char *fn)
 {
-        char *p = strrchr(fn, '/');
+        char *p = (char*)strrchr(fn, '/');
         return p ? p + 1 : (char *)fn;
 }
 

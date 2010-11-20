@@ -10,6 +10,7 @@
 
 #include<vector>
 #include<string>
+#include<inttypes.h>
 
 #include"fdwrap.h"
 #include"errbase.h"
