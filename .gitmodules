@@ -1,3 +1,0 @@
-[submodule "monotonic_clock"]
-	path = monotonic_clock
-	url = git@github.com:ThomasHabets/monotonic_clock.git
