@@ -14,3 +14,11 @@ tlsshd.cc sslsocket.cc socket.cc xgetpwnam.c fdwrap.cc configparser.cc \
 util.cc tlsshd-ssl.cc tlsshd-shell.cc tlssh_common.cc cfmakeraw.c forkpty.c \
 openpty_solaris.c setresuid.c clearenv.c daemon.c logwtmp.c wordexp.c \
 login_tty.c
+
+if HAVE_CLOCK_MONOTONIC
+tlssh_SOURCES += ../monotonic_clock/src/monotonic_clock.c
+tlsshd_SOURCES += ../monotonic_clock/src/monotonic_clock.c
+else
+tlssh_SOURCES += ../monotonic_clock/src/monotonic_generic.c
+tlsshd_SOURCES += ../monotonic_clock/src/monotonic_generic.c
+endif

@@ -50,6 +50,7 @@ SSL_new \
 
 EL_GETPW_R_POSIX
 EL_GETPW_R_DRAFT
+EL_CLOCK_MONOTONIC
 
 AC_CHECK_MEMBER(struct tcp_md5sig.tcpm_keylen,
 		       [AC_DEFINE([HAVE_TCPMD5], 1,
