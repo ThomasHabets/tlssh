@@ -34,8 +34,7 @@ POST_UNINSTALL = :
 DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(srcdir)/config.h.in \
 	$(top_srcdir)/Makefile.am.common $(top_srcdir)/configure \
-	INSTALL TODO config.guess config.sub config/depcomp \
-	config/install-sh config/missing
+	INSTALL TODO config/depcomp config/install-sh config/missing
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/acinclude.m4 \
@@ -160,6 +159,7 @@ psdir = @psdir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
+subdirs = @subdirs@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 top_builddir = @top_builddir@
@@ -170,7 +170,11 @@ AUTOMAKE_OPTIONS = foreign
 DISTCLEANFILES = *~
 
 # Don't complain about "missing" standard GNU files
-SUBDIRS = src doc
+SUBDIRS = \
+monotonic_clock \
+src \
+doc
+
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 

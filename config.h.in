@@ -12,9 +12,6 @@
 /* Define to 1 if you have the `clearenv' function. */
 #undef HAVE_CLEARENV
 
-/* Have symbol CLOCK_MONOTONIC */
-#undef HAVE_CLOCK_MONOTONIC
-
 /* Define to 1 if you have the `daemon' function. */
 #undef HAVE_DAEMON
 
