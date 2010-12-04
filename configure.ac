@@ -10,7 +10,7 @@ AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE
 AC_CONFIG_SRCDIR([src/tlssh.cc])
 AC_CONFIG_HEADER(config.h)
-AC_CONFIG_SUBDIRS([monotonic_clock])
+AC_CONFIG_SUBDIRS([monotonic_clock libopenpty])
 
 # Checks for programs.
 AC_PROG_CXX

@@ -721,7 +721,7 @@ CCC
 CC
 CFLAGS
 CPP'
-ac_subdirs_all='monotonic_clock'
+ac_subdirs_all='monotonic_clock libopenpty'
 
 # Initialize some variables set by options.
 ac_init_help=
@@ -2253,7 +2253,7 @@ fi
 
 ac_config_headers="$ac_config_headers config.h"
 
-subdirs="$subdirs monotonic_clock"
+subdirs="$subdirs monotonic_clock libopenpty"
 
 
 # Checks for programs.

@@ -54,17 +54,18 @@ am_tlssh_OBJECTS = tlssh.$(OBJEXT) sslsocket.$(OBJEXT) \
 	util.$(OBJEXT) xgetpwnam.$(OBJEXT) tlssh_common.$(OBJEXT) \
 	cfmakeraw.$(OBJEXT) wordexp.$(OBJEXT)
 tlssh_OBJECTS = $(am_tlssh_OBJECTS)
-tlssh_DEPENDENCIES = ../monotonic_clock/src/libmonotonic_clock.a
+tlssh_DEPENDENCIES = ../monotonic_clock/src/libmonotonic_clock.a \
+	../libopenpty/src/libopenpty.a
 am_tlsshd_OBJECTS = tlsshd.$(OBJEXT) sslsocket.$(OBJEXT) \
 	socket.$(OBJEXT) xgetpwnam.$(OBJEXT) fdwrap.$(OBJEXT) \
 	configparser.$(OBJEXT) util.$(OBJEXT) tlsshd-ssl.$(OBJEXT) \
 	tlsshd-shell.$(OBJEXT) tlssh_common.$(OBJEXT) \
-	cfmakeraw.$(OBJEXT) forkpty.$(OBJEXT) \
-	openpty_solaris.$(OBJEXT) setresuid.$(OBJEXT) \
+	cfmakeraw.$(OBJEXT) forkpty.$(OBJEXT) setresuid.$(OBJEXT) \
 	clearenv.$(OBJEXT) daemon.$(OBJEXT) logwtmp.$(OBJEXT) \
 	wordexp.$(OBJEXT) login_tty.$(OBJEXT)
 tlsshd_OBJECTS = $(am_tlsshd_OBJECTS)
-tlsshd_DEPENDENCIES = ../monotonic_clock/src/libmonotonic_clock.a
+tlsshd_DEPENDENCIES = ../monotonic_clock/src/libmonotonic_clock.a \
+	../libopenpty/src/libopenpty.a
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__depfiles_maybe = depfiles
@@ -84,7 +85,10 @@ CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
-AM_CFLAGS = -I$(top_srcdir)/monotonic_clock/include @AM_CFLAGS@
+AM_CFLAGS = -I$(top_srcdir)/monotonic_clock/include \
+-I$(top_srcdir)/libopenpty/include \
+@AM_CFLAGS@
+
 AM_CXXFLAGS = @AM_CXXFLAGS@
 AM_LDFLAGS = @AM_LDFLAGS@
 AUTOCONF = @AUTOCONF@
@@ -183,14 +187,18 @@ tlssh_SOURCES = \
 tlssh.cc sslsocket.cc socket.cc fdwrap.cc configparser.cc util.cc \
 xgetpwnam.c tlssh_common.cc cfmakeraw.c wordexp.c
 
-tlssh_LDADD = ../monotonic_clock/src/libmonotonic_clock.a
+tlssh_LDADD = ../monotonic_clock/src/libmonotonic_clock.a \
+../libopenpty/src/libopenpty.a
+
 tlsshd_SOURCES = \
 tlsshd.cc sslsocket.cc socket.cc xgetpwnam.c fdwrap.cc configparser.cc \
 util.cc tlsshd-ssl.cc tlsshd-shell.cc tlssh_common.cc cfmakeraw.c forkpty.c \
-openpty_solaris.c setresuid.c clearenv.c daemon.c logwtmp.c wordexp.c \
+setresuid.c clearenv.c daemon.c logwtmp.c wordexp.c \
 login_tty.c
 
-tlsshd_LDADD = ../monotonic_clock/src/libmonotonic_clock.a
+tlsshd_LDADD = ../monotonic_clock/src/libmonotonic_clock.a \
+../libopenpty/src/libopenpty.a
+
 all: all-am
 
 .SUFFIXES:
@@ -291,7 +299,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/forkpty.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/login_tty.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/logwtmp.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/openpty_solaris.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/setresuid.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/socket.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sslsocket.Po@am__quote@
