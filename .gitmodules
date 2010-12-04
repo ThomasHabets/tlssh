@@ -3,4 +3,4 @@
 	url = http://github.com/ThomasHabets/monotonic_clock.git
 [submodule "libopenpty"]
 	path = libopenpty
-	url = git@github.com:ThomasHabets/libopenpty.git
+	url = http://github.com/ThomasHabets/libopenpty.git
