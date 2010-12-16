@@ -21,7 +21,7 @@ Release process
 * Up version
 * autoreconf -i
 * commit
-* git tag tlssh-0.0x
+* git tag -s tlssh-0.0x
 * git push
 * make dist
 * sign
