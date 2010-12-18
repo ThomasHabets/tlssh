@@ -324,6 +324,12 @@ reset_tio(void)
 	}
 }
 
+std::string
+encode_command(const std::string &cmd)
+{
+        return cmd;
+}
+
 /** Set up a new connection.
  *
  * At this point 'sock' is ready to use, but SSL negotiations have not yet
@@ -337,6 +343,12 @@ new_connection()
         sock.full_write("version " + protocol_version + "\n");
         sock.full_write("env TERM " + terminal_type() + "\n");
         sock.full_write("env LANG " + std::string(getenv("LANG")) + "\n");
+        if (!options.remote_command.empty()) {
+                sock.full_write("command "
+                                + encode_command(options.remote_command)
+                                + "\n");
+        }
+
         if (!options.terminal) {
                 sock.full_write("terminal off\n");
         }
@@ -552,15 +564,16 @@ parse_options(int argc, char * const *argv)
                 logger->warning("WARNING: Not using ServerCRL");
         }
 
-	if (optind + 1 != argc) {
-                c = optind;
+	options.host = argv[optind];
+
+	if (optind < argc) {
+                c = optind + 1;
                 options.remote_command = argv[c++];
                 for (; c < argc; c++) {
                         options.remote_command += std::string(" ") + argv[c];
                 }
                 options.terminal = false;
 	}
-	options.host = argv[optind];
 }
 
 /**

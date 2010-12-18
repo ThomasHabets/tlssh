@@ -196,7 +196,8 @@ connect_fd_sock(FDWrap &fd,
                         ws.ws_col = ntohs(itr->s.commands.window_size.cols);
                         ws.ws_row = ntohs(itr->s.commands.window_size.rows);
                         if (0 > ioctl(fd.get(), TIOCSWINSZ, &ws)) {
-                                THROW(Err::ErrSys, "ioctl(TIOCSWINSZ)");
+                                //THROW(Err::ErrSys, "ioctl(TIOCSWINSZ)");
+                                logger->warning("ioctl(TIOCSWINSZ) failed");
                         }
                         break;
                 default:
@@ -428,30 +429,12 @@ log_logout()
 }
 
 /**
- * fork()s tlsshd_shellproc and drops privileges on both it and self.
- *
- * Run as: root
+ * call real forkpty()
  */
-void
-spawn_child(const struct passwd *pw,
-	    pid_t *pid,
-	    int *fdm,
-	    int *fdm_control,
-            const std::string &peer_addr
-            )
+int
+do_forkpty(pid_t *pid, int *fdm)
 {
-        logger->debug("sslproc::spawn_child");
-
-        int fd_control[2];
         char tty_name[PATH_MAX];
-
-        if (chdir("/")) {
-                THROW(Err::ErrSys, "chdir()");
-        }
-        if (pipe(fd_control)) {
-                THROW(Err::ErrSys, "pipe()");
-
-        }
 
         *pid = forkpty(fdm, tty_name, NULL, NULL);
         if (*pid == -1) {
@@ -468,6 +451,82 @@ spawn_child(const struct passwd *pw,
         if (short2_ttyname.substr(0,3) == "tty") {
                 short2_ttyname = short2_ttyname.substr(3);
         }
+}
+
+/**
+ * dup2()-wrapper
+ */
+void
+xdup2(int oldfd, int newfd)
+{
+        if (-1 == dup2(oldfd, newfd)) {
+                THROW(Err::ErrSys, "dup2()");
+        }
+}
+
+
+/**
+ * do fake forkpty() call. For use when not using a terminal.
+ */
+void
+do_forkpty2(pid_t *pid, int *fdm)
+{
+        *pid = -1;
+        *fdm = -1;
+
+        FDWrap fds0;
+        FDWrap fds1;
+        {
+                int fds[2];
+                if (-1 == socketpair(AF_UNIX, SOCK_STREAM, 0, fds)) {
+                        THROW(Err::ErrSys, "socketpair()");
+                }
+                fds0.set(fds[0]);
+                fds1.set(fds[1]);
+        }
+
+        *pid = fork();
+        switch (*pid) {
+        case -1:
+                THROW(Err::ErrSys, "fork()");
+        case 0:
+                (void)ioctl(0, TIOCNOTTY, NULL);
+                xdup2(fds0.get(), 0);
+                xdup2(fds0.get(), 1);
+                xdup2(fds0.get(), 2);
+                break;
+        default:
+                *fdm = fds1.get();
+                fds1.forget();
+                break;
+        }
+}
+
+/**
+ * fork()s tlsshd_shellproc and drops privileges on both it and self.
+ *
+ * Run as: root
+ */
+void
+spawn_child(const struct passwd *pw,
+	    pid_t *pid,
+	    int *fdm,
+	    int *fdm_control,
+            const std::string &peer_addr)
+{
+        logger->debug("sslproc::spawn_child");
+
+        int fd_control[2];
+
+        if (chdir("/")) {
+                THROW(Err::ErrSys, "chdir()");
+        }
+        if (pipe(fd_control)) {
+                THROW(Err::ErrSys, "pipe()");
+
+        }
+
+        do_forkpty(pid, fdm);
 
         // child
         if (*pid == 0) {

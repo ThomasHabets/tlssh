@@ -26,6 +26,11 @@
 using namespace tlssh_common;
 using tlsshd::protocol_version;
 
+BEGIN_LOCAL_NAMESPACE();
+std::string remote_command;
+bool use_terminal = true;
+END_LOCAL_NAMESPACE();
+
 BEGIN_NAMESPACE(tlsshd_shellproc);
 
 /** Check /etc/shells for a binary and return true if it's there
@@ -69,14 +74,22 @@ parse_header_line(const std::string &s)
                 if (setenv(toks[1].c_str(), toks[2].c_str(), 1)) {
                         THROW(Err::ErrBase, "setenv() error");
                 }
+        } else if (toks[0] == "terminal" && toks.size() == 2) {
+                if (toks[1] == "off") {
+                        use_terminal = false;
+                }
+        } else if (toks[0] == "command" && toks.size() == 2) {
+                remote_command = toks[1];
         } else {
-                THROW(Err::ErrBase, "protocol header error");
+                THROW(Err::ErrBase, "protocol header error: " + s);
         }
 }
 
 
 /** exception-wrapped main function of shell process. Processes
  *  protocol header and spawns shell.
+ *
+ * @param[in] fd_control   control socket that header data will arrive on
  */
 void
 forkmain2(const struct passwd *pw, int fd_control)
@@ -129,9 +142,17 @@ forkmain2(const struct passwd *pw, int fd_control)
         }
 
         logger->debug("shellproc::forkmain2(): spawning shell");
-	execl(pw->pw_shell,
-              ("-" + std::string(gnustyle_basename(pw->pw_shell))).c_str(),
-              NULL);
+
+        std::string shellbase = gnustyle_basename(pw->pw_shell);
+        if (remote_command.empty()) {
+                execl(pw->pw_shell, ("-" + shellbase).c_str(), NULL);
+        } else {
+                execl(pw->pw_shell,
+                      shellbase.c_str(),
+                      "-c",
+                      remote_command.c_str(),
+                      NULL);
+       }
 
         // while the below works, it requires root and I want to drop
         // root privs before this
