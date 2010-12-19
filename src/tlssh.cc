@@ -566,7 +566,7 @@ parse_options(int argc, char * const *argv)
 
 	options.host = argv[optind];
 
-	if (optind < argc) {
+	if (optind + 1 < argc) {
                 c = optind + 1;
                 options.remote_command = argv[c++];
                 for (; c < argc; c++) {
