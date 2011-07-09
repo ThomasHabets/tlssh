@@ -57,72 +57,23 @@
 
 using namespace tlssh_common;
 
+
+// Global logger.
 Logger *logger;
 
+
+/**
+ *
+ */
 BEGIN_LOCAL_NAMESPACE();
-volatile sig_atomic_t sigwinch_received = false;
-void sigwinch(int);
-END_LOCAL_NAMESPACE();
-
-BEGIN_NAMESPACE(tlssh)
-
-// Constants
 const char *argv0 = NULL;
-const std::string protocol_version     = "tlssh.1";
-
-const std::string DEFAULT_PORT         = "12345";
-const std::string DEFAULT_CERTFILE     = "~/.tlssh/keys/default.crt";
-const std::string DEFAULT_KEYFILE      = "~/.tlssh/keys/default.key";
-const std::string DEFAULT_SERVERCAFILE = "/etc/tlssh/ServerCA.crt";
-const std::string DEFAULT_SERVERCRL    = "";
-const std::string DEFAULT_SERVERCAPATH = "";
-const std::string DEFAULT_CONFIG       = "/etc/tlssh/tlssh.conf";
-const std::string DEFAULT_CIPHER_LIST  = "HIGH";
-const std::string DEFAULT_TCP_MD5      = "tlssh";
-const int         DEFAULT_AF           = AF_UNSPEC;
-const uint32_t    DEFAULT_KEEPALIVE    = 60;
-
-
-struct Options {
-	std::string port;
-	std::string certfile;
-	std::string keyfile;
-	std::string servercafile;
-	std::string servercapath;
-	std::string servercrl;
-	std::string config;
-	std::string cipher_list;
-	std::string host;
-	std::string tcp_md5;
-	unsigned int verbose;
-        int af;
-        bool terminal;
-        std::string remote_command;
-        bool check_certdb;
-        uint32_t keepalive;
-};
-Options options = {
- port:         DEFAULT_PORT,
- certfile:     DEFAULT_CERTFILE,
- keyfile:      DEFAULT_KEYFILE,
- servercafile: DEFAULT_SERVERCAFILE,
- servercapath: DEFAULT_SERVERCAPATH,
- servercrl:    DEFAULT_SERVERCRL,
- config:       DEFAULT_CONFIG,
- cipher_list:  DEFAULT_CIPHER_LIST,
- host:         "",
- tcp_md5:      DEFAULT_TCP_MD5,
- verbose:      0,
- af:           AF_UNSPEC,
- terminal:     true,
- remote_command: "",
- check_certdb: true,
- keepalive:    DEFAULT_KEEPALIVE,
-};
-	
-SSLSocket sock;
+volatile sig_atomic_t sigwinch_received = false;
+struct termios old_tio;
+bool old_tio_set = false;
+void sigwinch(int);
 
 /** Get local terminal size
+ *
  * @return Height & width of terminal connected to stdin.
  */
 std::pair<int,int>
@@ -189,6 +140,77 @@ escape_iac(const std::string &in)
 
         return ret + in.substr(startpos);
 }
+
+/** Reset the terminal (termios) to what it was before this program was run
+ *
+ * This function is called by atexit()-hooks
+ */
+void
+reset_tio(void)
+{
+	if (old_tio_set) {
+		tcsetattr(0, TCSADRAIN, &old_tio);
+	}
+}
+END_LOCAL_NAMESPACE();
+
+
+BEGIN_NAMESPACE(tlssh)
+
+// Constants
+const std::string protocol_version     = "tlssh.1";
+
+const std::string DEFAULT_PORT         = "12345";
+const std::string DEFAULT_CERTFILE     = "~/.tlssh/keys/default.crt";
+const std::string DEFAULT_KEYFILE      = "~/.tlssh/keys/default.key";
+const std::string DEFAULT_SERVERCAFILE = "/etc/tlssh/ServerCA.crt";
+const std::string DEFAULT_SERVERCRL    = "";
+const std::string DEFAULT_SERVERCAPATH = "";
+const std::string DEFAULT_CONFIG       = "/etc/tlssh/tlssh.conf";
+const std::string DEFAULT_CIPHER_LIST  = "HIGH";
+const std::string DEFAULT_TCP_MD5      = "tlssh";
+const int         DEFAULT_AF           = AF_UNSPEC;
+const uint32_t    DEFAULT_KEEPALIVE    = 60;
+
+struct Options {
+	std::string port;
+	std::string certfile;
+	std::string keyfile;
+	std::string servercafile;
+	std::string servercapath;
+	std::string servercrl;
+	std::string config;
+	std::string cipher_list;
+	std::string host;
+	std::string tcp_md5;
+	unsigned int verbose;
+        int af;
+        bool terminal;
+        std::string remote_command;
+        bool check_certdb;
+        uint32_t keepalive;
+};
+Options options = {
+ port:         DEFAULT_PORT,
+ certfile:     DEFAULT_CERTFILE,
+ keyfile:      DEFAULT_KEYFILE,
+ servercafile: DEFAULT_SERVERCAFILE,
+ servercapath: DEFAULT_SERVERCAPATH,
+ servercrl:    DEFAULT_SERVERCRL,
+ config:       DEFAULT_CONFIG,
+ cipher_list:  DEFAULT_CIPHER_LIST,
+ host:         "",
+ tcp_md5:      DEFAULT_TCP_MD5,
+ verbose:      0,
+ af:           AF_UNSPEC,
+ terminal:     true,
+ remote_command: "",
+ check_certdb: true,
+ keepalive:    DEFAULT_KEEPALIVE,
+};
+
+SSLSocket sock;
+
 
 /** Main loop reading from terminal and writing to socket, and vice versa.
  *
@@ -309,24 +331,16 @@ mainloop(FDWrap &terminal)
         return 0;
 }
 
-
-struct termios old_tio;
-bool old_tio_set = false;
-/** Reset the terminal (termios) to what it was before this program was run
- *
- * This function is called by atexit()-hooks
+/**
+ * Check user-supplied command, and in the future encode if needed.
  */
-void
-reset_tio(void)
-{
-	if (old_tio_set) {
-		tcsetattr(0, TCSADRAIN, &old_tio);
-	}
-}
-
 std::string
 encode_command(const std::string &cmd)
 {
+        if (std::string::npos != cmd.find('\n')) {
+                THROW(Err::ErrBase,
+                      "Supplied command may not contain newline.");
+        }
         return cmd;
 }
 
@@ -668,11 +682,8 @@ do_certdatabase()
            << " " << x509->get_fingerprint() << std::endl;
 }
 
-END_NAMESPACE(tlssh)
 
 
-BEGIN_LOCAL_NAMESPACE()
-using namespace tlssh;
 
 /** SIGWINCH handler
  *
@@ -722,7 +733,7 @@ main2(int argc, char * const argv[])
 
 	return new_connection();
 }
-END_LOCAL_NAMESPACE()
+END_NAMESPACE(tlssh);
 
 /** main() for tlssh client
  *
@@ -738,7 +749,7 @@ main(int argc, char **argv)
 
 	try {
 		try {
-			return main2(argc, argv);
+			return tlssh::main2(argc, argv);
 		} catch(...) {
 			reset_tio();
 			throw;
@@ -746,7 +757,7 @@ main(int argc, char **argv)
 	} catch(const SSLSocket::ErrSSL &e) {
 		std::cerr << "tlssh: " << e.what_verbose();
 	} catch(const Err::ErrBase &e) {
-                if (options.verbose) {
+                if (tlssh::options.verbose) {
                         fprintf(stderr, "%s: %s\n",
                                 argv0, e.what_verbose().c_str());
                 } else {
