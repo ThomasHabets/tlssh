@@ -37,8 +37,12 @@ Diffie-Hellman. If crypto parameters are incorrect the connection is simply
 closed.
 
 Client then sends a few header commands, one on each line:
-  version <n>         # Protocol version. Currently 1
+  version <n>         # Protocol version. Currently 1.
   env <name> <val>    # Set env variable <name> to <val>, currently only TERM
+  terminal <on/off>   # Allocate pty for client. Default to on.
+  command <cmdline>   # Command to run.
+
+Only "version" is mandatory.
 
 Header part is done when client sends an empty line. Lines end with \n only.
 
@@ -47,6 +51,8 @@ Connection in then set up.
 All data is sent as-is except byte 255 (IAC, Interpret As Command,
 from Telnet protocol). IAC commands are:
     1 - Set window size. Two 16bit network-order ints follow with height,width.
+    2 - Echo request.
+    3 - Echo reply.
   255 - Send literal byte 255
 
 Client sends IAC 1 (set window size) with updated size every time the
