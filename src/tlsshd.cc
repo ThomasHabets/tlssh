@@ -363,9 +363,8 @@ main2(int argc, char * const argv[])
                 if (daemon(0,0)) {
                         THROW(Err::ErrSys, "daemon(0, 0)");
                 }
-                if (options.daemon) {
-                        logger->set_copyterminal(false);
-                }
+        } else {
+                logger->attach(new FileLogger("/dev/tty"), true);
         }
 	return listen_loop();
 }
@@ -390,7 +389,6 @@ main(int argc, char **argv)
         }
 
         logger = new SysLogger("tlsshd", LOG_AUTHPRIV);
-        logger->set_copyterminal(true);
         logger->set_logmask(logger->get_logmask() & ~LOG_MASK(LOG_DEBUG));
 
 	argv0 = argv[0];

@@ -6,94 +6,132 @@
 #include "config.h"
 #endif
 
-#include<stdio.h>
+#include<cstdio>
+#include<utility>
 
 #include"mywordexp.h"
 #include"util2.h"
 #include"xgetpwnam.h"
 #include"errbase.h"
+#include"fdwrap.h"
 
-SysLogger::SysLogger(const std::string &inid, int fac)
-        :id(inid)
+/**
+ *
+ */
+Logger::~Logger()
 {
-        set_logmask(::setlogmask(0));
-        openlog(id.c_str(), LOG_CONS | LOG_NDELAY | LOG_PID, fac);
+        detach_all();
 }
 
-/** copy whatever was written to the terminal (stderr) too
+
+/**
+ * Attach a second logger that will get all messages that pass
+ * the filter of the current one.
+ *
+ * next:       Pointer to the other logger object.
+ * ownership:  If true, the current object owns the pointer and will delete
+ *             it when it's detached.
+ */
+void
+Logger::attach(Logger *next, bool ownership)
+{
+        attached.push_back(std::make_pair(next, ownership));
+}
+
+
+/**
  *
  */
 void
-Logger::copyterminal(int prio, const char *fmt, va_list ap) const
+Logger::vlog(int prio, const char *fmt, va_list ap) const
 {
-        if (!flag_copyterminal) {
-                return;
+        std::string str(xvsprintf(fmt, ap));
+        for (attached_t::const_iterator itr = attached.begin();
+             itr != attached.end();
+             ++itr) {
+                itr->first->log(prio, str);
         }
-        if (!(get_logmask() & LOG_MASK(prio))) {
-                return;
-        }
-
-        va_list ap2;
-        va_copy(ap2,ap);
-        FINALLY(
-                vfprintf(stderr, fmt, ap2);
-                ,
-                va_end(ap2);
-                );
-        fprintf(stderr, "\n");
 }
 
+
+/**
+ *
+ */
+void
+Logger::detach_all()
+{
+        attached_t del_list(attached);
+        attached.clear();
+        for (attached_t::iterator itr = del_list.begin();
+             itr != del_list.end();
+             ++itr) {
+                if (itr->second) {
+                        delete itr->first;
+                }
+        }
+}
+
+
+/**
+ *
+ */
+void
+Logger::detach(Logger *l)
+{
+        attached_entry_t cur;
+        attached_t::iterator next;
+        for (attached_t::iterator itr = attached.begin();
+             itr != attached.end();
+             ) {
+                next = itr;
+                ++next;
+                cur = *itr;
+                if (cur.first == l) {
+                        attached.erase(itr);
+                        if (cur.second) {
+                                delete cur.first;
+                        }
+                }
+                itr = next;
+        }
+}
+
+
+/**
+ *
+ */
+FileLogger::FileLogger(const std::string &in_filename)
+        :filename(in_filename),
+         file(in_filename.c_str()),
+         streamlogger(file)
+{
+}
+
+
+/**
+ *
+ */
+void
+FileLogger::log(int prio, const std::string &str) const
+{
+        streamlogger.log(prio, str);
+}
+
+
+/**
+ *
+ */
 StreamLogger::StreamLogger(std::ostream &os, const std::string timestring)
         :os(os),
          timestring(timestring)
 {
 }
 
-/** return a sprintf()ed string
- */
-std::string
-xsprintf(const char *fmt, ...)
-{
-	va_list ap;
-	va_start(ap, fmt);
-        std::string ret(xvsprintf(fmt, ap));
-	va_end(ap);
-        return ret;
-}
-
-/** return a vsprintf()ed string
- */
-std::string
-xvsprintf(const char *fmt, va_list ap)
-{
-        int n;
-        va_list ap_count;
-        va_list ap_write;
-
-        va_copy(ap_count, ap);
-        FINALLY(
-                n = vsnprintf(0, 0, fmt, ap_count);
-                if (n < 0) {
-                        THROW(Err::ErrBase, "snprintf()");
-                }
-                ,
-                va_end(ap_count);
-                );
-
-        std::vector<char> buf(++n + 1, '\0');
-        va_copy(ap_write, ap);
-        FINALLY(
-                vsnprintf(&buf[0], n, fmt, ap_write);
-                ,
-                va_end(ap_write);
-                );
-        return std::string(&buf[0]);
-}
 
 /** log to a stream, with time string
  */
 void
-StreamLogger::vlog(int prio, const char *fmt, va_list ap) const
+StreamLogger::log(int prio, const std::string &str) const
 {
         if (!(get_logmask() & LOG_MASK(prio))) {
                 return;
@@ -109,7 +147,63 @@ StreamLogger::vlog(int prio, const char *fmt, va_list ap) const
                 strcpy(tbuf, "0000-00-00 00:00:00 UTC ");
         }
         // FIXME: check status of output stream, we may need \r\n, not just \n
-        os << tbuf << xvsprintf(fmt, ap) << std::endl;
+        os << tbuf << str << std::endl;
+}
+
+
+/**
+ *
+ */
+SysLogger::SysLogger(const std::string &inid, int fac)
+        :id(inid)
+{
+        set_logmask(::setlogmask(0));
+        openlog(id.c_str(), LOG_CONS | LOG_NDELAY | LOG_PID, fac);
+}
+
+
+/** return a sprintf()ed string
+ */
+std::string
+xsprintf(const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+        std::string ret(xvsprintf(fmt, ap));
+	va_end(ap);
+        return ret;
+}
+
+/** return a vsprintf()ed string
+ * doesn't use up the input
+ */
+std::string
+xvsprintf(const char *fmt, va_list ap)
+{
+        int n;
+        va_list ap_count;
+        va_list ap_write;
+
+        // find buffer size
+        va_copy(ap_count, ap);
+        FINALLY(
+                n = vsnprintf(0, 0, fmt, ap_count);
+                if (n < 0) {
+                        THROW(Err::ErrBase, "snprintf()");
+                }
+                ,
+                va_end(ap_count);
+                );
+
+        // fill buffer
+        std::vector<char> buf(++n + 1, '\0');
+        va_copy(ap_write, ap);
+        FINALLY(
+                vsnprintf(&buf[0], n, fmt, ap_write);
+                ,
+                va_end(ap_write);
+                );
+        return std::string(&buf[0]);
 }
 
 

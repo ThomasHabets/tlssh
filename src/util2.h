@@ -12,6 +12,8 @@
 
 #include<string>
 #include<vector>
+#include<list>
+#include<fstream>
 
 #define FINALLY(a,b) try { a } catch(...) { b; throw; } b;
 
@@ -22,7 +24,7 @@
 #include<limits.h>
 
 #define LOGGER_H_LOGLEVEL(n,v) void \
-n(const char *fmt, ...) \
+n(const char *fmt, ...) const \
 { \
 	va_list ap; \
 	va_start(ap, fmt); \
@@ -46,9 +48,15 @@ private:
 	Logger(const Logger&);
 	Logger&operator=(const Logger&);
         int logmask;
-        bool flag_copyterminal;
+
+        typedef std::pair<Logger*, bool> attached_entry_t;
+        typedef std::list<attached_entry_t> attached_t;
+        attached_t attached;
+
+        static bool isOwner(const attached_entry_t &e) { return e.second; }
 public:
-	Logger():logmask(~0),flag_copyterminal(false) {}
+        Logger():logmask(~0) {}
+        virtual ~Logger();
 	LOGGER_H_LOGLEVEL(emerg, LOG_EMERG);
 	LOGGER_H_LOGLEVEL(alert, LOG_ALERT);
 	LOGGER_H_LOGLEVEL(crit, LOG_CRIT);
@@ -58,12 +66,15 @@ public:
 	LOGGER_H_LOGLEVEL(info, LOG_INFO);
 	LOGGER_H_LOGLEVEL(debug, LOG_DEBUG);
 
-        void set_copyterminal(bool y) { flag_copyterminal = y; }
+        void attach(Logger *, bool ownership=false);
+        void detach(Logger *);
+        void detach_all();
+
         virtual void set_logmask(int m) { logmask = m; }
         int get_logmask() const { return logmask; }
-        void copyterminal(int prio, const char *fmt, va_list ap) const;
 
-	virtual void vlog(int prio, const char *fmt, va_list ap) const = 0;
+        void vlog(int prio, const char *fmt, va_list ap) const;
+        virtual void log(int prio, const std::string &str) const = 0;
 };
 
 /** Logger class that logs to syslog
@@ -87,23 +98,9 @@ public:
         }
 
 	void
-	vlog(int prio, const char *fmt, va_list ap) const
+	log(int prio, const std::string &str) const
 	{
-                va_list ap_term;
-                va_copy(ap_term, ap);
-                FINALLY(
-                        copyterminal(prio, fmt, ap_term);
-                        ,
-                        va_end(ap_term);
-                        );
-
-                va_list ap_syslog;
-                va_copy(ap_syslog, ap);
-                FINALLY(
-                        vsyslog(prio, fmt, ap_syslog);
-                        ,
-                        va_end(ap_syslog);
-                        );
+                syslog(prio, "%s", str.c_str());
 	}
 };
 
@@ -117,7 +114,16 @@ public:
 	StreamLogger(std::ostream &os,
 		     const std::string timestring = "%Y-%m-%d %H:%M:%S %Z ");
 
-	void vlog(int prio, const char *fmt, va_list ap) const;
+	void log(int prio, const std::string &str) const;
+};
+
+class FileLogger: public Logger {
+        std::string filename;
+        std::ofstream file;
+        StreamLogger streamlogger;
+public:
+        FileLogger(const std::string &filename);
+        void log(int prio, const std::string &str) const;
 };
 
 struct passwd xgetpwnam(const std::string &name, std::vector<char> &buffer);
