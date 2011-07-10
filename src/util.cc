@@ -141,16 +141,18 @@ xwordexp(const std::string &in)
 	return ret;
 }
 
+
 /** Tokenize a string, separated by space or tab
  *
  * @todo handle doublequotes
  */
 std::vector<std::string>
-tokenize(const std::string &s)
+tokenize(const std::string &s, size_t max_splits)
 {
 	std::vector<std::string> ret;
 	size_t end;
 	size_t start = 0;
+        size_t splits = 0;
 
 	for (;;) {
 		// find beginning of word
@@ -166,10 +168,15 @@ tokenize(const std::string &s)
 			break;
 		}
 		ret.push_back(trim(s.substr(start, end-start)));
+                if (++splits == max_splits) {
+                        ret.push_back(trim(s.substr(end)));
+                        break;
+                }
 		start = end;
 	}
 	return ret;
 }
+
 
 /** cur off spaces and tabs at beginning and end of string
  *

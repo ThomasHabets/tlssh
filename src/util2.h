@@ -19,6 +19,7 @@
 #include<syslog.h>
 #include<iostream>
 #include<time.h>
+#include<limits.h>
 
 #define LOGGER_H_LOGLEVEL(n,v) void \
 n(const char *fmt, ...) \
@@ -121,7 +122,8 @@ public:
 
 struct passwd xgetpwnam(const std::string &name, std::vector<char> &buffer);
 std::string xwordexp(const std::string &in);
-std::vector<std::string> tokenize(const std::string &s);
+std::vector<std::string> tokenize(const std::string &s,
+                                  size_t max_splits=INT_MAX);
 std::string trim(const std::string &str);
 std::string xsprintf(const char *fmt, ...);
 std::string xvsprintf(const char *fmt, va_list ap);

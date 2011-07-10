@@ -62,24 +62,40 @@ shell_in_etc_shells(const std::string &sh)
 void
 parse_header_line(const std::string &s)
 {
-        std::vector<std::string> toks(tokenize(s));
+        std::vector<std::string> toks(tokenize(s, 1));
 
-        if (toks[0] == "version" && toks.size() == 2) {
-                if (toks[1] == "tlssh.1") {
-                        protocol_version = toks[1];
-                } else {
+        if (toks.size() < 2) {
+                THROW(Err::ErrBase, "protocol header error: " + s);
+        }
+
+        std::string &cmd(toks[0]);
+        std::string &parm(toks[1]);
+
+        logger->debug("client header: <%s> <%s>", cmd.c_str(), parm.c_str());
+
+        if (cmd == "version") {
+                if (parm != "tlssh.1") {
                         THROW(Err::ErrBase, "incompatible protocol version");
                 }
-        } else if (toks[0] == "env" && toks.size() == 3) {
-                if (setenv(toks[1].c_str(), toks[2].c_str(), 1)) {
+                protocol_version = parm;
+
+        } else if (cmd == "env") {
+                std::vector<std::string> parms(tokenize(parm, 1));
+                if (parms.size() != 2) {
+                        THROW(Err::ErrBase, "env protocol error");
+                }
+                if (setenv(parms[0].c_str(), parms[1].c_str(), 1)) {
                         THROW(Err::ErrBase, "setenv() error");
                 }
-        } else if (toks[0] == "terminal" && toks.size() == 2) {
-                if (toks[1] == "off") {
+
+        } else if (cmd == "terminal") {
+                if (parm == "off") {
                         use_terminal = false;
                 }
-        } else if (toks[0] == "command" && toks.size() == 2) {
-                remote_command = toks[1];
+
+        } else if (cmd == "command") {
+                remote_command = parm;
+
         } else {
                 THROW(Err::ErrBase, "protocol header error: " + s);
         }
