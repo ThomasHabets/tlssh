@@ -68,7 +68,7 @@ namespace Err {
 			verbose = errdata.file + ":" + s.str() + "("
                                 + errdata.prettyfunc + "): " + msg;
 		}
-		virtual ~ErrBase()throw() {}
+		virtual ~ErrBase() throw() {}
 		virtual const char *what() const throw()
 		{
 			return msg.c_str();

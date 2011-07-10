@@ -94,7 +94,7 @@ parse_header_line(const std::string &s)
 void
 forkmain2(const struct passwd *pw, int fd_control)
 {
-        logger->debug("shellproc::forkmain2()");
+        logger->debug("shellproc(%d)::forkmain2()", getpid());
 	if (clearenv()) {
 		perror("clearenv()");
 		exit(1);
@@ -110,7 +110,7 @@ forkmain2(const struct passwd *pw, int fd_control)
 		exit(1);
 	}
 
-        logger->debug("shellproc::forkmain2() reading headers");
+        logger->debug("shellproc(%d)::forkmain2() reading headers", getpid());
         FDWrap fdin(fd_control);
         std::string line;
         for(;;) {
@@ -129,24 +129,33 @@ forkmain2(const struct passwd *pw, int fd_control)
                         line += ch;
                 }
         }
+        fdin.close();
 
-        logger->debug("shellproc::forkmain2() done reading headers");
+        logger->debug("shellproc(%d)::forkmain2() done reading headers",
+                      getpid());
 
         if (protocol_version.empty()) {
                 THROW(Err::ErrBase, "client did not provide protocol version");
         }
 
         if (!shell_in_etc_shells(pw->pw_shell)) {
-                logger->warning("shellproc::forkmain2(): shell not in shells");
+                logger->warning("shellproc(%d)::forkmain2(): "
+                                "shell not in /etc/shells: <%s>", getpid(),
+                                pw->pw_shell);
                 THROW(Err::ErrBase, "user shell is not in /etc/shells");
         }
 
-        logger->debug("shellproc::forkmain2(): spawning shell");
+        logger->debug("shellproc(%d)::forkmain2(): spawning shell <%s>",
+                      getpid(),
+                      pw->pw_shell);
 
         std::string shellbase = gnustyle_basename(pw->pw_shell);
         if (remote_command.empty()) {
                 execl(pw->pw_shell, ("-" + shellbase).c_str(), NULL);
         } else {
+                logger->debug("shellproc(%d)::forkmain2: remote command: <%s>",
+                              getpid(), remote_command.c_str());
+                delete logger;
                 execl(pw->pw_shell,
                       shellbase.c_str(),
                       "-c",

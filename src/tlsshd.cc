@@ -134,7 +134,7 @@ int
 listen_loop()
 {
         struct sockaddr_storage sa; // never read from
-
+        logger->debug("Entering listen loop");
 	for (;;) {
 		FDWrap clifd;
                 pid_t pid;

@@ -5,6 +5,9 @@
 #include<vector>
 #include<string>
 
+#include<fcntl.h>
+#include<unistd.h>
+
 #include"fdwrap.h"
 
 /**
@@ -66,6 +69,25 @@ FDWrap::full_write(const std::string &data)
                 n += write(data.substr(n));
         }
 }
+
+/**
+ *
+ */
+void
+FDWrap::set_close_on_exec(bool onoff)
+{
+        int flags;
+
+        if (-1 == (flags = fcntl(fd, F_GETFD))) {
+                THROW(ErrBase, "fcntl(F_GETFD)");
+        }
+
+        flags = ~FD_CLOEXEC | (onoff ? FD_CLOEXEC : 0);
+        if (-1 == fcntl(fd, F_SETFD, flags)) {
+                THROW(ErrBase, "fcntl(F_SETFD)");
+        }
+}
+
 
 /* ---- Emacs Variables ----
  * Local Variables:

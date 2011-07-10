@@ -70,6 +70,17 @@ Socket::forget()
 	fd.forget();
 }
 
+
+/**
+ *
+ */
+void
+Socket::set_close_on_exec(bool onoff)
+{
+        fd.set_close_on_exec(onoff);
+}
+
+
 /**
  * set/unset socket option SO_REUSEADDR
  *

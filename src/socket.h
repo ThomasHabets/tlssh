@@ -84,6 +84,7 @@ public:
         void set_nodelay(bool);
         void set_keepalive(bool);
 	void set_reuseaddr(bool);
+        void set_close_on_exec(bool);
 
         void set_tcp_md5(const std::string &);
         void set_tcp_md5_sock();

@@ -540,7 +540,6 @@ spawn_child(const struct passwd *pw,
                 close(fd_control[1]);
 
                 log_login(pw, peer_addr);
-
                 drop_privs(pw);
                 exit(tlsshd_shellproc::forkmain(pw, fd_control[0]));
 	}
@@ -648,9 +647,9 @@ forkmain(FDWrap&fd)
                         THROW(Err::ErrBase, "signal(SIGINT, sigint)");
                 }
 
-                SSLSocket sock(fd.get());
-		fd.forget();
+                SSLSocket sock(fd.forget());
 
+                sock.set_close_on_exec(true);
                 sock.set_debug(options.verbose > 1);
                 sock.set_nodelay(true);
                 sock.set_keepalive(true);

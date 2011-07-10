@@ -47,15 +47,19 @@ public:
 		close();
 		fd = n;
 	}
-	void forget()
+	int forget()
 	{
+                int ret = fd;
 		fd = -1;
+                return ret;
 	}
 
 	bool valid()
 	{
 		return fd != -1;
 	}
+
+        void set_close_on_exec(bool);
 
         /**
          * Exception base class
@@ -74,7 +78,7 @@ public:
 	public:
 		ErrEOF(const Err::ErrData &e): ErrBase(e, "EOF") {}
 	};
-	
+
 	std::string read(size_t m = 4096);
 	size_t write(const std::string &);
 	void full_write(const std::string &);

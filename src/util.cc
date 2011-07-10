@@ -188,6 +188,7 @@ trim(const std::string &str)
 	return str.substr(startpos, endpos-startpos+1);
 }
 
+
 /** c++ wrapper of getpwnam_r()
  *
  * @param[in] name    Username to lookup
@@ -211,6 +212,7 @@ xgetpwnam(const std::string &name, std::vector<char> &buffer)
 
 	return pw;
 }
+
 
 /** return pointer to the first character after the last "/"
  */
