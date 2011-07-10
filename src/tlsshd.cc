@@ -188,6 +188,7 @@ usage(int err)
                "\t                     (default %s)\n"
 	       "\t-f                   Run in foreground\n"
 	       "\t-h, --help           Help\n"
+               "\t-v                   Increase verbosity\n"
 	       "\t-V, --version        Print version and exit\n"
 	       "\t-p <cert+keyfile>    Load login cert+key from file\n"
 	       , argv0,
