@@ -24,3 +24,15 @@ login_tty.c
 
 tlsshd_LDADD=../monotonic_clock/src/libmonotonic_clock.a \
 ../libopenpty/src/libopenpty.a
+
+
+TESTS=socket_test sslsocket_test
+
+noinst_PROGRAMS=$(TESTS)
+
+socket_test_SOURCES=socket_test.cc socket.cc fdwrap.cc
+socket_test_LDADD=-lgtest
+
+sslsocket_test_SOURCES=sslsocket_test.cc sslsocket.cc socket.cc fdwrap.cc util.cc xgetpwnam.c
+sslsocket_test_CXXFLAGS=-std=gnu++0x
+sslsocket_test_LDADD=-lgtest -lpthread

@@ -78,7 +78,7 @@ public:
 	bool get_debug() const { return debug; }
 
 	int getfd() const;
-	void forget(); 
+	void forget();
         void close();
 
         void set_nodelay(bool);
@@ -90,6 +90,8 @@ public:
         void set_tcp_md5_sock();
 
         std::string get_peer_addr_string() const;
+
+        // FIXME: implement accept()
 
 	void listen(int af, const std::string &host, const std::string &port);
 	void connect(int af, const std::string &host, const std::string &port);
