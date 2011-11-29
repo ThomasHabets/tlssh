@@ -82,6 +82,11 @@ public:
 	std::string read(size_t m = 4096);
 	size_t write(const std::string &);
 	void full_write(const std::string &);
+
+private:
+        // Disable copy and assign.
+        FDWrap(const FDWrap&);
+        FDWrap& operator=(const FDWrap&);
 };
 
 /* ---- Emacs Variables ----
