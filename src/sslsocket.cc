@@ -236,7 +236,9 @@ X509Wrap::ErrSSL::ErrSSL(const Err::ErrData &errdata, const std::string &m,
  * Set up OpenSSL stuff
  */
 SSLSocket::SSLSocket(int fd)
-	:Socket(fd)
+                :Socket(fd),
+                 ctx(NULL),
+                 ssl(NULL)
 {
 	SSL_library_init();
 	SSL_load_error_strings();
@@ -760,6 +762,9 @@ SSLSocket::check_crl()
 size_t
 SSLSocket::write(const std::string &buf)
 {
+        if (!ssl) {
+                THROW(ErrSSL, "SSL handshake not complete");
+        }
         int ret;
 	ret = SSL_write(ssl, buf.data(), buf.length());
         if (ret < 0) {
