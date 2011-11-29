@@ -56,10 +56,8 @@ TEST(Socket, LoopData)
   s1.listen(AF_UNSPEC, "", "12345");
   s2.connect(AF_UNSPEC, "localhost", "12345");
 
-  // FIXME: use .accept() when it's implemented.
-  struct sockaddr sa;
-  socklen_t salen = sizeof(sa);
-  Socket serv(accept(s1.getfd(), &sa, &salen));
+  Socket serv;
+  serv.setfd(s1.accept());
 
   serv.write("x");
   EXPECT_EQ("x", s2.read(1));

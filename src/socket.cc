@@ -61,6 +61,12 @@ Socket::getfd() const
 	return fd.get();
 }
 
+void
+Socket::setfd(int n) throw()
+{
+	return fd.set(n);
+}
+
 /**
  * Forget about underlying file descriptor (don't close at object destruction)
  */
@@ -139,6 +145,21 @@ Socket::connect(int af, const std::string &host, const std::string &port)
 	}
         set_tcp_md5_sock();
 }
+
+int
+Socket::accept()
+{
+        struct sockaddr_storage sa;
+        socklen_t salen(sizeof(sa));
+        int newfd;
+
+        newfd = ::accept(fd.get(), (struct sockaddr*)&sa, &salen);
+        if (-1 == newfd) {
+                THROW(ErrSys, "accept()");
+        }
+        return newfd;
+}
+
 
 /**
  * Listen to port on all interfaces

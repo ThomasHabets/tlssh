@@ -20,13 +20,11 @@
  @endcode
  @code
  Socket sock;
- FDWrap clifd;
- socklen_t salen = sizeof(sa);
- struct sockaddr_storage sa;
-
  sock.listen(AF_UNSPEC, "", "12345");
- clifd.set(accept(sock.getfd(), (struct sockaddr*)&sa, &salen));
- Socket newsock(clifd.get());
+ FDWrap clifd;
+ clifd.set(sock.accept());
+ Socket newsock(clifd.getfd());
+ clifd.forget();
  newsock.write("Hello World");
  @endcode
  */
@@ -78,6 +76,7 @@ public:
 	bool get_debug() const { return debug; }
 
 	int getfd() const;
+        void setfd(int) throw();
 	void forget();
         void close();
 
@@ -91,8 +90,7 @@ public:
 
         std::string get_peer_addr_string() const;
 
-        // FIXME: implement accept()
-
+        int accept();
 	void listen(int af, const std::string &host, const std::string &port);
 	void connect(int af, const std::string &host, const std::string &port);
 

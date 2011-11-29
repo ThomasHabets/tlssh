@@ -49,10 +49,8 @@ TEST_F(SSLSocketTest, WriteBeforeHandshake)
 {
   connect_tcp();
 
-  // FIXME: use .accept() when it's implemented.
-  struct sockaddr sa;
-  socklen_t salen = sizeof(sa);
-  SSLSocket ss(accept(sl_.getfd(), &sa, &salen));
+  SSLSocket ss;
+  ss.setfd(sl_.accept());
 
   EXPECT_THROW(sc_.write("x"), SSLSocket::ErrSSL);
 }
@@ -61,10 +59,8 @@ TEST_F(SSLSocketTest, HandshakeBeforeLoadcert)
 {
   connect_tcp();
 
-  // FIXME: use .accept() when it's implemented.
-  struct sockaddr sa;
-  socklen_t salen = sizeof(sa);
-  SSLSocket ss(accept(sl_.getfd(), &sa, &salen));
+  SSLSocket ss;
+  ss.setfd(sl_.accept());
 
   EXPECT_THROW(ss.ssl_accept(),
                SSLSocket::ErrSSL);
@@ -88,11 +84,8 @@ TEST_F(SSLSocketTest, Handshake)
 {
   connect_tcp();
 
-  // FIXME: use .accept() when it's implemented.
-  struct sockaddr sa;
-  socklen_t salen = sizeof(sa);
-  SSLSocket ss(accept(sl_.getfd(), &sa, &salen));
-  ss.set_debug(true);
+  SSLSocket ss;
+  ss.setfd(sl_.accept());
 
   std::thread th;
   try {
@@ -119,26 +112,20 @@ TEST_F(SSLSocketTest, Handshake)
 
 TEST_F(SSLSocketTest, DISABLED_LoopData)
 {
-  SSLSocket sl;
-  sl.listen(AF_UNSPEC, "", "12345");
+  connect_tcp();
 
-  SSLSocket sc;
-  sc.connect(AF_UNSPEC, "localhost", "12345");
-
-  // FIXME: use .accept() when it's implemented.
-  struct sockaddr sa;
-  socklen_t salen = sizeof(sa);
-  SSLSocket ss(accept(sl.getfd(), &sa, &salen));
+  SSLSocket ss;
+  ss.setfd(sl_.accept());
 
   ss.ssl_accept();
   ss.ssl_connect("localhost");
 
-  sc.write("x");
+  sc_.write("x");
   EXPECT_EQ("x", ss.read(1));
   std::cerr << "1\n";
 
   ss.write("y");
-  EXPECT_EQ("y", sc.read(1));
+  EXPECT_EQ("y", sc_.read(1));
 }
 
 int main(int argc, char **argv) {
