@@ -27,12 +27,18 @@ tlsshd_LDADD=../monotonic_clock/src/libmonotonic_clock.a \
 
 
 TESTS=socket_test sslsocket_test
-
+TEST_FLAGS=-std=gnu++0x
+TEST_LDADD=-lgtest -lpthread
+#TESTFLAGS+=-fprofile-arcs -ftest-coverage
 noinst_PROGRAMS=$(TESTS)
 
 socket_test_SOURCES=socket_test.cc socket.cc fdwrap.cc
-socket_test_LDADD=-lgtest
+socket_test_CXXFLAGS=$(TEST_FLAGS)
+socket_test_LDFLAGS=$(TEST_FLAGS)
+socket_test_LDADD=$(TEST_LDADD)
 
-sslsocket_test_SOURCES=sslsocket_test.cc sslsocket.cc socket.cc fdwrap.cc util.cc xgetpwnam.c
-sslsocket_test_CXXFLAGS=-std=gnu++0x
-sslsocket_test_LDADD=-lgtest -lpthread
+sslsocket_test_SOURCES=sslsocket_test.cc sslsocket.cc socket.cc fdwrap.cc \
+util.cc xgetpwnam.c
+sslsocket_test_CXXFLAGS=$(TEST_FLAGS)
+sslsocket_test_LDFLAGS=$(TEST_FLAGS)
+sslsocket_test_LDADD=$(TEST_LDADD)
