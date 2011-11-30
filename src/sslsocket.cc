@@ -367,6 +367,7 @@ SSLSocket::shutdown()
                 SSL_CTX_free(ctx);
                 ctx = 0;
         }
+        close();
 }
 
 /**
@@ -763,7 +764,7 @@ size_t
 SSLSocket::write(const std::string &buf)
 {
         if (!ssl) {
-                THROW(ErrSSL, "SSL handshake not complete");
+                THROW(ErrSSL, "SSL write when not connected");
         }
         int ret;
 	ret = SSL_write(ssl, buf.data(), buf.length());
@@ -785,6 +786,9 @@ SSLSocket::write(const std::string &buf)
 std::string
 SSLSocket::read(size_t m)
 {
+        if (!ssl) {
+                THROW(ErrSSL, "SSL read when not connected");
+        }
 	int err, sslerr;
 	std::vector<char> buf(m);
 		

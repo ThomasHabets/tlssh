@@ -1,3 +1,3 @@
 # tlssh/Makefile.am.common
 AUTOMAKE_OPTIONS = foreign
-DISTCLEANFILES = *~
+DISTCLEANFILES = *~ *.gcov *.gcda *.gcno
