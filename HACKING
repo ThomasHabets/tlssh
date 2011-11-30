@@ -70,3 +70,14 @@ All exceptions inherit from Err::ErrBase (errbase.h) which in turn
 inherits from std::exception. Besides std::exception::what(),
 Err::ErrBase adds what_verbose(), which includes file, line and
 function where the exception was thrown.
+
+
+Coverage
+========
+make check
+(
+	set -e
+	cd src
+	gcov -l sslsocket_test-sslsocket.cc
+	./gs.py sslsocket_test-sslsocket.cc##sslsocket.cc.gcov
+)
