@@ -706,6 +706,10 @@ main2(int argc, char * const argv[])
                 THROW(Err::ErrSys, "signal(SIGWINCH)");
         }
 
+        if (SIG_ERR == signal(SIGPIPE, SIG_IGN)) {
+                THROW(Err::ErrSys, "signal(SIGPIPE, SIG_IGN)");
+        }
+
 	sock.ssl_set_cipher_list(options.cipher_list);
 	sock.ssl_set_capath(options.servercapath);
 	sock.ssl_set_cafile(options.servercafile);

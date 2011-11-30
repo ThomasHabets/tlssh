@@ -347,6 +347,10 @@ main2(int argc, char * const argv[])
                 THROW(Err::ErrBase, "signal(SIGCHLD, SIG_IGN)");
         }
 
+        if (SIG_ERR == signal(SIGPIPE, SIG_IGN)) {
+                THROW(Err::ErrBase, "signal(SIGPIPE, SIG_IGN)");
+        }
+
         if (SIG_ERR == signal(SIGINT, sigint)) {
                 THROW(Err::ErrBase, "signal(SIGINT, sigint)");
         }
