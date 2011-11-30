@@ -17,3 +17,6 @@ src/tlssh
 src/tlsshd
 config.h
 config.status
+*.gcov
+*.gcda
+*.gcno

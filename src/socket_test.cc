@@ -6,6 +6,7 @@
 #include<gtest/gtest.h>
 
 #include"socket.h"
+#include"gaiwrap.h"
 
 TEST(Socket, Debug)
 {
@@ -35,6 +36,36 @@ TEST(Socket, Listen)
   EXPECT_LE(0, sock.getfd());
 }
 
+TEST(Socket, ReuseAddrBeforeSocket)
+{
+  Socket sock;
+  EXPECT_THROW(sock.set_reuseaddr(true),
+	       Socket::ErrSys);
+}
+
+TEST(Socket, InvalidAF)
+{
+  Socket sock;
+  EXPECT_THROW(sock.listen(-1, "", "12345"),
+	       GetAddrInfo::ErrBase);
+}
+
+TEST(Socket, InvalidBindAddress)
+{
+  Socket sock;
+  EXPECT_THROW(sock.listen(AF_UNSPEC, "1.1.1.1", "12345"),
+	       Socket::ErrSys);
+}
+
+TEST(Socket, ListenPortBusy)
+{
+  Socket sock1;
+  Socket sock2;
+  sock1.listen(AF_UNSPEC, "", "12345");
+  EXPECT_THROW(sock2.listen(AF_UNSPEC, "", "12345"),
+	       Socket::ErrSys);
+}
+
 TEST(Socket, ConnectOpen)
 {
   Socket sock;
@@ -49,15 +80,40 @@ TEST(Socket, ConnectClosed)
                Socket::ErrSys);
 }
 
+TEST(Socket, AcceptOnNonlisten)
+{
+  Socket s1;
+  EXPECT_THROW(s1.accept(),
+	       Socket::ErrSys);
+}
+
+TEST(Socket, PeerWhenNotInit)
+{
+  Socket sock;
+  EXPECT_THROW(sock.get_peer_addr_string(),
+	       Socket::ErrSys);
+}
+
+TEST(Socket, PeerWhenNotConnected)
+{
+  Socket sock;
+  sock.listen(AF_UNSPEC, "", "12345");
+  EXPECT_THROW(sock.get_peer_addr_string(),
+	       Socket::ErrSys);
+}
+
 TEST(Socket, LoopData)
 {
   Socket s1;
   Socket s2;
   s1.listen(AF_UNSPEC, "", "12345");
-  s2.connect(AF_UNSPEC, "localhost", "12345");
+  s2.connect(AF_UNSPEC, "127.0.0.1", "12345");
 
   Socket serv;
   serv.setfd(s1.accept());
+
+  std::string peer(s2.get_peer_addr_string());
+  EXPECT_EQ("127.0.0.1", peer);
 
   serv.write("x");
   EXPECT_EQ("x", s2.read(1));
