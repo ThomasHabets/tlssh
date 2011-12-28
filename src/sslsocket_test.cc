@@ -36,13 +36,13 @@ class SSLSocketTest: public ::testing::Test {
 
   void set_certs(SSLSocket&ss)
   {
-    ss.ssl_set_cafile("testdata/client.crt");
-    ss.ssl_set_certfile("testdata/server.crt");
-    ss.ssl_set_keyfile("testdata/server.key");
+    ss.ssl_set_cafile("src/testdata/client.crt");
+    ss.ssl_set_certfile("src/testdata/server.crt");
+    ss.ssl_set_keyfile("src/testdata/server.key");
 
-    sc_.ssl_set_cafile("testdata/server.crt");
-    sc_.ssl_set_certfile("testdata/client.crt");
-    sc_.ssl_set_keyfile("testdata/client.key");
+    sc_.ssl_set_cafile("src/testdata/server.crt");
+    sc_.ssl_set_certfile("src/testdata/client.crt");
+    sc_.ssl_set_keyfile("src/testdata/client.key");
   }
 
 
