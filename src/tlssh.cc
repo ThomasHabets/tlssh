@@ -578,6 +578,10 @@ parse_options(int argc, char * const *argv)
                 logger->warning("WARNING: Not using ServerCRL");
         }
 
+        if (optind >= argc) {
+                usage(1);
+        }
+
 	options.host = argv[optind];
 
 	if (optind + 1 < argc) {
