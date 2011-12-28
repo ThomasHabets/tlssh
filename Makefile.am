@@ -4,8 +4,6 @@
 include $(top_srcdir)/Makefile.am.common
 
 SUBDIRS=\
-monotonic_clock \
-libopenpty \
 src \
 doc
 

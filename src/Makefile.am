@@ -13,18 +13,11 @@ tlssh_SOURCES = \
 tlssh.cc sslsocket.cc socket.cc fdwrap.cc configparser.cc util.cc \
 xgetpwnam.c tlssh_common.cc cfmakeraw.c wordexp.c gaiwrap.cc
 
-tlssh_LDADD=../monotonic_clock/src/libmonotonic_clock.a \
-../libopenpty/src/libopenpty.a
-
 tlsshd_SOURCES = \
 tlsshd.cc sslsocket.cc socket.cc xgetpwnam.c fdwrap.cc configparser.cc \
 util.cc tlsshd-ssl.cc tlsshd-shell.cc tlssh_common.cc cfmakeraw.c forkpty.c \
 setresuid.c clearenv.c daemon.c logwtmp.c wordexp.c \
 login_tty.c gaiwrap.cc
-
-tlsshd_LDADD=../monotonic_clock/src/libmonotonic_clock.a \
-../libopenpty/src/libopenpty.a
-
 
 TESTS=socket_test sslsocket_test
 TEST_FLAGS=-std=gnu++0x

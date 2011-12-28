@@ -10,7 +10,10 @@ AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE
 AC_CONFIG_SRCDIR([src/tlssh.cc])
 AC_CONFIG_HEADER(config.h)
-AC_CONFIG_SUBDIRS([monotonic_clock libopenpty])
+AC_CONFIG_SUBDIRS([libopenpty])
+
+PKG_CHECK_MODULES([OPENPTY], [libopenpty >= 0])
+PKG_CHECK_MODULES([MONOTONIC_CLOCK], [libmonotonic_clock >= 0])
 
 # Checks for programs.
 AC_PROG_CXX
@@ -22,9 +25,10 @@ AC_CHECK_LIB([util], [openpty])
 AC_SEARCH_LIBS([socket], [socket])
 AC_SEARCH_LIBS([recv], [socket])
 AC_SEARCH_LIBS([send], [socket])
-AC_SEARCH_LIBS([clock_gettime], [rt])
 AC_CHECK_LIB([crypto], [X509_STORE_new])
 AC_CHECK_LIB([ssl], [SSL_pending])
+
+AC_SEARCH_LIBS([clock_get_dbl], [monotonic_clock])
 
 AC_SUBST([AM_CFLAGS])
 AC_SUBST([AM_CXXFLAGS])
