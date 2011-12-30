@@ -47,7 +47,7 @@
 #include<iostream>
 #include<fstream>
 
-#include"../monotonic_clock/include/monotonic_clock.h"
+#include<monotonic_clock.h>
 
 #include"mywordexp.h"
 #include"tlssh.h"

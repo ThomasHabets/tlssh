@@ -20,10 +20,6 @@ manpages:
 bin_PROGRAMS = tlssh
 sbin_PROGRAMS = tlsshd
 
-AM_CFLAGS=-I$(top_srcdir)/monotonic_clock/include \
--I$(top_srcdir)/libopenpty/include \
-@AM_CFLAGS@
-
 tlssh_SOURCES = \
 src/tlssh.cc \
 src/sslsocket.cc \
