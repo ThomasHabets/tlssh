@@ -205,8 +205,7 @@ read_config_file(const std::string &fn)
                         /*
                          * SSL Engine (TPM) stuff.
                          */
-                } else if (conf->keyword == "TpmSrkPassword"
-                           && conf->parms.size() != 0) {
+                } else if (conf->keyword == "TpmSrkPassword") {
                         options.tpm_srk_password = std::make_pair(true,
                                                                   conf->rest.c_str());
                 } else if (conf->keyword == "PrivkeyPassword") {

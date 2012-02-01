@@ -95,7 +95,17 @@ public:
         class Engine {
                 ENGINE *engine_;
                 const std::string id_;
+                Optional privkey_password_;
+                Optional tpm_srk_password_;
         public:
+                void set_privkey_password(const Optional &privkey_password)
+                {
+                        privkey_password_ = privkey_password;
+                }
+                void set_tpm_srk_password(const Optional &pass)
+                {
+                        tpm_srk_password_ = pass;
+                }
                 Engine(const std::string&);
                 EVP_PKEY* LoadPrivKey(const std::string &fn);
                 ~Engine();
