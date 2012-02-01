@@ -79,6 +79,11 @@ class SSLSocket: public Socket {
 	std::string host;
 	std::string crlfile;
 
+        typedef std::pair<bool, std::string> Optional;
+        Optional privkey_engine_;
+        Optional privkey_password_;
+        Optional tpm_srk_password_;
+
 	SSLSocket &operator=(const SSLSocket&);
 	SSLSocket(const SSLSocket&);
 
@@ -87,6 +92,17 @@ class SSLSocket: public Socket {
         void check_ocsp();
         DH *ssl_setup_dh();
 public:
+        class Engine {
+                ENGINE *engine_;
+                const std::string id_;
+        public:
+                Engine(const std::string&);
+                EVP_PKEY* LoadPrivKey(const std::string &fn);
+                ~Engine();
+        };
+
+
+
         /**
          * Error Queue entry from OpenSSL
          */
@@ -147,6 +163,9 @@ public:
 	void ssl_set_certfile(const std::string &s);
 	void ssl_set_keyfile(const std::string &s);
 	void ssl_set_crlfile(const std::string &s);
+        void ssl_set_privkey_engine(const std::string &);
+        void ssl_set_privkey_password(const std::string &);
+        void ssl_set_tpm_srk_password(const std::string &);
 
 	std::auto_ptr<X509Wrap> get_cert();
 

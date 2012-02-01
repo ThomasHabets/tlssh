@@ -65,46 +65,13 @@ BEGIN_NAMESPACE(tlsshd);
 /* constants */
 const char *argv0 = NULL;
 
-const std::string DEFAULT_LISTEN       = "::";
-const std::string DEFAULT_PORT         = "12345";
-const std::string DEFAULT_CERTFILE     = "/etc/tlssh/tlsshd.crt";
-const std::string DEFAULT_KEYFILE      = "/etc/tlssh/tlsshd.key";
-const std::string DEFAULT_CLIENTCAFILE = "/etc/tlssh/ClientCA.crt";
-const std::string DEFAULT_CLIENTCRL    = "";
-const std::string DEFAULT_CLIENTCAPATH = "";
-const std::string DEFAULT_CLIENTDOMAIN = "";
-const std::string DEFAULT_CONFIG       = "/etc/tlssh/tlsshd.conf";
-const std::string DEFAULT_CIPHER_LIST  = "HIGH:!ADH:!LOW:!MD5:@STRENGTH";
-const std::string DEFAULT_TCP_MD5      = "tlssh";
-const std::string DEFAULT_CHROOT       = "/var/empty";
-const unsigned    DEFAULT_VERBOSE      = 0;
-const bool        DEFAULT_DAEMON       = true;
-const int         DEFAULT_AF           = AF_UNSPEC;
-const uint32_t    DEFAULT_KEEPALIVE    = 60;
 
 /* Process-wide variables */
 
 Socket listen;
 std::string protocol_version; // should be "tlssh.1"
 
-Options options = {
- listen:         DEFAULT_LISTEN,
- port:           DEFAULT_PORT,
- certfile:       DEFAULT_CERTFILE,
- keyfile:        DEFAULT_KEYFILE,
- clientcafile:   DEFAULT_CLIENTCAFILE,
- clientcrl:      DEFAULT_CLIENTCRL,
- clientcapath:   DEFAULT_CLIENTCAPATH,
- clientdomain:   DEFAULT_CLIENTDOMAIN,
- config:         DEFAULT_CONFIG,
- cipher_list:    DEFAULT_CIPHER_LIST,
- tcp_md5:        DEFAULT_TCP_MD5,
- chroot:         DEFAULT_CHROOT,
- verbose:        DEFAULT_VERBOSE,
- daemon:         DEFAULT_DAEMON,
- af:             DEFAULT_AF,
- keepalive:      DEFAULT_KEEPALIVE,
-};
+Options options;
 
 /** SIGINT handler
  *
@@ -229,6 +196,26 @@ read_config_file(const std::string &fn)
 		} else if (conf->keyword == "Chroot"
                            && conf->parms.size() == 1) {
 			options.chroot = conf->parms[0];
+		} else if (conf->keyword == "Daemon"
+                           && conf->parms.size() == 1) {
+                        if (conf->parms[0] == "off") {
+                                options.daemon = false;
+                        }
+
+                        /*
+                         * SSL Engine (TPM) stuff.
+                         */
+                } else if (conf->keyword == "TpmSrkPassword"
+                           && conf->parms.size() != 0) {
+                        options.tpm_srk_password = std::make_pair(true,
+                                                                  conf->rest.c_str());
+                } else if (conf->keyword == "PrivkeyPassword") {
+                        options.privkey_password = std::make_pair(true,
+                                                                  conf->rest.c_str());
+                } else if (conf->keyword == "PrivkeyEngine") {
+                        options.privkey_engine = std::make_pair(true,
+                                                                conf->rest.c_str());
+
 		} else if (conf->keyword == "Port"
                            && conf->parms.size() == 1) {
 			options.port = conf->parms[0];

@@ -11,6 +11,7 @@
 #include<vector>
 
 #include<openssl/err.h>
+#include<openssl/engine.h>
 
 #include"sslsocket.h"
 #include"util2.h"
@@ -238,7 +239,10 @@ X509Wrap::ErrSSL::ErrSSL(const Err::ErrData &errdata, const std::string &m,
 SSLSocket::SSLSocket(int fd)
                 :Socket(fd),
                  ctx(NULL),
-                 ssl(NULL)
+                 ssl(NULL),
+                 privkey_engine_(  std::make_pair(false, "")),
+                 privkey_password_(std::make_pair(false, "")),
+                 tpm_srk_password_(std::make_pair(false, ""))
 {
 	SSL_library_init();
 	SSL_load_error_strings();
@@ -426,6 +430,41 @@ SSLSocket::ssl_setup_dh()
         return dh;
 }
 
+
+SSLSocket::Engine::Engine(const std::string &id)
+        :engine_(NULL),id_(id)
+{
+        if (!(engine_ = ENGINE_by_id(id_.c_str()))) {
+                THROW(ErrSSL, "ENGINE_by_id()");
+        }
+        if (!ENGINE_init(engine_)) {
+                ENGINE_free(engine_);
+                THROW(ErrSSL, "ENGINE_init()");
+        }
+}
+
+SSLSocket::Engine::~Engine()
+{
+        if (engine_) {
+                ENGINE_free(engine_);
+        }
+}
+
+EVP_PKEY*
+SSLSocket::Engine::LoadPrivKey(const std::string &fn)
+{
+        EVP_PKEY *pkey;
+
+        const UI_METHOD *ui_method = UI_get_default_method();
+        pkey = ENGINE_load_private_key(engine_,
+                                       fn.c_str(),
+                                       (UI_METHOD*)ui_method,
+                                       NULL);
+        if (!pkey) {
+                THROW(ErrSSL, "ENGINE_load_private_key()");
+        }
+        return pkey;
+}
 /**
  * combinded server and client handshake code.
  *
@@ -444,16 +483,29 @@ SSLSocket::ssl_accept_connect(bool isconnect)
                 THROW(ErrSSL, "SSL_CTX_new()");
 	}
 
+        // Start TPM engine.
+        ENGINE_load_builtin_engines();
+
         // load cert & key
 	if (1 != SSL_CTX_use_certificate_chain_file(ctx,
 						    certfile.c_str())){
                 THROW(ErrSSL, "Load certfile " + certfile);
 	}
-	if (1 != SSL_CTX_use_PrivateKey_file(ctx,
-					     keyfile.c_str(),
-					     SSL_FILETYPE_PEM)) {
-                THROW(ErrSSL, "Load keyfile " + keyfile);
-	}
+
+        if (privkey_engine_.first) {
+                Engine *engine(new Engine(privkey_engine_.second));
+                EVP_PKEY *pkey;
+                pkey = engine->LoadPrivKey(keyfile);
+                if (0 > SSL_CTX_use_PrivateKey(ctx, pkey)) {
+                        THROW(ErrSSL, "SSL_CTX_use_PrivateKey()");
+                }
+        } else {
+                if (1 != SSL_CTX_use_PrivateKey_file(ctx,
+                                                     keyfile.c_str(),
+                                                     SSL_FILETYPE_PEM)) {
+                        THROW(ErrSSL, "Load keyfile " + keyfile);
+                }
+        }
 
         // set CAPath & CAFile for cert verification
 	const char *ccapath = capath.c_str();
@@ -820,6 +872,34 @@ SSLSocket::ssl_set_cipher_list(const std::string &lst)
 {
 	cipher_list = lst;
 }
+
+/**
+ *
+ */
+void
+SSLSocket::ssl_set_privkey_engine(const std::string &engine)
+{
+        privkey_engine_ = std::make_pair(true, engine);
+}
+
+/**
+ *
+ */
+void
+SSLSocket::ssl_set_privkey_password(const std::string &pass)
+{
+        privkey_password_ = std::make_pair(true, pass);
+}
+
+/**
+ *
+ */
+void
+SSLSocket::ssl_set_tpm_srk_password(const std::string &pass)
+{
+        tpm_srk_password_ = std::make_pair(true, pass);
+}
+
 
 /**
  * Set path where root CAs can be found.

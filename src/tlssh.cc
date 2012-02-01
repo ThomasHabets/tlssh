@@ -173,6 +173,7 @@ const int         DEFAULT_AF           = AF_UNSPEC;
 const uint32_t    DEFAULT_KEEPALIVE    = 60;
 
 struct Options {
+        typedef std::pair<bool, std::string> Optional;
 	std::string port;
 	std::string certfile;
 	std::string keyfile;
@@ -183,31 +184,42 @@ struct Options {
 	std::string cipher_list;
 	std::string host;
 	std::string tcp_md5;
+
+        Optional privkey_engine;
+        Optional privkey_password;
+        Optional tpm_srk_password;
+
 	unsigned int verbose;
         int af;
         bool terminal;
         std::string remote_command;
         bool check_certdb;
         uint32_t keepalive;
+        Options()
+                :
+                port(DEFAULT_PORT),
+                certfile(DEFAULT_CERTFILE),
+                keyfile(DEFAULT_KEYFILE),
+                servercafile(DEFAULT_SERVERCAFILE),
+                servercapath(DEFAULT_SERVERCAPATH),
+                servercrl(DEFAULT_SERVERCRL),
+                config(DEFAULT_CONFIG),
+                cipher_list(DEFAULT_CIPHER_LIST),
+                host(""),
+                tcp_md5(DEFAULT_TCP_MD5),
+                privkey_engine(std::make_pair(false, "")),
+                privkey_password(std::make_pair(false, "")),
+                tpm_srk_password(std::make_pair(false, "")),
+                verbose(0),
+                af(AF_UNSPEC),
+                terminal(true),
+                remote_command(""),
+                check_certdb(true),
+                keepalive(DEFAULT_KEEPALIVE)
+        {
+        }
 };
-Options options = {
- port:         DEFAULT_PORT,
- certfile:     DEFAULT_CERTFILE,
- keyfile:      DEFAULT_KEYFILE,
- servercafile: DEFAULT_SERVERCAFILE,
- servercapath: DEFAULT_SERVERCAPATH,
- servercrl:    DEFAULT_SERVERCRL,
- config:       DEFAULT_CONFIG,
- cipher_list:  DEFAULT_CIPHER_LIST,
- host:         "",
- tcp_md5:      DEFAULT_TCP_MD5,
- verbose:      0,
- af:           AF_UNSPEC,
- terminal:     true,
- remote_command: "",
- check_certdb: true,
- keepalive:    DEFAULT_KEEPALIVE,
-};
+Options options;
 
 SSLSocket sock;
 
@@ -447,6 +459,20 @@ read_config_file(const std::string &fn)
                                       + ", must be IPv4 or IPv6");
                         }
 
+                        /*
+                         * SSL Engine (TPM) stuff.
+                         */
+                } else if (conf->keyword == "TpmSrkPassword"
+                           && conf->parms.size() != 0) {
+                        options.tpm_srk_password = std::make_pair(true,
+                                                                  conf->rest.c_str());
+                } else if (conf->keyword == "PrivkeyPassword") {
+                        options.privkey_password = std::make_pair(true,
+                                                                  conf->rest.c_str());
+                } else if (conf->keyword == "PrivkeyEngine") {
+                        options.privkey_engine = std::make_pair(true,
+                                                                conf->rest.c_str());
+
 		} else if (conf->keyword == "ServerCAFile"
                            && conf->parms.size() == 1) {
 			options.servercafile = conf->parms[0];
@@ -536,7 +562,7 @@ parse_options(int argc, char * const *argv)
                       "I/O error accessing config file: " + options.config);
 	}
 	int opt;
-	while ((opt = getopt(argc, argv, "+46c:C:hp:svV")) != -1) {
+	while ((opt = getopt(argc, argv, "+46c:C:E:hp:svV")) != -1) {
 		switch (opt) {
                 case '4':
                         options.af = AF_INET;
@@ -549,6 +575,9 @@ parse_options(int argc, char * const *argv)
 		case 'C':
 			options.cipher_list = optarg;
 			break;
+                case 'E':
+                        options.privkey_engine = std::make_pair(true, optarg);
+                        break;
 		case 'h':
 			usage(0);
 			break;
@@ -720,6 +749,15 @@ main2(int argc, char * const argv[])
 	sock.ssl_set_certfile(options.certfile);
 	sock.ssl_set_keyfile(options.keyfile);
 	sock.ssl_set_crlfile(options.servercrl);
+        if (options.privkey_engine.first) {
+                sock.ssl_set_privkey_engine(options.privkey_engine.second);
+        }
+        if (options.privkey_password.first) {
+                sock.ssl_set_privkey_password(options.privkey_password.second);
+        }
+        if (options.tpm_srk_password.first) {
+                sock.ssl_set_tpm_srk_password(options.tpm_srk_password.second);
+        }
 	if (options.verbose) {
 		sock.set_debug(true);
 	}

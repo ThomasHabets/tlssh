@@ -11,6 +11,8 @@
 #include<vector>
 #include<string>
 #include<inttypes.h>
+#include<sys/types.h>
+#include<sys/socket.h>
 
 #include"fdwrap.h"
 #include"errbase.h"
@@ -69,10 +71,30 @@ END_NAMESPACE(tlssh_common)
  * tlsshd server part
  */
 BEGIN_NAMESPACE(tlsshd)
+
+const std::string DEFAULT_LISTEN       = "::";
+const std::string DEFAULT_PORT         = "12345";
+const std::string DEFAULT_CERTFILE     = "/etc/tlssh/tlsshd.crt";
+const std::string DEFAULT_KEYFILE      = "/etc/tlssh/tlsshd.key";
+const std::string DEFAULT_CLIENTCAFILE = "/etc/tlssh/ClientCA.crt";
+const std::string DEFAULT_CLIENTCRL    = "";
+const std::string DEFAULT_CLIENTCAPATH = "";
+const std::string DEFAULT_CLIENTDOMAIN = "";
+const std::string DEFAULT_CONFIG       = "/etc/tlssh/tlsshd.conf";
+const std::string DEFAULT_CIPHER_LIST  = "HIGH:!ADH:!LOW:!MD5:@STRENGTH";
+const std::string DEFAULT_TCP_MD5      = "tlssh";
+const std::string DEFAULT_CHROOT       = "/var/empty";
+const unsigned    DEFAULT_VERBOSE      = 0;
+const bool        DEFAULT_DAEMON       = true;
+const int         DEFAULT_AF           = AF_UNSPEC;
+const uint32_t    DEFAULT_KEEPALIVE    = 60;
+
 /**
  * TLSSH server options
  */
 struct Options {
+        typedef std::pair<bool, std::string> Optional;
+
 	std::string listen;
 	std::string port;
 	std::string certfile;
@@ -85,10 +107,38 @@ struct Options {
 	std::string cipher_list;
 	std::string tcp_md5;
 	std::string chroot;
+        Optional privkey_engine;
+        Optional privkey_password;
+        Optional tpm_srk_password;
         int verbose;
         bool daemon;
         int af;
         uint32_t keepalive;
+
+        Options()
+                : listen(         DEFAULT_LISTEN),
+                  port(           DEFAULT_PORT),
+                  certfile(       DEFAULT_CERTFILE),
+                  keyfile(        DEFAULT_KEYFILE),
+                  clientcafile(   DEFAULT_CLIENTCAFILE),
+                  clientcrl(      DEFAULT_CLIENTCRL),
+                  clientcapath(   DEFAULT_CLIENTCAPATH),
+                  clientdomain(   DEFAULT_CLIENTDOMAIN),
+                  config(         DEFAULT_CONFIG),
+                  cipher_list(    DEFAULT_CIPHER_LIST),
+                  tcp_md5(        DEFAULT_TCP_MD5),
+                  chroot(         DEFAULT_CHROOT),
+                  privkey_engine(std::make_pair(false, "")),
+                  privkey_password(std::make_pair(false, "")),
+                  tpm_srk_password(std::make_pair(false, "")),
+                  verbose(        DEFAULT_VERBOSE),
+                  daemon(         DEFAULT_DAEMON),
+                  af(             DEFAULT_AF),
+                  keepalive(      DEFAULT_KEEPALIVE)
+        {
+        }
+
+
 };
 extern Options options;
 extern std::string protocol_version;
