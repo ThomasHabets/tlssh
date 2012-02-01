@@ -281,10 +281,16 @@ parse_options(int argc, char * const *argv)
 			exit(0);
 		} else if (!strcmp(argv[c], "-c")) {
                         if (c + 1 != argc) {
-                                options.config = argv[c+1];
+                                options.config = argv[++c];
                         }
+		} else if (!strcmp(argv[c], "-f")) {
+                        options.daemon = false;
 		}
 	}
+        if (!options.daemon) {
+                logger->attach(new FileLogger("/dev/tty"), true);
+        }
+
 	try {
 		read_config_file(options.config);
 	} catch(const ConfigParser::ErrStream&) {
@@ -351,11 +357,9 @@ main2(int argc, char * const argv[])
 	tlsshd::listen.listen(options.af, options.listen, options.port);
 
         if (options.daemon) {
-                if (daemon(0,0)) {
+                if (daemon(0, 0)) {
                         THROW(Err::ErrSys, "daemon(0, 0)");
                 }
-        } else {
-                logger->attach(new FileLogger("/dev/tty"), true);
         }
 	return listen_loop();
 }
