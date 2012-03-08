@@ -161,6 +161,11 @@ public:
 
 	static const std::string ssl_errstr(int err);
 
+        static unsigned long threadid_callback();
+        static void locking_callback(int, int, const char*, int);
+        static void make_thread_safe();
+        static void global_init();
+
 	SSLSocket(int fd = -1);
 	virtual ~SSLSocket();
 

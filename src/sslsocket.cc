@@ -14,6 +14,7 @@
 #include<openssl/ui.h>
 #include<openssl/err.h>
 #include<openssl/engine.h>
+#include<openssl/crypto.h>
 
 #include"sslsocket.h"
 #include"util2.h"
@@ -29,6 +30,12 @@
 	fd = open(randfile, O_WRONLY | O_CREAT | O_EXCL, 0600);
 	close(fd);
 	RAND_write_file("random.seed");
+#endif
+
+#if 1
+#define SSLCALL(x) x
+#else
+#define SSLCALL(x) (printf("%s\n", #x), x)
 #endif
 
 /**
@@ -235,6 +242,30 @@ X509Wrap::ErrSSL::ErrSSL(const Err::ErrData &errdata, const std::string &m,
 	}
 }
 
+void
+SSLSocket::global_init()
+{
+        static bool inited = false;
+        if (inited) {
+                return;
+        }
+        SSLCALL(SSL_library_init());
+        SSLCALL(SSL_load_error_strings());
+        SSLCALL(ERR_load_SSL_strings());
+        make_thread_safe();
+        inited = true;
+}
+
+/**
+ * FIXME: instead use CRYPTO_THREADID functions where available.
+ */
+void
+SSLSocket::make_thread_safe()
+{
+        SSLCALL(CRYPTO_set_id_callback(threadid_callback));
+        SSLCALL(CRYPTO_set_locking_callback(locking_callback));
+}
+
 /**
  * Set up OpenSSL stuff
  */
@@ -246,9 +277,7 @@ SSLSocket::SSLSocket(int fd)
                  privkey_password_(std::make_pair(false, "")),
                  tpm_srk_password_(std::make_pair(false, ""))
 {
-	SSL_library_init();
-	SSL_load_error_strings();
-	ERR_load_SSL_strings();
+        global_init();
 }
 
 /**

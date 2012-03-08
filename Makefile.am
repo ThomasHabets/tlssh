@@ -23,6 +23,7 @@ sbin_PROGRAMS = tlsshd
 tlssh_SOURCES = \
 src/tlssh.cc \
 src/sslsocket.cc \
+src/sslsocket_no_threads.cc \
 src/socket.cc \
 src/fdwrap.cc \
 src/configparser.cc \
@@ -36,6 +37,7 @@ src/gaiwrap.cc
 tlsshd_SOURCES = \
 src/tlsshd.cc \
 src/sslsocket.cc \
+src/sslsocket_no_threads.cc \
 src/socket.cc \
 src/xgetpwnam.c \
 src/fdwrap.cc \
@@ -65,7 +67,10 @@ socket_test_CXXFLAGS=$(TEST_FLAGS)
 socket_test_LDFLAGS=$(TEST_FLAGS)
 socket_test_LDADD=$(TEST_LDADD)
 
-sslsocket_test_SOURCES=src/sslsocket_test.cc src/sslsocket.cc src/socket.cc src/fdwrap.cc \
+sslsocket_test_SOURCES=src/sslsocket_test.cc \
+src/sslsocket.cc \
+src/sslsocket_cpp11_threads.cc \
+src/socket.cc src/fdwrap.cc \
 src/util.cc src/xgetpwnam.c src/gaiwrap.cc
 sslsocket_test_CXXFLAGS=$(TEST_FLAGS)
 sslsocket_test_LDFLAGS=$(TEST_FLAGS)
