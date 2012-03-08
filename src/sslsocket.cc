@@ -599,9 +599,6 @@ SSLSocket::ssl_accept_connect(bool isconnect)
                 THROW(ErrSSL, "SSL_CTX_new()");
 	}
 
-        // Start TPM engine.
-        SSLCALL(ENGINE_load_builtin_engines());
-
         // load cert & key
         if (1 !=SSLCALL(SSL_CTX_use_certificate_chain_file(ctx,
                                                            certfile.c_str()))){
@@ -609,6 +606,11 @@ SSLSocket::ssl_accept_connect(bool isconnect)
 	}
 
         if (privkey_engine_.first) {
+                // Start TPM engine.
+                SSLCALL(ENGINE_load_builtin_engines());
+
+                logger->debug("Loading private key using engine %s",
+                              privkey_engine_.second.c_str());
                 Engine *engine(new Engine(privkey_engine_.second));
                 EVP_PKEY *pkey;
                 engine->set_privkey_password(privkey_password_);
@@ -618,6 +620,7 @@ SSLSocket::ssl_accept_connect(bool isconnect)
                         THROW(ErrSSL, "SSL_CTX_use_PrivateKey()");
                 }
         } else {
+                logger->debug("Loading private key");
                 if (1!=SSLCALL(SSL_CTX_use_PrivateKey_file(ctx,
                                                            keyfile.c_str(),
                                                            SSL_FILETYPE_PEM))){
@@ -653,7 +656,7 @@ SSLSocket::ssl_accept_connect(bool isconnect)
 	}
 
         // set approved cipher list
-        logger->debug("setting up cipher list");
+        logger->debug("setting up cipher list %s", cipher_list.c_str());
 	if (!cipher_list.empty()) {
                 if (!SSLCALL(SSL_CTX_set_cipher_list(ctx,
                                                      cipher_list.c_str()))) {
@@ -712,9 +715,12 @@ SSLSocket::ssl_accept_connect(bool isconnect)
 		if (err == -1) {
                         THROW(ErrSSL, "SSL_connect()", ssl, err);
 		}
+
+                // FIXME: log actual verify error.
                 if (SSLCALL(SSL_get_verify_result(ssl)) != X509_V_OK) {
                         THROW(ErrSSL, "SSL_get_verify_result() != X509_V_OK");
 		}
+
                 X509Wrap x(SSLCALL(SSL_get_peer_certificate(ssl)));
 		if (!x.check_hostname(host)) {
                         THROW(ErrSSLHostname, host, x.get_subject());
