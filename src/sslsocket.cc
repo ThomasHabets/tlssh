@@ -65,15 +65,15 @@ X509Wrap::check_hostname(const std::string &host)
 		X509_EXTENSION *ext;
 		const char *extstr;
 
-		ext = X509_get_ext(x509, i);
-		extstr=OBJ_nid2sn(OBJ_obj2nid(X509_EXTENSION_get_object(ext)));
+                ext = SSLCALL(X509_get_ext(x509, i));
+                extstr = SSLCALL(OBJ_nid2sn(SSLCALL(OBJ_obj2nid(SSLCALL(X509_EXTENSION_get_object(ext))))));
 		if (!strcmp(extstr, "subjectAltName")) {
 			X509V3_EXT_METHOD *meth;
 			const unsigned char *data;
 			STACK_OF(CONF_VALUE) *val;
 			CONF_VALUE *nval;
 
-			meth = X509V3_EXT_get(ext);
+                        meth = SSLCALL(X509V3_EXT_get(ext));
 			if (!meth) {
 				continue;
 			}
@@ -101,12 +101,12 @@ X509Wrap::check_hostname(const std::string &host)
 	// check subject name
 	X509_NAME *subj;
 	char sdata[256];
-	subj = X509_get_subject_name(x509);
+        subj = SSLCALL(X509_get_subject_name(x509));
 	if (!subj) {
 		return false;
 	}
-	if (!X509_NAME_get_text_by_NID(subj, NID_commonName,
-				       sdata, sizeof(sdata))) {
+        if (!SSLCALL(X509_NAME_get_text_by_NID(subj, NID_commonName,
+                                               sdata, sizeof(sdata)))) {
 		return false;
 	}
 	sdata[sizeof(sdata) - 1] = 0;
@@ -127,12 +127,12 @@ X509Wrap::get_common_name() const
 	char buf[1024];
 	X509_NAME *subj;
 
-	subj = X509_get_subject_name(x509);
+        subj = SSLCALL(X509_get_subject_name(x509));
 	if (!subj) {
                 THROW(ErrSSL, "X509_get_subject_name()");
 	}
-	if (!X509_NAME_get_text_by_NID(subj, NID_commonName,
-				       buf, sizeof(buf))) {
+        if (!SSLCALL(X509_NAME_get_text_by_NID(subj, NID_commonName,
+                                               buf, sizeof(buf)))) {
                 THROW(ErrSSL, "X509_NAME_get_text_by_NID()");
 	}
 	buf[sizeof(buf) - 1] = 0;
@@ -146,8 +146,8 @@ std::string
 X509Wrap::get_issuer() const
 {
 	char buf[1024];
-	X509_NAME_oneline(X509_get_issuer_name(x509),
-			  buf, sizeof(buf));
+        SSLCALL(X509_NAME_oneline(X509_get_issuer_name(x509),
+                                  buf, sizeof(buf)));
 	return std::string(buf);
 }
 
@@ -160,13 +160,13 @@ X509Wrap::get_issuer_common_name() const
 	char buf[1024];
         X509_NAME *issuer;
 
-        issuer = X509_get_issuer_name(x509);
+        issuer = SSLCALL(X509_get_issuer_name(x509));
         if (!issuer) {
                 THROW(ErrSSL, "X509_get_issuer_name()");
         }
 
-	if (!X509_NAME_get_text_by_NID(issuer, NID_commonName,
-				       buf, sizeof(buf))) {
+        if (!SSLCALL(X509_NAME_get_text_by_NID(issuer, NID_commonName,
+                                               buf, sizeof(buf)))) {
                 THROW(ErrSSL, "X509_NAME_get_text_by_NID()");
 	}
 	buf[sizeof(buf) - 1] = 0;
@@ -180,8 +180,8 @@ std::string
 X509Wrap::get_subject() const
 {
 	char buf[1024];
-	X509_NAME_oneline(X509_get_subject_name(x509),
-			  buf, sizeof(buf));
+        SSLCALL(X509_NAME_oneline(X509_get_subject_name(x509),
+                                  buf, sizeof(buf)));
 	return std::string(buf);
 }
 
@@ -191,14 +191,14 @@ X509Wrap::get_subject() const
 std::string
 X509Wrap::get_fingerprint() const
 {
-        const EVP_MD *md = EVP_get_digestbyname("SHA1");
+        const EVP_MD *md = SSLCALL(EVP_get_digestbyname("SHA1"));
         if (!md) {
                 THROW(ErrSSL, "EVP_get_digestbyname()");
         }
 
         unsigned char buf[1024];
         unsigned int len = 0;
-        int n = X509_digest(x509, md, buf, &len);
+        int n = SSLCALL(X509_digest(x509, md, buf, &len));
         if (n != 1 || len != 20) {
                 THROW(ErrSSL,
                       xsprintf("X509_digest() failed (ret=%d, len=%d)",
@@ -236,8 +236,7 @@ X509Wrap::ErrSSL::ErrSSL(const Err::ErrData &errdata, const std::string &m,
 {
 	if (ssl) {
 		sslmsg = SSLSocket
-			::ssl_errstr(
-				     SSL_get_error(ssl, err));
+			::ssl_errstr(SSL_get_error(ssl, err));
                 msg = msg + ": " + sslmsg;
 	}
 }
@@ -289,7 +288,7 @@ std::auto_ptr<X509Wrap>
 SSLSocket::get_cert()
 {
         return std::auto_ptr<X509Wrap>
-                (new X509Wrap(SSL_get_peer_certificate(ssl)));
+                (new X509Wrap(SSLCALL(SSL_get_peer_certificate(ssl))));
 }
 
 /**
@@ -394,12 +393,12 @@ void
 SSLSocket::shutdown()
 {
 	if (ssl) {
-		SSL_shutdown(ssl);
-		SSL_free(ssl);
+                SSLCALL(SSL_shutdown(ssl));
+                SSLCALL(SSL_free(ssl));
 		ssl = 0;
 	}
         if (ctx) {
-                SSL_CTX_free(ctx);
+                SSLCALL(SSL_CTX_free(ctx));
                 ctx = 0;
         }
         close();
@@ -593,19 +592,19 @@ SSLSocket::ssl_accept_connect(bool isconnect)
 	int err;
 
         // create CTX
-        ctx = SSL_CTX_new(isconnect
-                          ? TLSv1_client_method()
-                          : TLSv1_server_method());
+        ctx = SSLCALL(SSL_CTX_new(isconnect
+                                  ? SSLCALL(TLSv1_client_method())
+                                  : SSLCALL(TLSv1_server_method())));
         if (!ctx) {
                 THROW(ErrSSL, "SSL_CTX_new()");
 	}
 
         // Start TPM engine.
-        ENGINE_load_builtin_engines();
+        SSLCALL(ENGINE_load_builtin_engines());
 
         // load cert & key
-	if (1 != SSL_CTX_use_certificate_chain_file(ctx,
-						    certfile.c_str())){
+        if (1 !=SSLCALL(SSL_CTX_use_certificate_chain_file(ctx,
+                                                           certfile.c_str()))){
                 THROW(ErrSSL, "Load certfile " + certfile);
 	}
 
@@ -615,13 +614,13 @@ SSLSocket::ssl_accept_connect(bool isconnect)
                 engine->set_privkey_password(privkey_password_);
                 engine->set_tpm_srk_password(tpm_srk_password_);
                 pkey = engine->LoadPrivKey(keyfile);
-                if (0 > SSL_CTX_use_PrivateKey(ctx, pkey)) {
+                if (0 > SSLCALL(SSL_CTX_use_PrivateKey(ctx, pkey))) {
                         THROW(ErrSSL, "SSL_CTX_use_PrivateKey()");
                 }
         } else {
-                if (1 != SSL_CTX_use_PrivateKey_file(ctx,
-                                                     keyfile.c_str(),
-                                                     SSL_FILETYPE_PEM)) {
+                if (1!=SSLCALL(SSL_CTX_use_PrivateKey_file(ctx,
+                                                           keyfile.c_str(),
+                                                           SSL_FILETYPE_PEM))){
                         THROW(ErrSSL, "Load keyfile " + keyfile);
                 }
         }
@@ -639,24 +638,25 @@ SSLSocket::ssl_accept_connect(bool isconnect)
 		if (debug) {
 			logger->debug("CAFile: %s", ccafile?ccafile:"<null>");
 		}
-		if (!SSL_CTX_load_verify_locations(ctx,
-						   ccafile,
-						   ccapath)) {
+                if (!SSLCALL(SSL_CTX_load_verify_locations(ctx,
+                                                           ccafile,
+                                                           ccapath))) {
                         THROW(ErrSSL, "SSL_CTX_load_verify_locations()");
 		}
-		SSL_CTX_set_verify_depth(ctx, 5);
-                SSL_CTX_set_verify(ctx,
-                                   SSL_VERIFY_PEER
-                                   | (isconnect
-                                      ? 0
-                                      : SSL_VERIFY_FAIL_IF_NO_PEER_CERT),
-                                   NULL);
+                SSLCALL(SSL_CTX_set_verify_depth(ctx, 5));
+                SSLCALL(SSL_CTX_set_verify(ctx,
+                                           SSL_VERIFY_PEER
+                                           |(isconnect
+                                             ? 0
+                                             :SSL_VERIFY_FAIL_IF_NO_PEER_CERT),
+                                           NULL));
 	}
 
         // set approved cipher list
         logger->debug("setting up cipher list");
 	if (!cipher_list.empty()) {
-		if (!SSL_CTX_set_cipher_list(ctx, cipher_list.c_str())) {
+                if (!SSLCALL(SSL_CTX_set_cipher_list(ctx,
+                                                     cipher_list.c_str()))) {
                         THROW(ErrSSL, "SSL_CTX_set_cipher_list()");
                 }
         }
@@ -664,7 +664,7 @@ SSLSocket::ssl_accept_connect(bool isconnect)
         // if server, set up DH
         logger->debug("setting up DH");
         if (!isconnect) {
-                if (!SSL_CTX_set_tmp_dh(ctx, ssl_setup_dh())) {
+                if (!SSLCALL(SSL_CTX_set_tmp_dh(ctx, ssl_setup_dh()))) {
                         THROW(ErrSSL, "SSL_CTX_set_tmp_dh()");
                 }
         }
@@ -676,50 +676,51 @@ SSLSocket::ssl_accept_connect(bool isconnect)
         // function
         if (0 && !crlfile.empty()) {
                 // http://bugs.unrealircd.org/view.php?id=2043
-                X509_STORE *store = SSL_CTX_get_cert_store(ctx);
-                X509_LOOKUP *lookup=X509_STORE_add_lookup(store,
-                                                          X509_LOOKUP_file());
+                X509_STORE *store = SSLCALL(SSL_CTX_get_cert_store(ctx));
+                X509_LOOKUP *lookup;
+                lookup = SSLCALL(X509_STORE_add_lookup(store,
+                                                       X509_LOOKUP_file()));
 
-                if (!X509_load_crl_file(lookup,
-                                       crlfile.c_str(),
-                                       X509_FILETYPE_PEM)) {
+                if (!SSLCALL(X509_load_crl_file(lookup,
+                                                crlfile.c_str(),
+                                                X509_FILETYPE_PEM))) {
                         THROW(ErrSSL, "X509_load_crl_file()");
                 }
 
-                if (!X509_STORE_set_flags(store,
-                                         X509_V_FLAG_CRL_CHECK
-                                         | X509_V_FLAG_CRL_CHECK_ALL
-                                         )) {
+                if (!SSLCALL(X509_STORE_set_flags(store,
+                                                  X509_V_FLAG_CRL_CHECK
+                                                  | X509_V_FLAG_CRL_CHECK_ALL
+                                                  ))) {
                         THROW(ErrSSL, "X509_STORE_set_flags()");
                 }
         }
 
         // create ssl object
-	if (!(ssl = SSL_new(ctx))) {
+        if (!(ssl = SSLCALL(SSL_new(ctx)))) {
                 THROW(ErrSSL, "SSL_new()");
 	}
 
         // attach fd to ssl object
-	if (!SSL_set_fd(ssl, fd.get())) {
+        if (!SSLCALL(SSL_set_fd(ssl, fd.get()))) {
                 THROW(ErrSSL, "SSL_set_fd()", ssl, err);
         }
 
         // do handshake
         logger->debug("doing SSL handshake");
 	if (isconnect) {
-		err = SSL_connect(ssl);
+                err = SSLCALL(SSL_connect(ssl));
 		if (err == -1) {
                         THROW(ErrSSL, "SSL_connect()", ssl, err);
 		}
-		if (SSL_get_verify_result(ssl) != X509_V_OK) {
+                if (SSLCALL(SSL_get_verify_result(ssl)) != X509_V_OK) {
                         THROW(ErrSSL, "SSL_get_verify_result() != X509_V_OK");
 		}
-		X509Wrap x(SSL_get_peer_certificate(ssl));
+                X509Wrap x(SSLCALL(SSL_get_peer_certificate(ssl)));
 		if (!x.check_hostname(host)) {
                         THROW(ErrSSLHostname, host, x.get_subject());
 		}
 	} else {
-		err = SSL_accept(ssl);
+                err = SSLCALL(SSL_accept(ssl));
 		if (err == -1) {
                         THROW(ErrSSL, "SSL_accept()", ssl, err);
 		}
@@ -732,9 +733,9 @@ SSLSocket::ssl_accept_connect(bool isconnect)
                       "Fingerprint: %s",
                       x.get_issuer().c_str(),
                       x.get_subject().c_str(),
-                      SSL_get_cipher_name(ssl),
-                      SSL_get_cipher_bits(ssl, 0),
-                      SSL_get_cipher_version(ssl),
+                      SSLCALL(SSL_get_cipher_name(ssl)),
+                      SSLCALL(SSL_get_cipher_bits(ssl, 0)),
+                      SSLCALL(SSL_get_cipher_version(ssl)),
                       x.get_fingerprint().c_str());
 
         check_crl();
@@ -867,57 +868,57 @@ SSLSocket::check_crl()
         X509_STORE_CTX *crlctx = 0;
         X509_STORE *store = 0;
         X509_LOOKUP *lookup = 0;
-	X509Wrap cert(SSL_get_peer_certificate(ssl));
+        X509Wrap cert(SSLCALL(SSL_get_peer_certificate(ssl)));
 
         FINALLY(
 #if 0
                 );        // indent right in emacs
 #endif
 
-        crlctx = X509_STORE_CTX_new();
+        crlctx = SSLCALL(X509_STORE_CTX_new());
         if (!crlctx) {
                 THROW(ErrSSL, "X509_STORE_CTX_new()");
         }
 
-        store = X509_STORE_new();
+        store = SSLCALL(X509_STORE_new());
         if (!store) {
                 THROW(ErrSSL, "X509_STORE_new()");
         }
 
-        lookup = X509_STORE_add_lookup(store,
-                                       X509_LOOKUP_file());
+        lookup = SSLCALL(X509_STORE_add_lookup(store,
+                                               X509_LOOKUP_file()));
 
-        if (!X509_load_cert_file(lookup,
-                                 cafile.c_str(),
-                                 X509_FILETYPE_PEM)) {
+        if (!SSLCALL(X509_load_cert_file(lookup,
+                                         cafile.c_str(),
+                                         X509_FILETYPE_PEM))) {
                 THROW(ErrSSL, "X509_load_cert_file()");
         }
 
-        if (!X509_load_crl_file(lookup,
-                                crlfile.c_str(),
-                                X509_FILETYPE_PEM)) {
-                if (!X509_load_crl_file(lookup,
+        if (!SSLCALL(X509_load_crl_file(lookup,
                                         crlfile.c_str(),
-                                        X509_FILETYPE_ASN1)) {
+                                        X509_FILETYPE_PEM))) {
+                if (!SSLCALL(X509_load_crl_file(lookup,
+                                                crlfile.c_str(),
+                                                X509_FILETYPE_ASN1))) {
                         THROW(ErrSSL, "X509_load_crl_file()");
                 }
         }
 
-        X509_STORE_set_flags(store,
-                             X509_V_FLAG_CRL_CHECK
-                             | X509_V_FLAG_CRL_CHECK_ALL);
+        SSLCALL(X509_STORE_set_flags(store,
+                                     X509_V_FLAG_CRL_CHECK
+                                     | X509_V_FLAG_CRL_CHECK_ALL));
 
-        X509_STORE_CTX_init(crlctx, store, cert.get(), 0);
-        if (1 != X509_verify_cert(crlctx)) {
-                err = X509_STORE_CTX_get_error(crlctx);
+        SSLCALL(X509_STORE_CTX_init(crlctx, store, cert.get(), 0));
+        if (1 != SSLCALL(X509_verify_cert(crlctx))) {
+                err = SSLCALL(X509_STORE_CTX_get_error(crlctx));
                 THROW(ErrSSLCRL,
                       X509Wrap::errstr(err) + ": " + cert.get_subject());
         }
 
         ,    /*  FINALLY */;
 
-        if (crlctx) { X509_STORE_CTX_free(crlctx); }
-        if (store) { X509_STORE_free(store); } // need this? 
+        if (crlctx) { SSLCALL(X509_STORE_CTX_free(crlctx)); }
+        if (store) { SSLCALL(X509_STORE_free(store)); } // need this? 
 #if 0
         (        // indent right in emacs
 #endif
@@ -938,9 +939,10 @@ SSLSocket::write(const std::string &buf)
                 THROW(ErrSSL, "SSL write when not connected");
         }
         int ret;
-	ret = SSL_write(ssl, buf.data(), buf.length());
+        ret = SSLCALL(SSL_write(ssl, buf.data(), buf.length()));
         if (ret < 0) {
-                THROW(ErrSSL, "SSL_write()", ssl, SSL_get_error(ssl, ret));
+                THROW(ErrSSL, "SSL_write()", ssl,
+                      SSLCALL(SSL_get_error(ssl, ret)));
         }
 	return ret;
 }
@@ -963,11 +965,11 @@ SSLSocket::read(size_t m)
 	int err, sslerr;
 	std::vector<char> buf(m);
 		
-	err = SSL_read(ssl, &buf[0], m);
+        err = SSLCALL(SSL_read(ssl, &buf[0], m));
 	if (err > 0) {
 		return std::string(&buf[0], &buf[err]);
 	}
-	sslerr = SSL_get_error(ssl, err);
+        sslerr = SSLCALL(SSL_get_error(ssl, err));
 	if (err == 0 && sslerr == SSL_ERROR_ZERO_RETURN) {
                 THROW0(ErrPeerClosed);
 	}
@@ -980,7 +982,7 @@ SSLSocket::read(size_t m)
 bool
 SSLSocket::ssl_pending()
 {
-	return SSL_pending(ssl);
+        return SSLCALL(SSL_pending(ssl));
 }
 
 /**
@@ -1076,7 +1078,8 @@ SSLSocket::ErrSSL::ErrSSL(const Err::ErrData &errdata,
         :ErrBase(errdata,s)
 {
 	if (ssl) {
-		sslmsg = SSLSocket::ssl_errstr(SSL_get_error(ssl, err));
+                sslmsg = SSLSocket::ssl_errstr(SSLCALL(SSL_get_error(ssl,
+                                                                     err)));
                 msg = msg + ": " + sslmsg;
 	}
 
@@ -1086,10 +1089,10 @@ SSLSocket::ErrSSL::ErrSSL(const Err::ErrData &errdata,
 		int line;
 		const char *data;
 		int flags;
-		err = ERR_get_error_line_data(&file,
-					      &line,
-					      &data,
-					      &flags);
+                err = SSLCALL(ERR_get_error_line_data(&file,
+                                                      &line,
+                                                      &data,
+                                                      &flags));
 		if (!err) {
 			break;
 		}
