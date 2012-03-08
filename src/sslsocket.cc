@@ -249,6 +249,7 @@ SSLSocket::global_init()
                 return;
         }
         SSLCALL(SSL_library_init());
+        SSLCALL(OpenSSL_add_all_algorithms());
         SSLCALL(SSL_load_error_strings());
         SSLCALL(ERR_load_SSL_strings());
         make_thread_safe();
