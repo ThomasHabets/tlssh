@@ -594,6 +594,8 @@ new_ssl_connection(SSLSocket &sock)
 	std::string username = certname.substr(0, dotpos);
         std::string domain = certname.substr(dotpos+1);
         if (domain != options.clientdomain) {
+                logger->warning("User domain mismatch: %s != %s",
+                                domain.c_str(), options.clientdomain.c_str());
                 THROW(Err::ErrBase, "client is in wrong domain");
         }
 

@@ -788,8 +788,8 @@ main(int argc, char **argv)
 {
 	argv0 = argv[0];
 
-        logger = new StreamLogger(std::cerr,
-                                  std::string(argv0) + ": ");
+        // FIXME: log to tty or stderr?
+        logger = new FileLogger("/dev/tty");
         logger->set_logmask(logger->get_logmask() & ~LOG_MASK(LOG_DEBUG));
 
 	try {

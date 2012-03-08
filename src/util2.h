@@ -70,7 +70,7 @@ public:
         void detach(Logger *);
         void detach_all();
 
-        virtual void set_logmask(int m) { logmask = m; }
+        virtual void set_logmask(int m);
         int get_logmask() const { return logmask; }
 
         void vlog(int prio, const char *fmt, va_list ap) const;
@@ -117,13 +117,11 @@ public:
 	void log(int prio, const std::string &str) const;
 };
 
-class FileLogger: public Logger {
+class FileLogger: public StreamLogger {
         std::string filename;
-        std::ofstream file;
-        StreamLogger streamlogger;
+	std::ofstream file;
 public:
         FileLogger(const std::string &filename);
-        void log(int prio, const std::string &str) const;
 };
 
 struct passwd xgetpwnam(const std::string &name, std::vector<char> &buffer);

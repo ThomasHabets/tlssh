@@ -38,6 +38,14 @@ Logger::attach(Logger *next, bool ownership)
         attached.push_back(std::make_pair(next, ownership));
 }
 
+/**
+ *
+ */
+void
+Logger::set_logmask(int m)
+{
+        logmask = m;
+}
 
 /**
  *
@@ -51,6 +59,7 @@ Logger::vlog(int prio, const char *fmt, va_list ap) const
              ++itr) {
                 itr->first->log(prio, str);
         }
+        log(prio, str);
 }
 
 
@@ -103,18 +112,8 @@ Logger::detach(Logger *l)
 FileLogger::FileLogger(const std::string &in_filename)
         :filename(in_filename),
          file(in_filename.c_str()),
-         streamlogger(file)
+         StreamLogger(file)
 {
-}
-
-
-/**
- *
- */
-void
-FileLogger::log(int prio, const std::string &str) const
-{
-        streamlogger.log(prio, str);
 }
 
 
