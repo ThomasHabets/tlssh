@@ -12,7 +12,6 @@ AC_CONFIG_SRCDIR([src/tlssh.cc])
 AC_CONFIG_HEADER(config.h)
 AC_CONFIG_SUBDIRS([libopenpty])
 
-PKG_CHECK_MODULES([OPENPTY], [libopenpty >= 0])
 PKG_CHECK_MODULES([MONOTONIC_CLOCK], [libmonotonic_clock >= 0])
 
 # Checks for programs.
@@ -29,6 +28,10 @@ AC_CHECK_LIB([crypto], [X509_STORE_new])
 AC_CHECK_LIB([ssl], [SSL_pending])
 
 AC_SEARCH_LIBS([clock_get_dbl], [monotonic_clock])
+
+if test "x$ac_cv_lib_util_openpty" = "xno"; then
+   PKG_CHECK_MODULES([OPENPTY], [libopenpty >= 0])
+fi
 
 AC_SUBST([AM_CFLAGS])
 AC_SUBST([AM_CXXFLAGS])
