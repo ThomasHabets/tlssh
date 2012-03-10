@@ -58,7 +58,7 @@
 
 #include<iostream>
 
-#include"../monotonic_clock/include/monotonic_clock.h"
+#include<monotonic_clock.h>
 
 #include"tlssh.h"
 #include"sslsocket.h"
