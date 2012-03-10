@@ -1,3 +1,6 @@
+# tlssh/acinclude.m4
+#
+
 AC_DEFUN([EL_GETPW_R_POSIX],
 [
    AC_MSG_CHECKING([whether getpwnam_r and getpwuid_r are posix like])

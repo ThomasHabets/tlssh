@@ -13,8 +13,6 @@ config.guess
 config.log
 stamp-h1
 src/.deps
-src/tlssh
-src/tlsshd
 config.h
 config.status
 *.gcov

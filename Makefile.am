@@ -1,7 +1,6 @@
 # tlssh/Makefile.am
 
-# Don't complain about "missing" standard GNU files
-include $(top_srcdir)/Makefile.am.common
+DISTCLEANFILES = *~ *.gcov *.gcda *.gcno
 
 # Documentation
 man_MANS=doc/tlssh.1 doc/tlsshd.8 doc/tlssh.conf.5 doc/tlsshd.conf.5

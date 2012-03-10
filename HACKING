@@ -1,7 +1,6 @@
 Building
 ========
-git submodule init
-git submodule update
+./bootstrap.sh
 ./configure
 make
 
@@ -41,6 +40,7 @@ Client then sends a few header commands, one on each line:
   env <name> <val>    # Set env variable <name> to <val>, currently only TERM
   terminal <on/off>   # Allocate pty for client. Default to on.
   command <cmdline>   # Command to run.
+  tcpmd5 <password>   # Activate TCP MD5 after headers (not implemented)
 
 Only "version" is mandatory.
 
@@ -51,8 +51,8 @@ Connection in then set up.
 All data is sent as-is except byte 255 (IAC, Interpret As Command,
 from Telnet protocol). IAC commands are:
     1 - Set window size. Two 16bit network-order ints follow with height,width.
-    2 - Echo request.
-    3 - Echo reply.
+    2 - Echo request. 32bit echo cookie.
+    3 - Echo reply. 32bit echo cookie.
   255 - Send literal byte 255
 
 Client sends IAC 1 (set window size) with updated size every time the

@@ -1,4 +1,4 @@
-TODO before 0.07
+TODO before 0.08
 ----------------
 * kill connection when cert expires, not just deny new connections
 * Provide grsec RBAC config
@@ -8,7 +8,7 @@ TODO before 1.00
 ----------------
 * document the code. There can always be more docs.
 * get someone to audit the code
-* Get it to work with CACert Class 3 root cert
+* pick a proper port number
 
 
 TODO after 1.00
@@ -19,7 +19,6 @@ TODO after 1.00
 * make cert verification talk to terminal, not stderr/stdin
 * BSD TCPMD5
 * anti-dos (many connections)
-* pick a proper port number
 * HUP re-reads config file and re-overrides using the old cmdline
 * Give client send-local-file-as-typed support.
 * xmodem file send/recv
