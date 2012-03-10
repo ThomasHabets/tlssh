@@ -287,6 +287,7 @@ mainloop(FDWrap &terminal)
 		if (fds[0].revents & POLLIN) {
 			try {
 				do {
+                                        // FIXME: are we sure this can't block?
                                         buffer_from_sock += sock.read();
 				} while (sock.ssl_pending());
 			} catch(const Socket::ErrPeerClosed &e) {

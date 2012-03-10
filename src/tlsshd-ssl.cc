@@ -168,6 +168,7 @@ connect_fd_sock(FDWrap &fd,
 	// from client
 	if (fds[0].revents & POLLIN) {
 		do {
+                        // FIXME: are we sure this can't block?
 			from_sock += sock.read();
 		} while (sock.ssl_pending());
 	}
