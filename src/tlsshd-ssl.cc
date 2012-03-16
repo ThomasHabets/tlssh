@@ -77,8 +77,8 @@ using tlsshd::options;
 BEGIN_NAMESPACE(tlsshd_sslproc);
 
 FDWrap fd_wtmp;
-std::string short_ttyname;
-std::string short2_ttyname;
+std::string short_ttyname;  // ttyname excl "/dev/"
+std::string base_ttyname;   // basename part of ttyname
 
 /**
  * Run as: user
@@ -343,7 +343,7 @@ log_login(const struct passwd *pw, const std::string &peer_addr)
                 sizeof(ut.ut_line) - 1);
 #ifdef HAVE_UTMP_ID
         strncpy(ut.ut_id,
-                short2_ttyname.c_str(),
+                base_ttyname.c_str(),
                 sizeof(ut.ut_id) - 1);
 #endif
 
@@ -378,7 +378,7 @@ log_login(const struct passwd *pw, const std::string &peer_addr)
                         short_ttyname.c_str(),
                         sizeof(ut.ut_line) - 1);
                 strncpy(ut.ut_id,
-                        short2_ttyname.c_str(),
+                        base_ttyname.c_str(),
                         sizeof(ut.ut_id) - 1);
                 gettimeofday(&tv, NULL);
                 ut.ut_tv.tv_sec = tv.tv_sec;
@@ -457,9 +457,9 @@ do_forkpty(pid_t *pid, int *fdm)
                 short_ttyname = short_ttyname.substr(5);
         }
 
-        short2_ttyname = gnustyle_basename(short_ttyname.c_str());
-        if (short2_ttyname.substr(0,3) == "tty") {
-                short2_ttyname = short2_ttyname.substr(3);
+        base_ttyname = gnustyle_basename(short_ttyname.c_str());
+        if (base_ttyname.substr(0,3) == "tty") {
+                base_ttyname = base_ttyname.substr(3);
         }
 }
 
