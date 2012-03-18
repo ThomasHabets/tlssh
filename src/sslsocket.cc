@@ -665,7 +665,9 @@ SSLSocket::ssl_accept_connect(bool isconnect)
                                              ? 0
                                              :SSL_VERIFY_FAIL_IF_NO_PEER_CERT),
                                            NULL));
-	}
+        } else {
+                logger->debug("WARNING: No CA loaded.");
+        }
 
         // set approved cipher list
         logger->debug("setting up cipher list %s", cipher_list.c_str());
