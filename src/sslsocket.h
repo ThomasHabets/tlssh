@@ -52,6 +52,7 @@ public:
 
 	bool check_hostname(const std::string &host);
 
+        long get_serial() const;
 	std::string get_issuer() const;
         std::string get_issuer_common_name() const;
 	std::string get_common_name() const;

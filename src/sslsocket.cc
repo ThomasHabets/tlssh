@@ -152,6 +152,15 @@ X509Wrap::get_issuer() const
 }
 
 /**
+ * get issuer of cert
+ */
+long
+X509Wrap::get_serial() const
+{
+	return SSLCALL(ASN1_INTEGER_get(X509_get_serialNumber(x509)));
+}
+
+/**
  * get the common name of the issuer of the cert
  */
 std::string
@@ -737,12 +746,14 @@ SSLSocket::ssl_accept_connect(bool isconnect)
 	X509Wrap x(SSL_get_peer_certificate(ssl));
         logger->debug("Issuer: %s\nSubject: %s\n"
                       "Cipher: %s (Version %d bits) %s\n"
+                      "Serial number: %ld\n"
                       "Fingerprint: %s",
                       x.get_issuer().c_str(),
                       x.get_subject().c_str(),
                       SSLCALL(SSL_get_cipher_name(ssl)),
                       SSLCALL(SSL_get_cipher_bits(ssl, 0)),
                       SSLCALL(SSL_get_cipher_version(ssl)),
+                      x.get_serial(),
                       x.get_fingerprint().c_str());
 
         check_crl();
