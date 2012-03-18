@@ -125,5 +125,6 @@ echo "
   Prefix.........: $prefix
   Debug Build....: $debug
   C Compiler.....: $CC $CFLAGS $CPPFLAGS
+  C++ Compiler...: $CXX $CXXFLAGS $CPPFLAGS
   Linker.........: $LD $LDFLAGS $LIBS
 "
