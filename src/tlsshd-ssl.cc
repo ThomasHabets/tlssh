@@ -118,7 +118,7 @@ connect_fd_sock(FDWrap &fd,
 
 	fds[1].fd = fd.get();
 	fds[1].events = POLLIN;
-	fds[0].revents = 1;
+	fds[1].revents = 0;
 	if (!to_fd.empty()) {
 		fds[1].events |= POLLOUT;
 	}
@@ -196,6 +196,8 @@ connect_fd_sock(FDWrap &fd,
                         struct winsize ws;
                         ws.ws_col = ntohs(itr->s.commands.window_size.cols);
                         ws.ws_row = ntohs(itr->s.commands.window_size.rows);
+                        ws.ws_xpixel = 0;
+                        ws.ws_ypixel = 0;
                         if (0 > ioctl(fd.get(), TIOCSWINSZ, &ws)) {
                                 //THROW(Err::ErrSys, "ioctl(TIOCSWINSZ)");
                                 logger->warning("ioctl(TIOCSWINSZ) failed");
