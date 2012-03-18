@@ -384,8 +384,10 @@ SSLSocket::ssl_errstr(int err)
 		return "syscall";
 	case SSL_ERROR_SSL:
 		return "SSL_ERROR_SSL";
+        case X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY:
+                return "The issuer certificate could not be found";
 	}
-	return "uhh.. what?";
+	return xsprintf("Invalid SSL error: %d", err);
 }
 
 /**
@@ -726,9 +728,10 @@ SSLSocket::ssl_accept_connect(bool isconnect)
                         THROW(ErrSSL, "SSL_connect()", ssl, err);
 		}
 
-                // FIXME: log actual verify error.
-                if (SSLCALL(SSL_get_verify_result(ssl)) != X509_V_OK) {
-                        THROW(ErrSSL, "SSL_get_verify_result() != X509_V_OK");
+                err = SSLCALL(SSL_get_verify_result(ssl));
+                if (err != X509_V_OK) {
+                        THROW(ErrSSL, "SSL_get_verify_result() != X509_V_OK:\n"
+                              + ssl_errstr(err));
 		}
 
                 X509Wrap x(SSLCALL(SSL_get_peer_certificate(ssl)));
