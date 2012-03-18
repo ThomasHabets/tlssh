@@ -213,7 +213,14 @@ connect_fd_sock(FDWrap &fd,
 
 	// from shell
 	if (fds[1].revents & POLLIN) {
-		to_sock += fd.read();
+                std::string s(fd.read());
+                logger->debug("Got %d bytes from shell (had %d)",
+                              s.size(), to_sock.size());
+                /**
+                 * FIXME: Why does this concat sometimes sometimes try
+                 * to allocate a bajillion bytes?
+                 */
+		to_sock += s;
 	}
 
 	// shell exited

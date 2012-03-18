@@ -119,12 +119,19 @@ listen_loop()
                 if (0 > pid) {          // error
                         logger->err("accept()-loop fork() failed");
                 } else if (pid == 0) {  // child
+#if 0
+                        /**
+                         * Temporarily disabled until I find out why
+                         * it's trying to allocate heaps and heaps to
+                         * concat 8k in tlsshd-ssl.cc:218.
+                         */
                         if (mlockall(MCL_CURRENT | MCL_FUTURE)) {
                                 logger->err("mlockall(MCL_CURRENT "
                                             "| MCL_FUTURE) failed: %s\n",
                                             strerror(errno));
                                 exit(1);
                         }
+#endif
 
                         listen.close();
 			exit(tlsshd_sslproc::forkmain(clifd));
