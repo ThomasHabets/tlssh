@@ -68,7 +68,7 @@ X509Wrap::check_hostname(const std::string &host)
                 ext = SSLCALL(X509_get_ext(x509, i));
                 extstr = SSLCALL(OBJ_nid2sn(SSLCALL(OBJ_obj2nid(SSLCALL(X509_EXTENSION_get_object(ext))))));
 		if (!strcmp(extstr, "subjectAltName")) {
-			X509V3_EXT_METHOD *meth;
+			const X509V3_EXT_METHOD *meth;
 			const unsigned char *data;
 			STACK_OF(CONF_VALUE) *val;
 			CONF_VALUE *nval;
@@ -82,7 +82,7 @@ X509Wrap::check_hostname(const std::string &host)
 				continue;
 			}
 			data = ext->value->data;
-			val = meth->i2v(meth,
+			val = meth->i2v((X509V3_EXT_METHOD*)meth,
 					meth->d2i(NULL,
 						  &data,
 						  ext->value->length),
@@ -588,9 +588,7 @@ SSLSocket::ssl_accept_connect(bool isconnect)
 		ccapath = NULL;
 	}
 	if (ccafile || ccapath) {
-		if (debug) {
-			logger->debug("CAFile: %s", ccafile?ccafile:"<null>");
-		}
+                logger->debug("CAFile: %s", ccafile ? ccafile : "<null>");
                 if (!SSLCALL(SSL_CTX_load_verify_locations(ctx,
                                                            ccafile,
                                                            ccapath))) {
