@@ -39,7 +39,9 @@
 #include<poll.h>
 #include<termios.h>
 #include<unistd.h>
+#include<fcntl.h>
 #include<signal.h>
+#include<unistd.h>
 #include<sys/ioctl.h>
 #include<sys/socket.h>
 #include<arpa/inet.h>
@@ -239,6 +241,18 @@ mainloop(FDWrap &terminal)
 
         sigwinch_received = true;
 
+        {
+                // FIXME: this should not be needed.
+                //
+                // Also it doesn't make any sense that it helps, but
+                // without this read() blocks on Windows even though
+                // select() supposedly said it shouldn't.
+                int lala;
+                fcntl(terminal.get(), F_GETFL, &lala);
+                lala |= O_NONBLOCK;
+                fcntl(terminal.get(), F_SETFL, &lala);
+        }
+
 	for (;;) {
                 if (sigwinch_received) {
                         sigwinch_received = false;
@@ -255,12 +269,14 @@ mainloop(FDWrap &terminal)
 
 		fds[0].fd = sock.getfd();
 		fds[0].events = POLLIN;
+                fds[0].revents = 0;
 		if (!to_server.empty()) {
 			fds[0].events |= POLLOUT;
 		}
 
 		fds[1].fd = terminal.get();
 		fds[1].events = POLLIN;
+                fds[1].revents = 0;
 		if (!to_terminal.empty()) {
 			fds[1].events |= POLLOUT;
 		}
