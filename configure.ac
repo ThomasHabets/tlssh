@@ -3,7 +3,7 @@
 #
 
 AC_PREREQ(2.61)
-AC_INIT([tlssh], [0.06], [thomas@habets.pp.se])
+AC_INIT([tlssh], [0.07], [thomas@habets.se])
 AC_CONFIG_AUX_DIR([config])
 #AC_CONFIG_MACRO_DIR(config)
 AM_INIT_AUTOMAKE([foreign subdir-objects])
