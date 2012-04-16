@@ -121,6 +121,22 @@ forkmain2(const struct passwd *pw, int fd_control)
 		exit(1);
 	}
 
+        if (setenv("USER", pw->pw_name, 1)) {
+                perror("setenv(USER, pw->pw_name, 1)");
+                exit(1);
+        }
+
+        if (setenv("LOGNAME", pw->pw_name, 1)) {
+                perror("setenv(LOGNAME, pw->pw_name, 1)");
+                exit(1);
+        }
+
+        if (setenv("SHELL", pw->pw_shell, 1)) {
+                perror("setenv(SHELL, pw->pw_shell, 1)");
+                exit(1);
+        }
+        // FIXME: PATH & MAIL too?
+
 	if (chdir(pw->pw_dir)) {
 		perror("chdir(user home directory)");
 		exit(1);
