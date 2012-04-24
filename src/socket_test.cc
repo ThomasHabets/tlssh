@@ -8,6 +8,8 @@
 #include"socket.h"
 #include"gaiwrap.h"
 
+const char* listenport = "22345";
+
 TEST(Socket, Debug)
 {
   Socket sock;
@@ -32,7 +34,7 @@ TEST(Socket, FdOps)
 TEST(Socket, Listen)
 {
   Socket sock;
-  sock.listen(AF_UNSPEC, "", "12345");
+  sock.listen(AF_UNSPEC, "", listenport);
   EXPECT_LE(0, sock.getfd());
 }
 
@@ -46,14 +48,14 @@ TEST(Socket, ReuseAddrBeforeSocket)
 TEST(Socket, InvalidAF)
 {
   Socket sock;
-  EXPECT_THROW(sock.listen(-1, "", "12345"),
+  EXPECT_THROW(sock.listen(-1, "", listenport),
 	       GetAddrInfo::ErrBase);
 }
 
 TEST(Socket, InvalidBindAddress)
 {
   Socket sock;
-  EXPECT_THROW(sock.listen(AF_UNSPEC, "1.1.1.1", "12345"),
+  EXPECT_THROW(sock.listen(AF_UNSPEC, "1.1.1.1", listenport),
 	       Socket::ErrSys);
 }
 
@@ -61,8 +63,8 @@ TEST(Socket, ListenPortBusy)
 {
   Socket sock1;
   Socket sock2;
-  sock1.listen(AF_UNSPEC, "", "12345");
-  EXPECT_THROW(sock2.listen(AF_UNSPEC, "", "12345"),
+  sock1.listen(AF_UNSPEC, "", listenport);
+  EXPECT_THROW(sock2.listen(AF_UNSPEC, "", listenport),
 	       Socket::ErrSys);
 }
 
@@ -97,7 +99,7 @@ TEST(Socket, PeerWhenNotInit)
 TEST(Socket, PeerWhenNotConnected)
 {
   Socket sock;
-  sock.listen(AF_UNSPEC, "", "12345");
+  sock.listen(AF_UNSPEC, "", listenport);
   EXPECT_THROW(sock.get_peer_addr_string(),
 	       Socket::ErrSys);
 }
@@ -106,8 +108,8 @@ TEST(Socket, LoopData)
 {
   Socket s1;
   Socket s2;
-  s1.listen(AF_UNSPEC, "", "12345");
-  s2.connect(AF_UNSPEC, "127.0.0.1", "12345");
+  s1.listen(AF_UNSPEC, "", listenport);
+  s2.connect(AF_UNSPEC, "127.0.0.1", listenport);
 
   Socket serv;
   serv.setfd(s1.accept());

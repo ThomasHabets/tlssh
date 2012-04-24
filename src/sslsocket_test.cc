@@ -10,6 +10,7 @@
 #include"sslsocket.h"
 
 Logger *logger = NULL;
+const char* listenport = "22345";
 
 class AutoJoin {
 public:
@@ -30,8 +31,8 @@ class SSLSocketTest: public ::testing::Test {
   SSLSocket sc_, sl_;
   void connect_tcp()
   {
-    sl_.listen(AF_UNSPEC, "", "12345");
-    sc_.connect(AF_UNSPEC, "localhost", "12345");
+    sl_.listen(AF_UNSPEC, "", listenport);
+    sc_.connect(AF_UNSPEC, "localhost", listenport);
   }
 
   void set_certs(SSLSocket&ss)
@@ -79,7 +80,7 @@ class SSLSocketTest: public ::testing::Test {
 TEST_F(SSLSocketTest, Listen)
 {
   SSLSocket sock;
-  sock.listen(AF_UNSPEC, "", "12345");
+  sock.listen(AF_UNSPEC, "", listenport);
 }
 
 TEST_F(SSLSocketTest, ReadBeforeAnything)

@@ -2,6 +2,7 @@ TODO before 0.08
 ----------------
 * kill connection when cert expires, not just deny new connections
 * Provide grsec RBAC config
+* make ping failures result in disconnection
 
 
 TODO before 1.00
