@@ -10,6 +10,9 @@ TODO before 1.00
 * document the code. There can always be more docs.
 * get someone to audit the code
 * pick a proper port number
+* Unit tests that logged-in environment looks good:
+** /proc/self/status: SigIgn: 0000000000000000
+** Env stuff set
 
 
 TODO after 1.00

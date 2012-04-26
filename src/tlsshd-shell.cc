@@ -12,6 +12,7 @@
 #endif
 
 #include<pwd.h>
+#include<signal.h>
 #include<stdlib.h>
 #include<sys/types.h>
 
@@ -136,6 +137,20 @@ forkmain2(const struct passwd *pw, int fd_control)
                 exit(1);
         }
         // FIXME: PATH & MAIL too?
+
+        // Reset signal handlers.
+        if (SIG_ERR == signal(SIGCHLD, SIG_DFL)) {
+                perror("signal(SIGCHLD, SIG_DFL)");
+                exit(1);
+        }
+        if (SIG_ERR == signal(SIGINT, SIG_DFL)) {
+                perror("signal(SIGINT, SIG_DFL)");
+                exit(1);
+        }
+        if (SIG_ERR == signal(SIGPIPE, SIG_DFL)) {
+                perror("signal(SIGPIPE, SIG_DFL)");
+                exit(1);
+        }
 
 	if (chdir(pw->pw_dir)) {
 		perror("chdir(user home directory)");
