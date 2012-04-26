@@ -160,7 +160,6 @@ BEGIN_NAMESPACE(tlssh)
 // Constants
 const std::string protocol_version     = "tlssh.1";
 
-const std::string DEFAULT_PORT         = "12345";
 const std::string DEFAULT_CERTFILE     = "~/.tlssh/keys/default.crt";
 const std::string DEFAULT_KEYFILE      = "~/.tlssh/keys/default.key";
 const std::string DEFAULT_SERVERCAFILE = "";

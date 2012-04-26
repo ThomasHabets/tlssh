@@ -20,11 +20,11 @@
 
 
 extern Logger *logger;
-
 /***********************************************************************
  * common tlssh client and server part
  */
 BEGIN_NAMESPACE(tlssh_common)
+static const std::string DEFAULT_PORT = "232";
 
 #pragma pack(1)
 /**
@@ -73,7 +73,6 @@ END_NAMESPACE(tlssh_common)
 BEGIN_NAMESPACE(tlsshd)
 
 const std::string DEFAULT_LISTEN       = "::";
-const std::string DEFAULT_PORT         = "12345";
 const std::string DEFAULT_CERTFILE     = "/etc/tlssh/tlsshd.crt";
 const std::string DEFAULT_KEYFILE      = "/etc/tlssh/tlsshd.key";
 const std::string DEFAULT_CLIENTCAFILE = "/etc/tlssh/ClientCA.crt";
@@ -117,7 +116,7 @@ struct Options {
 
         Options()
                 : listen(         DEFAULT_LISTEN),
-                  port(           DEFAULT_PORT),
+                  port(           tlssh_common::DEFAULT_PORT),
                   certfile(       DEFAULT_CERTFILE),
                   keyfile(        DEFAULT_KEYFILE),
                   clientcafile(   DEFAULT_CLIENTCAFILE),
