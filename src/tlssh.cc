@@ -36,6 +36,8 @@
 #include "config.h"
 #endif
 
+#include"tlssh.h"
+
 #include<poll.h>
 #include<termios.h>
 #include<unistd.h>
@@ -45,6 +47,7 @@
 #include<sys/ioctl.h>
 #include<sys/socket.h>
 #include<arpa/inet.h>
+#include<netinet/ip.h>
 
 #include<iostream>
 #include<fstream>
@@ -52,7 +55,6 @@
 #include<monotonic_clock.h>
 
 #include"mywordexp.h"
-#include"tlssh.h"
 #include"util2.h"
 #include"sslsocket.h"
 #include"configparser.h"
@@ -779,6 +781,11 @@ main2(int argc, char * const argv[])
         rawsock.set_tcp_md5_sock();
         rawsock.set_nodelay(true);
         rawsock.set_keepalive(true);
+        try {
+                rawsock.set_tos(IPTOS_LOWDELAY);
+        } catch (const std::exception &e) {
+                // FIXME: log error.
+        }
 	sock.ssl_attach(rawsock);
 
         sock.ssl_connect(options.host);

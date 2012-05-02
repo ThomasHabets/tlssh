@@ -35,6 +35,7 @@
 #include<poll.h>
 #include<pwd.h>
 #include<arpa/inet.h>
+#include<netinet/ip.h>
 #include<sys/stat.h>
 #include<sys/types.h>
 #include<sys/types.h>
@@ -667,6 +668,11 @@ forkmain(FDWrap&fd)
                 sock.set_keepalive(true);
                 sock.set_tcp_md5(options.tcp_md5);
                 sock.set_tcp_md5_sock();
+                try {
+                        sock.set_tos(IPTOS_LOWDELAY);
+                } catch (const std::exception &e) {
+                        // FIXME: log error.
+                }
 
                 sock.ssl_set_crlfile(options.clientcrl);
 		sock.ssl_set_cipher_list(options.cipher_list);

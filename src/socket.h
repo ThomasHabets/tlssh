@@ -31,6 +31,7 @@
 class Socket {
 protected:
 	FDWrap fd;
+        int connected_af_;
 	bool debug;
         std::string tcpmd5;
 	void create_socket(const struct addrinfo*);
@@ -84,6 +85,8 @@ public:
         void set_keepalive(bool);
 	void set_reuseaddr(bool);
         void set_close_on_exec(bool);
+
+        void set_tos(int tos);
 
         void set_tcp_md5(const std::string &);
         void set_tcp_md5_sock();

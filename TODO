@@ -16,6 +16,7 @@ TODO before 1.00
 
 TODO after 1.00
 ---------------
+* re-enable tcp md5
 * warn if the certificate *path* changes, not just if the server *cert* changes
 * ability to configure so that some servers can only be signed by a given CA
 * Solaris TCPMD5
@@ -28,7 +29,6 @@ TODO after 1.00
 * EGADS / EGD support (RAND_egd())
 * after auth, reset TCP signatures to something secret ephemeral so that the
   connection is unresettable
-* set QoS
 * TCP MD5 should be on the listening socket. Is it possible?
 * pipe:ing/batching.  tlssh host.com echo foo > foo 2>/dev/null
 * support for online CRL check (OCSP)

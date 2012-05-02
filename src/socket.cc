@@ -31,6 +31,15 @@
 Socket::Socket(int infd)
 	:debug(false)
 {
+        connected_af_ = AF_UNSPEC;
+        if (infd > 0) {
+                struct sockaddr_storage sa;
+                socklen_t salen = sizeof(sa);
+                if (-1 == getpeername(infd, (struct sockaddr*)&sa, &salen)) {
+                        THROW(ErrSys, "getpeername()");
+                }
+                connected_af_ = sa.ss_family;
+        }
 	fd.set(infd);
 }
 
@@ -124,7 +133,6 @@ Socket::connect(int af, const std::string &host, const std::string &port)
 	struct addrinfo hints;
 	int err;
 
-
 	memset(&hints, 0, sizeof(hints));
         hints.ai_flags = AI_ADDRCONFIG;
 	hints.ai_family = af;
@@ -143,6 +151,7 @@ Socket::connect(int af, const std::string &host, const std::string &port)
 	if (0 > err) {
                 THROW(ErrSys, "connect()");
 	}
+        connected_af_ = p->ai_addr->sa_family;
         set_tcp_md5_sock();
 }
 
@@ -285,6 +294,30 @@ Socket::set_keepalive(bool on)
         if (-1 == setsockopt(fd.get(), SOL_SOCKET, SO_KEEPALIVE, &parm,
                              sizeof(parm))) {
                 THROW(ErrSys, "setsockopt(SO_KEEPALIVE)");
+        }
+}
+
+/**
+ *
+ */
+void
+Socket::set_tos(int tos)
+{
+        switch (connected_af_) {
+        case AF_INET:
+                if (-1 == setsockopt(fd.get(), IPPROTO_IP, IP_TOS, &tos,
+                                     sizeof(tos))) {
+                        THROW(ErrSys, "setsockopt(IP_TOS)");
+                }
+                break;
+        case AF_INET6:
+                if (-1 == setsockopt(fd.get(), SOL_IPV6, IPV6_TCLASS, &tos,
+                                     sizeof(tos))) {
+                        THROW(ErrSys, "setsockopt(IPV6_TCLASS)");
+                }
+                break;
+        default:
+                THROW(ErrBase, "connected_af_ neither AF_INET or AF_INET6");
         }
 }
 
