@@ -506,16 +506,6 @@ static OpensslCbData openssl_cb_data;
  *
  */
 static int
-ui_open(UI *ui)
-{
-        OpensslCbData *cb_data(&openssl_cb_data);
-        return UI_method_get_opener(UI_OpenSSL())(ui);
-}
-
-/**
- *
- */
-static int
 ui_read(UI *ui, UI_STRING *uis)
 {
         OpensslCbData *cb_data(&openssl_cb_data);
@@ -536,18 +526,7 @@ ui_read(UI *ui, UI_STRING *uis)
 static int
 ui_write(UI *ui, UI_STRING *uis)
 {
-        OpensslCbData *cb_data(&openssl_cb_data);
         return 1;
-}
-
-/**
- *
- */
-static int
-ui_close(UI *ui)
-{
-        OpensslCbData *cb_data(&openssl_cb_data);
-        return UI_method_get_closer(UI_OpenSSL())(ui);
 }
 
 /**
@@ -556,13 +535,6 @@ ui_close(UI *ui)
 static UI_METHOD*
 setup_ui_method(void)
 {
-        UI_METHOD *ui_method;
-        ui_method = UI_create_method((char*)"OpenSSL application user interface");
-        UI_method_set_opener(ui_method, ui_open);
-        UI_method_set_reader(ui_method, ui_read);
-        UI_method_set_writer(ui_method, ui_write);
-        UI_method_set_closer(ui_method, ui_close);
-        return ui_method;
 }
 
 /**
@@ -583,11 +555,17 @@ SSLSocket::Engine::LoadPrivKey(const std::string &fn)
                 openssl_cb_data.qa["TPM Key Password: "] = privkey_password_.second;
         }
 
-        UI_METHOD *ui_method = setup_ui_method();
+        UI_METHOD *ui_method = UI_create_method((char*)"OpenSSL application user interface");
+        UI_method_set_opener(ui_method, UI_method_get_opener(UI_OpenSSL()));
+        UI_method_set_reader(ui_method, ui_read);
+        UI_method_set_writer(ui_method, ui_write);
+        UI_method_set_closer(ui_method, UI_method_get_closer(UI_OpenSSL()));
+
         pkey = ENGINE_load_private_key(engine_,
                                        fn.c_str(),
                                        ui_method,
                                        &openssl_cb_data);
+        UI_destroy_method(ui_method);
         if (!pkey) {
                 THROW(ErrSSL, "ENGINE_load_private_key()");
         }
