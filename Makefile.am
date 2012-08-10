@@ -5,8 +5,8 @@ DISTCLEANFILES = *~ *.gcov *.gcda *.gcno
 # Documentation
 man_MANS=doc/tlssh.1 doc/tlsshd.8 doc/tlssh.conf.5 doc/tlsshd.conf.5
 doc: manpages
-	ln -fs ../src
-	doxygen Doxyfile
+	ln -fs ../src doc/src
+	(cd doc && doxygen Doxyfile)
 
 manpages:
 	yodl2man -o doc/tlssh.1 doc/tlssh.yodl

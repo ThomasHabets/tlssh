@@ -34,6 +34,19 @@ startdit()
   dit(--copying) Show license and exit.
 enddit()
 
+manpagesection(CREATE TPM USER KEY)
+  On client:
+mancommand(.nf)
+mancommand(.sp)
+    mkdir -p ~/.tlssh/keys
+    cd ~/.tlssh/keys
+    create_tpm_key default.key
+    openssl req -keyform engine -engine tpm -key default.key -new -out default.csr
+    # Get .csr signed and get default.crt back. Store in ~/.tlssh/keys
+mancommand(.fi)
+mancommand(.in)
+
+
 manpagesection(EXAMPLES)
     FIXME
 

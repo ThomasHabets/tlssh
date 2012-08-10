@@ -5,24 +5,24 @@
 tlsshd \- TLSSH daemon
 .PP 
 .SH "SYNOPSIS"
-\fBtlsshd\fP [ -hfvV ] [ -c \fIconfig\fP ]
+\fBtlsshd\fP [ \-hfvV ] [ \-c \fIconfig\fP ]
 .PP 
 .SH "DESCRIPTION"
 tlsshd is the server for tlssh(1)\&. It takes very few options and is instead
 configured using a configuration file\&.
 .PP 
 .SH "OPTIONS"
-.IP "-c \fIconfig file\fP"
+.IP "\-c \fIconfig file\fP"
 Config file\&. Default is /etc/tlssh/tlsshd\&.conf
-.IP "-h, --help"
+.IP "\-h, \-\-help"
 Show brief usage info and exit\&. 
-.IP "-f"
+.IP "\-f"
 Run in foreground\&. Default is to daemonize\&.
-.IP "-v"
+.IP "\-v"
 Increase verbosity (debug output)\&.
-.IP "-V, --version"
+.IP "\-V, \-\-version"
 Show version and exit\&.
-.IP "--copying"
+.IP "\-\-copying"
 Show license and exit\&.
 
 .PP 
@@ -31,7 +31,7 @@ Show license and exit\&.
 Reload configuration file\&.
 .IP "\fISIGINT\fP"
 Kills listener process, but not logged in users\&.
-For use with commands like \fIpkill -INT tlsshd\fP\&.
+For use with commands like \fIpkill \-INT tlsshd\fP\&.
 .IP "\fISIGTERM\fP"
 Kills process, be it the listener or a connection handling
 process\&.

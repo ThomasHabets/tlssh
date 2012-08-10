@@ -17,32 +17,44 @@ To log in as a different user you must obtain a certificate for that
 user\&.
 .PP 
 .SH "OPTIONS"
-.IP "-4"
-Force IPv4\&. Default is auto-detect\&.
-.IP "-6"
-Force IPv6\&. Default is auto-detect\&.
-.IP "-c \fIconfig file\fP"
+.IP "\-4"
+Force IPv4\&. Default is auto\-detect\&.
+.IP "\-6"
+Force IPv6\&. Default is auto\-detect\&.
+.IP "\-c \fIconfig file\fP"
 Config file\&. Default is /etc/tlssh/tlssh\&.conf
-.IP "-C \fIcipher list\fP"
+.IP "\-C \fIcipher list\fP"
 Cipher list\&. Default is HIGH
-.IP "-h, --help"
+.IP "\-h, \-\-help"
 Show brief usage info and exit\&. 
-.IP "-s"
-Don\&'t check ~/\&.tlssh/certdb for old versions of server cert\&. Default
+.IP "\-s"
+Don\(cq\&t check ~/\&.tlssh/certdb for old versions of server cert\&. Default
 is to question any new cert, even if properly signed by the CA\&. With
 or without this switch the SSL cert will have to be signed by the CA,
-not expired, match the given server name, etc\&.\&.\&., so supplying -s
+not expired, match the given server name, etc\&.\&.\&., so supplying \-s
 will only skip a paranoid check that no other program is doing today\&.
-So in summary: -s is safe, but will never go the extra mile to ask
+So in summary: \-s is safe, but will never go the extra mile to ask
 if a cert looks reasonable to you\&.
-.IP "-p \fIcert/key file\fP"
-.IP "-v"
+.IP "\-p \fIcert/key file\fP"
+.IP "\-v"
 Increase verbosity (debug output)\&.
-.IP "-V, --version"
+.IP "\-V, \-\-version"
 Show version and exit\&.
-.IP "--copying"
+.IP "\-\-copying"
 Show license and exit\&.
 
+.PP 
+.SH "CREATE TPM USER KEY"
+On client:
+.nf
+.sp
+mkdir \-p ~/\&.tlssh/keys
+cd ~/\&.tlssh/keys
+create_tpm_key default\&.key
+openssl req \-keyform engine \-engine tpm \-key default\&.key \-new \-out default\&.csr
+# Get \&.csr signed and get default\&.crt back\&. Store in ~/\&.tlssh/keys
+.fi
+.in
 .PP 
 .SH "EXAMPLES"
 FIXME

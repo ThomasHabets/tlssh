@@ -20,7 +20,7 @@ Either a working ClientCAFile or ClientCAPath is needed\&.
 .IP "\fBClientCAPath\fP /path/to/certs"
 Directory containing CAs that have signed client certificates\&.
 .IP "\fBClientDomain\fP \&.users\&.domain\&.com"
-Under what domain users certs are named\&. User "bob" would have a cert
+Under what domain users certs are named\&. User \(dq\&bob\(dq\& would have a cert
 with the CommonName bob\&.users\&.domain\&.com in this case\&. Default is empty,
 so CommonName is the username itself\&.
 .IP "\fIOPTIONAL\fP"
@@ -28,15 +28,15 @@ so CommonName is the username itself\&.
 Send keepalive every n seconds\&. 0 disables keepalive\&.
 Default is 60\&.
 .IP "\fBListen\fP 2001:db8:1:2::3"
-Address to listen to\&. Can be IPv4 or IPv6\&. An IPv6 address of "::" will
-listen to any IPv4 or IPv6 connection, and "0\&.0\&.0\&.0" will listen to
+Address to listen to\&. Can be IPv4 or IPv6\&. An IPv6 address of \(dq\&::\(dq\& will
+listen to any IPv4 or IPv6 connection, and \(dq\&0\&.0\&.0\&.0\(dq\& will listen to
 a IPv4 port only\&. Default is to leave it unspecified\&.
 .IP "\fBClientCRL\fP /path/to/file"
 CRL file\&. If the CRL is out of date or missing the clients will
 NOT be able to log in\&.
 .IP "\fBChroot\fP /path/to/dir"
 If present, tlsshd will chroot(1) to this directory as soon as possible
-after a new connection is made\&. If set to "/" will not attempt chroot\&.
+after a new connection is made\&. If set to \(dq\&/\(dq\& will not attempt chroot\&.
 Default is /var/empty\&.
 .IP "\fBPort\fP 12345"
 Port to listen to\&. Default is FIXME\&.
@@ -45,8 +45,8 @@ List of crypto ciphers allowed, in OpenSSL format\&.
 Default is HIGH:!ADH:!LOW:!MD5:@STRENGTH\&.
 .IP "\fBinclude\fP /path/to/config"
 Include other config file\&.
-.IP "\fB-include\fP /path/to/config"
-Include other config file, but don\&'t error out if the file doesn\&'t exist\&.
+.IP "\fB\-include\fP /path/to/config"
+Include other config file, but don\(cq\&t error out if the file doesn\(cq\&t exist\&.
 
 .PP 
 .SH "SEE ALSO"
