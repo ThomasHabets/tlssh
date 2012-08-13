@@ -40,6 +40,15 @@ after a new connection is made\&. If set to \(dq\&/\(dq\& will not attempt chroo
 Default is /var/empty\&.
 .IP "\fBPort\fP 12345"
 Port to listen to\&. Default is FIXME\&.
+.IP "\fBPrivkeyEngine\fP engine"
+Name of OpenSSL engine used to load the server cert private key\&.
+Example: PrivkeyEngine tpm
+.IP "\fBPrivkeyEngineConfPre\fP key value"
+Config parameter to be set before running ENGINE_init\&.
+Example: PrivkeyEngineConfPre SO_PATH /foo/bar/baz\&.so
+.IP "\fBPrivkeyEngineConfPost\fP key value"
+Config parameter to be set after running ENGINE_init\&.
+Example: PrivkeyEngineConfPost PIN \(dq\&foo bar\(dq\&
 .IP "\fBCipherlist\fP HIGH"
 List of crypto ciphers allowed, in OpenSSL format\&.
 Default is HIGH:!ADH:!LOW:!MD5:@STRENGTH\&.

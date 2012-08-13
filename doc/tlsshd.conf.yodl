@@ -39,6 +39,15 @@ startdit()
       Default is /var/empty.
   dit(bf(Port) 12345)
       Port to listen to. Default is FIXME.
+  dit(bf(PrivkeyEngine) engine)
+      Name of OpenSSL engine used to load the server cert private key.
+      Example: PrivkeyEngine tpm
+  dit(bf(PrivkeyEngineConfPre) key value)
+      Config parameter to be set before running ENGINE_init.
+      Example: PrivkeyEngineConfPre SO_PATH /foo/bar/baz.so
+  dit(bf(PrivkeyEngineConfPost) key value)
+      Config parameter to be set after running ENGINE_init.
+      Example: PrivkeyEngineConfPost PIN "foo bar"
   dit(bf(Cipherlist) HIGH)
       List of crypto ciphers allowed, in OpenSSL format.
       Default is HIGH:!ADH:!LOW:!MD5:@STRENGTH.

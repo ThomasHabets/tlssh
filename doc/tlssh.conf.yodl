@@ -28,6 +28,15 @@ manpagedescription()
   dit(bf(L3Protocol) IPv4)
       Either IPv4 or IPv6. Will force one or the other. Command line options
       -4 and -6 overrides.
+  dit(bf(PrivkeyEngine) engine)
+      Name of OpenSSL engine used to load the client cert private key.
+      Example: PrivkeyEngine tpm
+  dit(bf(PrivkeyEngineConfPre) key value)
+      Config parameter to be set before running ENGINE_init.
+      Example: PrivkeyEngineConfPre SO_PATH /foo/bar/baz.so
+  dit(bf(PrivkeyEngineConfPost) key value)
+      Config parameter to be set after running ENGINE_init.
+      Example: PrivkeyEngineConfPost PIN "foo bar"
   dit(bf(ServerCRL) /path/to/file)
       CRL file. If the CRL is out of date or missing you will NOT be able
       to connect.

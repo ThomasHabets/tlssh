@@ -30,6 +30,15 @@ Default is 60\&.
 .IP "\fBL3Protocol\fP IPv4"
 Either IPv4 or IPv6\&. Will force one or the other\&. Command line options
 \-4 and \-6 overrides\&.
+.IP "\fBPrivkeyEngine\fP engine"
+Name of OpenSSL engine used to load the client cert private key\&.
+Example: PrivkeyEngine tpm
+.IP "\fBPrivkeyEngineConfPre\fP key value"
+Config parameter to be set before running ENGINE_init\&.
+Example: PrivkeyEngineConfPre SO_PATH /foo/bar/baz\&.so
+.IP "\fBPrivkeyEngineConfPost\fP key value"
+Config parameter to be set after running ENGINE_init\&.
+Example: PrivkeyEngineConfPost PIN \(dq\&foo bar\(dq\&
 .IP "\fBServerCRL\fP /path/to/file"
 CRL file\&. If the CRL is out of date or missing you will NOT be able
 to connect\&.
