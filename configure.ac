@@ -116,6 +116,11 @@ AC_CHECK_MEMBER(struct utmp.ut_user,
 #include <utmp.h>
 ]])
 
+# Enabled PIC/PIE
+CFLAGS="$CFLAGS -fPIC"
+CXXFLAGS="$CXXFLAGS -fPIC"
+LDFLAGS="$LDFLAGS -pie"
+
 # Output
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
