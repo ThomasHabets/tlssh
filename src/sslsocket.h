@@ -82,8 +82,6 @@ class SSLSocket: public Socket {
 
         typedef std::pair<bool, std::string> Optional;
         Optional privkey_engine_;
-        Optional privkey_password_;
-        Optional tpm_srk_password_;
 
 	SSLSocket &operator=(const SSLSocket&);
 	SSLSocket(const SSLSocket&);
@@ -93,25 +91,20 @@ class SSLSocket: public Socket {
         void check_ocsp();
         DH *ssl_setup_dh();
 public:
+        typedef std::vector<std::pair<std::string, std::string> > EngineConf;
+        EngineConf privkey_engine_pre_;
+        EngineConf privkey_engine_post_;
+
         class Engine {
                 ENGINE *engine_;
                 const std::string id_;
-                Optional privkey_password_;
-                Optional tpm_srk_password_;
         public:
-                void set_privkey_password(const Optional &privkey_password)
-                {
-                        privkey_password_ = privkey_password;
-                }
-                void set_tpm_srk_password(const Optional &pass)
-                {
-                        tpm_srk_password_ = pass;
-                }
                 Engine(const std::string&);
+                void Init();
+                void ctrl_cmd(const std::string& key, const std::string& val);
                 EVP_PKEY* LoadPrivKey(const std::string &fn);
                 ~Engine();
         };
-
 
 
         /**
@@ -180,8 +173,6 @@ public:
 	void ssl_set_keyfile(const std::string &s);
 	void ssl_set_crlfile(const std::string &s);
         void ssl_set_privkey_engine(const std::string &);
-        void ssl_set_privkey_password(const std::string &);
-        void ssl_set_tpm_srk_password(const std::string &);
 
 	std::auto_ptr<X509Wrap> get_cert();
 

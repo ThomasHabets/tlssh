@@ -107,8 +107,9 @@ struct Options {
 	std::string tcp_md5;
 	std::string chroot;
         Optional privkey_engine;
-        Optional privkey_password;
-        Optional tpm_srk_password;
+        typedef std::vector<std::pair<std::string, std::string> > Conf;
+        Conf privkey_engine_pre;
+        Conf privkey_engine_post;
         int verbose;
         bool daemon;
         int af;
@@ -128,8 +129,6 @@ struct Options {
                   tcp_md5(        DEFAULT_TCP_MD5),
                   chroot(         DEFAULT_CHROOT),
                   privkey_engine(std::make_pair(false, "")),
-                  privkey_password(std::make_pair(false, "")),
-                  tpm_srk_password(std::make_pair(false, "")),
                   verbose(        DEFAULT_VERBOSE),
                   daemon(         DEFAULT_DAEMON),
                   af(             DEFAULT_AF),

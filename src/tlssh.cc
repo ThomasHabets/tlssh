@@ -185,8 +185,9 @@ struct Options {
 	std::string tcp_md5;
 
         Optional privkey_engine;
-        Optional privkey_password;
-        Optional tpm_srk_password;
+        typedef std::vector<std::pair<std::string, std::string> > Conf;
+        Conf privkey_engine_pre;
+        Conf privkey_engine_post;
 
 	unsigned int verbose;
         int af;
@@ -207,8 +208,6 @@ struct Options {
                 host(""),
                 tcp_md5(DEFAULT_TCP_MD5),
                 privkey_engine(std::make_pair(false, "")),
-                privkey_password(std::make_pair(false, "")),
-                tpm_srk_password(std::make_pair(false, "")),
                 verbose(0),
                 af(AF_UNSPEC),
                 terminal(true),
@@ -462,15 +461,15 @@ read_config_file(const std::string &fn)
                         /*
                          * SSL Engine (TPM) stuff.
                          */
-                } else if (conf->keyword == "TpmSrkPassword") {
-                        options.tpm_srk_password = std::make_pair(true,
-                                                                  conf->rest.c_str());
-                } else if (conf->keyword == "PrivkeyPassword") {
-                        options.privkey_password = std::make_pair(true,
-                                                                  conf->rest.c_str());
+                } else if (conf->keyword == "PrivkeyEngineConfPre") {
+                        options.privkey_engine_pre.push_back(
+                            std::make_pair(conf->parms[0], conf->parms[1]));
+                } else if (conf->keyword == "PrivkeyEngineConfPost") {
+                        options.privkey_engine_post.push_back(
+                            std::make_pair(conf->parms[0], conf->parms[1]));
                 } else if (conf->keyword == "PrivkeyEngine") {
-                        options.privkey_engine = std::make_pair(true,
-                                                                conf->rest.c_str());
+                        options.privkey_engine = std::make_pair(
+                            true, conf->rest.c_str());
 
 		} else if (conf->keyword == "ServerCAFile"
                            && conf->parms.size() == 1) {
@@ -751,12 +750,8 @@ main2(int argc, char * const argv[])
         if (options.privkey_engine.first) {
                 sock.ssl_set_privkey_engine(options.privkey_engine.second);
         }
-        if (options.privkey_password.first) {
-                sock.ssl_set_privkey_password(options.privkey_password.second);
-        }
-        if (options.tpm_srk_password.first) {
-                sock.ssl_set_tpm_srk_password(options.tpm_srk_password.second);
-        }
+        sock.privkey_engine_pre_ = options.privkey_engine_pre;
+        sock.privkey_engine_post_ = options.privkey_engine_post;
 	if (options.verbose) {
 		sock.set_debug(true);
 	}

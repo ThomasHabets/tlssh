@@ -246,8 +246,9 @@ tokenize(const std::string &s, size_t max_splits)
 	size_t end;
 	size_t start = 0;
         size_t splits = 0;
+        std::string cur;
 
-	for (;;) {
+        for (;;) {
 		// find beginning of word
 		start = s.find_first_not_of(" \t", start);
 		if (std::string::npos == start) {
@@ -257,10 +258,20 @@ tokenize(const std::string &s, size_t max_splits)
 		// find end of word
 		end = s.find_first_of(" \t", start);
 		if (std::string::npos == end) {
-			ret.push_back(s.substr(start));
+			ret.push_back(trim(s.substr(start), "\""));
 			break;
 		}
-		ret.push_back(trim(s.substr(start, end-start)));
+                if (s[start] == '"') {
+                        start++;
+                        end = s.find_first_of("\"", start);
+                        if (std::string::npos == end) {
+                                ret.push_back(trim(s.substr(start)));
+                                break;
+                        }
+                        ret.push_back(trim(s.substr(start, end - start)));
+                } else {
+                        ret.push_back(trim(s.substr(start, end - start)));
+                }
                 if (++splits == max_splits) {
                         ret.push_back(trim(s.substr(end)));
                         break;
@@ -276,14 +287,14 @@ tokenize(const std::string &s, size_t max_splits)
  * @return trimmed string
  */
 std::string
-trim(const std::string &str)
+trim(const std::string &str, const std::string sep)
 {
-	size_t startpos = str.find_first_not_of(" \t");
+	size_t startpos = str.find_first_not_of(sep);
 	if (std::string::npos == startpos) {
 		return "";
 	}
 
-	size_t endpos = str.find_last_not_of(" \t");
+	size_t endpos = str.find_last_not_of(sep);
 
 	return str.substr(startpos, endpos-startpos+1);
 }

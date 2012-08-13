@@ -282,9 +282,7 @@ SSLSocket::SSLSocket(int fd)
                 :Socket(fd),
                  ctx(NULL),
                  ssl(NULL),
-                 privkey_engine_(  std::make_pair(false, "")),
-                 privkey_password_(std::make_pair(false, "")),
-                 tpm_srk_password_(std::make_pair(false, ""))
+                 privkey_engine_(std::make_pair(false, ""))
 {
         global_init();
 }
@@ -474,16 +472,30 @@ SSLSocket::ssl_setup_dh()
 
 
 SSLSocket::Engine::Engine(const std::string &id)
-        :engine_(NULL),id_(id)
+        :engine_(NULL), id_(id)
 {
         if (!(engine_ = ENGINE_by_id(id_.c_str()))) {
                 THROW(ErrSSL, "ENGINE_by_id()");
         }
+}
+
+void
+SSLSocket::Engine::Init()
+{
         if (!ENGINE_init(engine_)) {
                 ENGINE_free(engine_);
                 THROW(ErrSSL, "ENGINE_init()");
         }
 }
+
+void
+SSLSocket::Engine::ctrl_cmd(const std::string& key, const std::string& val)
+{
+        if (!ENGINE_ctrl_cmd_string(engine_, key.c_str(), val.c_str(), 0)) {
+                THROW(ErrSSL, "ENGINE_ctrl_cmd_string()");
+        }
+}
+
 
 SSLSocket::Engine::~Engine()
 {
@@ -493,79 +505,16 @@ SSLSocket::Engine::~Engine()
 }
 
 /**
- * FIXME: this should not be global.
- */
-struct OpensslCbData
-{
-        typedef std::map<std::string, std::string> qa_t;
-        qa_t qa;
-};
-static OpensslCbData openssl_cb_data;
-
-/**
- *
- */
-static int
-ui_read(UI *ui, UI_STRING *uis)
-{
-        OpensslCbData *cb_data(&openssl_cb_data);
-
-        OpensslCbData::qa_t::const_iterator itr;
-        itr = cb_data->qa.find(UI_get0_output_string(uis));
-        if (itr != cb_data->qa.end()) {
-                UI_set_result(ui, uis, itr->second.c_str());
-                return 1;
-        }
-        UI_method_get_writer(UI_OpenSSL())(ui, uis);
-        return UI_method_get_reader(UI_OpenSSL())(ui, uis);
-}
-
-/**
- *
- */
-static int
-ui_write(UI *ui, UI_STRING *uis)
-{
-        return 1;
-}
-
-/**
- *
- */
-static UI_METHOD*
-setup_ui_method(void)
-{
-}
-
-/**
  *
  */
 EVP_PKEY*
 SSLSocket::Engine::LoadPrivKey(const std::string &fn)
 {
         EVP_PKEY *pkey;
-
-        // FIXME: callback data doesn't seem to actually be sent on to the callback
-        //        functions.
-        // OpensslCbData cb_data;
-        if (tpm_srk_password_.first) {
-                openssl_cb_data.qa["SRK authorization: "] = tpm_srk_password_.second;
-        }
-        if (privkey_password_.first) {
-                openssl_cb_data.qa["TPM Key Password: "] = privkey_password_.second;
-        }
-
-        UI_METHOD *ui_method = UI_create_method((char*)"OpenSSL application user interface");
-        UI_method_set_opener(ui_method, UI_method_get_opener(UI_OpenSSL()));
-        UI_method_set_reader(ui_method, ui_read);
-        UI_method_set_writer(ui_method, ui_write);
-        UI_method_set_closer(ui_method, UI_method_get_closer(UI_OpenSSL()));
-
         pkey = ENGINE_load_private_key(engine_,
                                        fn.c_str(),
-                                       ui_method,
-                                       &openssl_cb_data);
-        UI_destroy_method(ui_method);
+                                       UI_OpenSSL(),
+                                       NULL);
         if (!pkey) {
                 THROW(ErrSSL, "ENGINE_load_private_key()");
         }
@@ -603,8 +552,19 @@ SSLSocket::ssl_accept_connect(bool isconnect)
                               privkey_engine_.second.c_str());
                 Engine *engine(new Engine(privkey_engine_.second));
                 EVP_PKEY *pkey;
-                engine->set_privkey_password(privkey_password_);
-                engine->set_tpm_srk_password(tpm_srk_password_);
+                for (EngineConf::const_iterator
+                             itr = privkey_engine_pre_.begin();
+                     itr != privkey_engine_pre_.end();
+                     ++itr) {
+                        engine->ctrl_cmd(itr->first, itr->second);
+                }
+                engine->Init();
+                for (EngineConf::const_iterator
+                             itr = privkey_engine_post_.begin();
+                     itr != privkey_engine_post_.end();
+                     ++itr) {
+                        engine->ctrl_cmd(itr->first, itr->second);
+                }
                 pkey = engine->LoadPrivKey(keyfile);
                 if (0 > SSLCALL(SSL_CTX_use_PrivateKey(ctx, pkey))) {
                         THROW(ErrSSL, "SSL_CTX_use_PrivateKey()");
@@ -1003,25 +963,6 @@ SSLSocket::ssl_set_privkey_engine(const std::string &engine)
 {
         privkey_engine_ = std::make_pair(true, engine);
 }
-
-/**
- *
- */
-void
-SSLSocket::ssl_set_privkey_password(const std::string &pass)
-{
-        privkey_password_ = std::make_pair(true, pass);
-}
-
-/**
- *
- */
-void
-SSLSocket::ssl_set_tpm_srk_password(const std::string &pass)
-{
-        tpm_srk_password_ = std::make_pair(true, pass);
-}
-
 
 /**
  * Set path where root CAs can be found.

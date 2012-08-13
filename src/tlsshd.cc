@@ -212,12 +212,12 @@ read_config_file(const std::string &fn)
                         /*
                          * SSL Engine (TPM) stuff.
                          */
-                } else if (conf->keyword == "TpmSrkPassword") {
-                        options.tpm_srk_password = std::make_pair(true,
-                                                                  conf->rest.c_str());
-                } else if (conf->keyword == "PrivkeyPassword") {
-                        options.privkey_password = std::make_pair(true,
-                                                                  conf->rest.c_str());
+                } else if (conf->keyword == "PrivkeyEngineConfPre") {
+                        options.privkey_engine_pre.push_back(
+                            std::make_pair(conf->parms[0], conf->parms[1]));
+                } else if (conf->keyword == "PrivkeyEngineConfPost") {
+                        options.privkey_engine_post.push_back(
+                            std::make_pair(conf->parms[0], conf->parms[1]));
                 } else if (conf->keyword == "PrivkeyEngine") {
                         options.privkey_engine = std::make_pair(true,
                                                                 conf->rest.c_str());

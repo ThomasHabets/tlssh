@@ -678,12 +678,8 @@ forkmain(FDWrap&fd)
                 if (options.privkey_engine.first) {
                         sock.ssl_set_privkey_engine(options.privkey_engine.second);
                 }
-                if (options.privkey_password.first) {
-                        sock.ssl_set_privkey_password(options.privkey_password.second);
-                }
-                if (options.tpm_srk_password.first) {
-                        sock.ssl_set_tpm_srk_password(options.tpm_srk_password.second);
-                }
+                sock.privkey_engine_pre_ = options.privkey_engine_pre;
+                sock.privkey_engine_post_ = options.privkey_engine_post;
 
 		sock.ssl_accept();
 		new_ssl_connection(sock);
