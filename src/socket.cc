@@ -35,10 +35,9 @@ Socket::Socket(int infd)
         if (infd > 0) {
                 struct sockaddr_storage sa;
                 socklen_t salen = sizeof(sa);
-                if (-1 == getpeername(infd, (struct sockaddr*)&sa, &salen)) {
-                        THROW(ErrSys, "getpeername()");
+                if (-1 != getpeername(infd, (struct sockaddr*)&sa, &salen)) {
+                        connected_af_ = sa.ss_family;
                 }
-                connected_af_ = sa.ss_family;
         }
 	fd.set(infd);
 }
