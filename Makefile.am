@@ -59,7 +59,7 @@ TESTS=socket_test sslsocket_test
 TEST_FLAGS=-std=gnu++0x
 TEST_FLAGS+=-fprofile-arcs -ftest-coverage
 TEST_LDADD=-lgtest -lpthread
-noinst_PROGRAMS=$(TESTS)
+check_PROGRAMS=$(TESTS)
 
 socket_test_SOURCES=src/socket_test.cc src/socket.cc src/fdwrap.cc src/gaiwrap.cc
 socket_test_CXXFLAGS=$(TEST_FLAGS)
