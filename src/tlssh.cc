@@ -240,6 +240,8 @@ mainloop(FDWrap &terminal)
         std::string buffer_from_sock;
         double last_keepalive_sent = 0;
         double now;
+        size_t num_keepalives_sent = 0;
+        size_t num_keepalives_received = 0;
 
         sigwinch_received = true;
 
@@ -263,8 +265,12 @@ mainloop(FDWrap &terminal)
 
                 if (options.keepalive != 0) {
                         now = clock_get_dbl();
+                        if (num_keepalives_sent > num_keepalives_received+2) {
+                                THROW(Err::ErrBase, "Failed keepalive");
+                        }
                         if (last_keepalive_sent + options.keepalive < now) {
                                 last_keepalive_sent = now;
+                                num_keepalives_sent++;
                                 to_server += iac_echo_request((uint32_t)now);
                         }
                 }
@@ -330,6 +336,7 @@ mainloop(FDWrap &terminal)
                         case IAC_ECHO_REPLY:
                                 cookie = htonl(itr->s.commands.echo_cookie);
                                 logger->debug("Got echo reply %u", cookie);
+                                num_keepalives_received++;
                                 break;
                         default:
                                 THROW(Err::ErrBase, "Invalid IAC!");
