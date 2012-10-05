@@ -228,7 +228,7 @@ X509Wrap::get_fingerprint() const
 /**
  * X509Wrap destructor
  */
-X509Wrap::~X509Wrap()
+X509Wrap::~X509Wrap() throw()
 {
 	if (x509) {
 		X509_free(x509);
@@ -391,7 +391,7 @@ SSLSocket::ssl_errstr(int err)
 /**
  * destroy SSLSocket object
  */
-SSLSocket::~SSLSocket()
+SSLSocket::~SSLSocket() throw()
 {
         shutdown();
 }
@@ -497,7 +497,7 @@ SSLSocket::Engine::ctrl_cmd(const std::string& key, const std::string& val)
 }
 
 
-SSLSocket::Engine::~Engine()
+SSLSocket::Engine::~Engine() throw()
 {
         if (engine_) {
                 ENGINE_free(engine_);

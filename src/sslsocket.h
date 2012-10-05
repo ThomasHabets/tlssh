@@ -63,7 +63,7 @@ public:
 
         X509 *get() { return x509; }
 
-	~X509Wrap();
+	~X509Wrap() throw();
 };
 
 /**
@@ -103,7 +103,7 @@ public:
                 void Init();
                 void ctrl_cmd(const std::string& key, const std::string& val);
                 EVP_PKEY* LoadPrivKey(const std::string &fn);
-                ~Engine();
+                ~Engine() throw();
         };
 
 
@@ -161,7 +161,7 @@ public:
         static void global_init();
 
 	SSLSocket(int fd = -1);
-	virtual ~SSLSocket();
+	virtual ~SSLSocket() throw();
 
 	void ssl_attach(Socket&sock);
 

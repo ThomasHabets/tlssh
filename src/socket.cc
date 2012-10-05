@@ -219,7 +219,7 @@ Socket::close()
 /**
  * Destructor
  */
-Socket::~Socket()
+Socket::~Socket() throw()
 {
         close();
 }

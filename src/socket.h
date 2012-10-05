@@ -71,7 +71,7 @@ public:
 	};
 
 	Socket(int infd = -1);
-	virtual ~Socket();
+	virtual ~Socket() throw();
 
 	void set_debug(bool v) {debug = v;}
 	bool get_debug() const { return debug; }
