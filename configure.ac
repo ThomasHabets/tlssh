@@ -119,7 +119,7 @@ AC_CHECK_MEMBER(struct utmp.ut_user,
 # Enabled PIC/PIE
 CFLAGS="$CFLAGS -fPIC"
 CXXFLAGS="$CXXFLAGS -fPIC"
-LDFLAGS="$LDFLAGS -pie"
+LDFLAGS="$LDFLAGS -pie -Wl,-z,now -Wl,-z,relro"
 
 # Output
 AC_CONFIG_FILES([Makefile])
