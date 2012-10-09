@@ -483,9 +483,10 @@ void
 SSLSocket::Engine::Init()
 {
         if (!ENGINE_init(engine_)) {
-                ENGINE_free(engine_);
                 THROW(ErrSSL, "ENGINE_init()");
         }
+        // FIXME: Should decreate the refcount, right?
+        // ENGINE_free(engine_);
 }
 
 void
