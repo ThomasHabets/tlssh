@@ -385,7 +385,7 @@ SSLSocket::ssl_setup_dh()
                 THROW(ErrSSL, "DH_new()");
         }
 
-        if (!DH_generate_parameters_ex(dh, 2, DH_GENERATOR_2, 0)) {
+        if (!DH_generate_parameters_ex(dh, 1024, DH_GENERATOR_2, 0)) {
                 THROW(ErrSSL, "DH_generate_parameters_ex()");
         }
 
@@ -471,6 +471,7 @@ SSLSocket::ssl_accept_connect(bool isconnect)
 	}
 
         // load cert & key
+        logger->debug("Loading certificate file %s", certfile.c_str());
         if (1 !=SSLCALL(SSL_CTX_use_certificate_chain_file(ctx,
                                                            certfile.c_str()))){
                 THROW(ErrSSL, "Load certfile " + certfile);
@@ -502,12 +503,22 @@ SSLSocket::ssl_accept_connect(bool isconnect)
                         THROW(ErrSSL, "SSL_CTX_use_PrivateKey()");
                 }
         } else {
-                logger->debug("Loading private key");
+                logger->debug("Loading private key file %s", keyfile.c_str());
                 if (1!=SSLCALL(SSL_CTX_use_PrivateKey_file(ctx,
                                                            keyfile.c_str(),
                                                            SSL_FILETYPE_PEM))){
                         THROW(ErrSSL, "Load keyfile " + keyfile);
                 }
+        }
+
+        /* Verify that the client's certificate and the key match */
+        if (SSL_CTX_check_private_key(ctx) != 1) {
+                THROW(ErrSSL, "Client's certificate and key don't match");
+        }
+
+        // create ssl object
+        if (!(ssl = SSLCALL(SSL_new(ctx)))) {
+                THROW(ErrSSL, "SSL_new()");
         }
 
         // set CAPath & CAFile for cert verification
@@ -531,13 +542,16 @@ SSLSocket::ssl_accept_connect(bool isconnect)
                 if (!X509_VERIFY_PARAM_set1_host(param, host.c_str(), host.size())) {
                         THROW(ErrSSL, "SSL_set1_host()", ssl, err);
                 }
+                auto cax509 = SSLCALL(SSL_load_client_CA_file(ccafile));
+                if (cax509 == nullptr) {
+                        THROW(ErrSSL, "SSL_load_client_CA_file()");
+                }
+                SSLCALL(SSL_CTX_set_client_CA_list(ctx, cax509));
                 SSLCALL(SSL_CTX_set_verify_depth(ctx, 5));
-                SSLCALL(SSL_CTX_set_verify(ctx,
-                                           SSL_VERIFY_PEER
-                                           |(isconnect
-                                             ? 0
-                                             :SSL_VERIFY_FAIL_IF_NO_PEER_CERT),
-                                           NULL));
+                SSLCALL(SSL_set_verify(ssl,
+                                       SSL_VERIFY_PEER
+                                       | SSL_VERIFY_FAIL_IF_NO_PEER_CERT,
+                                       NULL));
         } else {
                 logger->debug("WARNING: No CA loaded.");
         }
@@ -552,8 +566,10 @@ SSLSocket::ssl_accept_connect(bool isconnect)
         }
 
         // if server, set up DH
-        logger->debug("setting up DH");
-        if (!isconnect) {
+        // FIXME: re-enable DH with some caching. Not per connection since it's
+        // too slow.
+        if (false && !isconnect) {
+                logger->debug("setting up DH");
                 if (!SSLCALL(SSL_CTX_set_tmp_dh(ctx, ssl_setup_dh()))) {
                         THROW(ErrSSL, "SSL_CTX_set_tmp_dh()");
                 }
@@ -585,11 +601,6 @@ SSLSocket::ssl_accept_connect(bool isconnect)
                 }
         }
 
-        // create ssl object
-        if (!(ssl = SSLCALL(SSL_new(ctx)))) {
-                THROW(ErrSSL, "SSL_new()");
-	}
-
         // attach fd to ssl object
         if (!SSLCALL(SSL_set_fd(ssl, fd.get()))) {
                 THROW(ErrSSL, "SSL_set_fd()", ssl, err);
@@ -599,7 +610,7 @@ SSLSocket::ssl_accept_connect(bool isconnect)
         logger->debug("doing SSL handshake");
 	if (isconnect) {
                 err = SSLCALL(SSL_connect(ssl));
-		if (err == -1) {
+		if (err < 0) {
                         THROW(ErrSSL, "SSL_connect()", ssl, err);
 		}
 
@@ -613,10 +624,17 @@ SSLSocket::ssl_accept_connect(bool isconnect)
 		if (err == -1) {
                         THROW(ErrSSL, "SSL_accept()", ssl, err);
 		}
+                err = SSLCALL(SSL_get_verify_result(ssl));
+                if (err != X509_V_OK) {
+                        THROW(ErrSSL, "SSL_get_verify_result() != X509_V_OK:\n"
+                              + ssl_errstr(err));
+		}
 	}
 
         // if debug, show cert info
-	X509Wrap x(SSL_get_peer_certificate(ssl));
+        logger->debug("getting peer certificate");
+        X509Wrap x(SSL_get_peer_certificate(ssl));
+        logger->debug("… success");
         logger->debug("Issuer: %s\nSubject: %s\n"
                       "Cipher: %s (Version %d bits) %s\n"
                       "Serial number: %ld\n"
@@ -628,11 +646,11 @@ SSLSocket::ssl_accept_connect(bool isconnect)
                       SSLCALL(SSL_get_cipher_version(ssl)),
                       x.get_serial(),
                       x.get_fingerprint().c_str());
-
         check_crl();
         if (isconnect) {
                 check_ocsp();
         }
+        logger->debug("SSL connection set up");
 }
 
 /**
@@ -832,7 +850,7 @@ SSLSocket::write(const std::string &buf)
         int ret;
         ret = SSLCALL(SSL_write(ssl, buf.data(), buf.length()));
         if (ret < 0) {
-                THROW(ErrSSL, "SSL_write()", ssl,
+                THROW(ErrSSL, xsprintf("SSL_write(%d bytes)", buf.size()), ssl,
                       SSLCALL(SSL_get_error(ssl, ret)));
         }
 	return ret;
