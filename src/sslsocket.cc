@@ -69,7 +69,6 @@ X509Wrap::check_hostname(const std::string &host)
                 extstr = SSLCALL(OBJ_nid2sn(SSLCALL(OBJ_obj2nid(SSLCALL(X509_EXTENSION_get_object(ext))))));
 		if (!strcmp(extstr, "subjectAltName")) {
 			const X509V3_EXT_METHOD *meth;
-			const unsigned char *data;
 			STACK_OF(CONF_VALUE) *val;
 			CONF_VALUE *nval;
 
@@ -81,12 +80,12 @@ X509Wrap::check_hostname(const std::string &host)
 				logger->info("meth->d2i missing?! FIXME");
 				continue;
 			}
-			data = ext->value->data;
+			const auto data = X509_EXTENSION_get_data(ext);
+                        const unsigned char* databuf = ASN1_STRING_data(data);
 			val = meth->i2v((X509V3_EXT_METHOD*)meth,
 					meth->d2i(NULL,
-						  &data,
-						  ext->value->length),
-					NULL);
+						  &databuf,
+						  ASN1_STRING_length(data)), NULL);
 			for (j = 0; j < sk_CONF_VALUE_num(val); j++) {
 				nval = sk_CONF_VALUE_value(val, j);
 				if (!strcmp(nval->name, "DNS")
