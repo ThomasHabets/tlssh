@@ -50,8 +50,6 @@ public:
 	};
 	X509Wrap(X509 *x509);
 
-	bool check_hostname(const std::string &host);
-
         long get_serial() const;
 	std::string get_issuer() const;
         std::string get_issuer_common_name() const;

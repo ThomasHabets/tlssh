@@ -50,74 +50,6 @@ X509Wrap::X509Wrap(X509 *x509)
 }
 
 /**
- * check 'host' against all subjectAltNames and the CN subject
- * name. If any of them match, return true. Else false.
- */
-bool
-X509Wrap::check_hostname(const std::string &host)
-{
-	int extcount;
-	int i, j;
-
-	// check X509v3 extensions
-	extcount = X509_get_ext_count(x509);
-	for (i = 0; i < extcount; i++) {
-		X509_EXTENSION *ext;
-		const char *extstr;
-
-                ext = SSLCALL(X509_get_ext(x509, i));
-                extstr = SSLCALL(OBJ_nid2sn(SSLCALL(OBJ_obj2nid(SSLCALL(X509_EXTENSION_get_object(ext))))));
-		if (!strcmp(extstr, "subjectAltName")) {
-			const X509V3_EXT_METHOD *meth;
-			STACK_OF(CONF_VALUE) *val;
-			CONF_VALUE *nval;
-
-                        meth = SSLCALL(X509V3_EXT_get(ext));
-			if (!meth) {
-				continue;
-			}
-			if (!meth->d2i) {
-				logger->info("meth->d2i missing?! FIXME");
-				continue;
-			}
-			const auto data = X509_EXTENSION_get_data(ext);
-                        const unsigned char* databuf = ASN1_STRING_data(data);
-			val = meth->i2v((X509V3_EXT_METHOD*)meth,
-					meth->d2i(NULL,
-						  &databuf,
-						  ASN1_STRING_length(data)), NULL);
-			for (j = 0; j < sk_CONF_VALUE_num(val); j++) {
-				nval = sk_CONF_VALUE_value(val, j);
-				if (!strcmp(nval->name, "DNS")
-				    && !strcmp(nval->value,
-					       host.c_str())) {
-					return true;
-				}
-			}
-		}
-	}
-
-	// check subject name
-	X509_NAME *subj;
-	char sdata[256];
-        subj = SSLCALL(X509_get_subject_name(x509));
-	if (!subj) {
-		return false;
-	}
-        if (!SSLCALL(X509_NAME_get_text_by_NID(subj, NID_commonName,
-                                               sdata, sizeof(sdata)))) {
-		return false;
-	}
-	sdata[sizeof(sdata) - 1] = 0;
-	if (!strcmp(sdata, host.c_str())) {
-		return true;
-	}
-
-	// default: name does not match
-	return false;
-}
-
-/**
  * get Common Name of cert
  */
 std::string
@@ -532,8 +464,8 @@ SSLSocket::ssl_accept_connect(bool isconnect)
 
         // create CTX
         ctx = SSLCALL(SSL_CTX_new(isconnect
-                                  ? SSLCALL(TLSv1_client_method())
-                                  : SSLCALL(TLSv1_server_method())));
+                                  ? SSLCALL(TLS_client_method())
+                                  : SSLCALL(TLS_server_method())));
         if (!ctx) {
                 THROW(ErrSSL, "SSL_CTX_new()");
 	}
@@ -594,6 +526,11 @@ SSLSocket::ssl_accept_connect(bool isconnect)
                                                            ccapath))) {
                         THROW(ErrSSL, "SSL_CTX_load_verify_locations()");
 		}
+                auto param = SSL_get0_param(ssl);
+                X509_VERIFY_PARAM_set_hostflags(param, X509_CHECK_FLAG_NO_PARTIAL_WILDCARDS);
+                if (!X509_VERIFY_PARAM_set1_host(param, host.c_str(), host.size())) {
+                        THROW(ErrSSL, "SSL_set1_host()", ssl, err);
+                }
                 SSLCALL(SSL_CTX_set_verify_depth(ctx, 5));
                 SSLCALL(SSL_CTX_set_verify(ctx,
                                            SSL_VERIFY_PEER
@@ -670,11 +607,6 @@ SSLSocket::ssl_accept_connect(bool isconnect)
                 if (err != X509_V_OK) {
                         THROW(ErrSSL, "SSL_get_verify_result() != X509_V_OK:\n"
                               + ssl_errstr(err));
-		}
-
-                X509Wrap x(SSLCALL(SSL_get_peer_certificate(ssl)));
-		if (!x.check_hostname(host)) {
-                        THROW(ErrSSLHostname, host, x.get_subject());
 		}
 	} else {
                 err = SSLCALL(SSL_accept(ssl));
