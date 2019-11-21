@@ -49,7 +49,7 @@ typedef union {
                         uint32_t echo_cookie;
                 } commands;
         } s;
-        char buf[];
+        char buf[1];
 } IACCommand;
 #pragma pack()
 
