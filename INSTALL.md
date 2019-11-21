@@ -1,10 +1,6 @@
 tlssh/INSTALL
 
 
-# Supported systems
-Linux (main platform is Debian stable)
-
-
 # Dependencies
 openssl 1.1+
 
@@ -18,12 +14,11 @@ On Debian: `apt-get install libssl-dev`
 make
 make install
 mkdir /etc/tlssh
-cp etc/* /etc/tlssh/
 ```
 
-Put client-signing CA cert (cert, not private key) in /etc/tlssh/ClientCA.crt.
+Put client-signing CA cert (cert, not private key) in `/etc/tlssh/ClientCA.crt`.
 
-Install server cert in /etc/tlssh/tlsshd.key and /etc/tlssh/tlssd.crt
+Install server cert in `/etc/tlssh/tlsshd.key` and `/etc/tlssh/tlssd.crt`.
 
 ```
 /usr/local/sbin/tlsshd
@@ -44,10 +39,10 @@ easy-rsa build-client-full thomas.clients.examle.com
 openssl req -nodes -newkey rsa:2048 -keyout tlsshd.key -out tlsshd.csr
 ```
 
-Send tlsshd.csr (NOT tlsshd.key) to your CA to have it signed. You will get
-back tlsshd.crt.
+Send `tlsshd.csr` (NOT `tlsshd.key`) to your CA to have it signed. You will get
+back `tlsshd.crt`.
 
-Put tlsshd.key and tlsshd.crt in /etc/tlssh/.
+Put `tlsshd.key` and tlsshd.crt in `/etc/tlssh/`.
 
 # Configuring
 
@@ -74,8 +69,12 @@ cp pki/ca.crt /etc/tlssh/ServerCA.crt    # Unless you use a real server cert.
 YMMV. Feedback is welcome.
 
 Solaris:
-  ./configure LDFLAGS="-L/opt/csw/lib -R/opt/csw/lib" \
-              CPPFLAGS="-I/opt/csw/include"
+
+```
+./configure LDFLAGS="-L/opt/csw/lib -R/opt/csw/lib" \
+            CPPFLAGS="-I/opt/csw/include"
+```
+
 
 --------------------------------------------------------------------------
 Send questions/suggestions/patches/rants/0days to synscan@googlegroups.com
