@@ -35,14 +35,14 @@
 #include<pty.h>
 #endif
 
-#include<utmp.h>
-#include<signal.h>
 #include<arpa/inet.h>
-#include<sys/types.h>
-#include<sys/types.h>
-#include<sys/stat.h>
-#include<sys/socket.h>
+#include<signal.h>
 #include<sys/mman.h>
+#include<sys/socket.h>
+#include<sys/stat.h>
+#include<sys/types.h>
+#include<sys/wait.h>
+#include<utmp.h>
 
 #include<memory>
 #include<iostream>
@@ -119,6 +119,7 @@ listen_loop()
                 if (0 > pid) {          // error
                         logger->err("accept()-loop fork() failed");
                 } else if (pid == 0) {  // child
+                        listen.close();
 #if 0
                         /**
                          * Temporarily disabled until I find out why
@@ -132,10 +133,55 @@ listen_loop()
                                 exit(1);
                         }
 #endif
+                        // Start a new process just to log reason child process
+                        // died. Note that there is no logging for this
+                        // intermediate process, because root process sets
+                        // SIG_IGN on SIGCHLD.
+                        const pid_t pid2 = fork();
+                        if (pid2 == -1) {
+                                logger->err("second fork failed; no exit monitoring on handler process %d: %s", pid, strerror(errno));
+                                exit(tlsshd_sslproc::forkmain(clifd));
+                        }
+                        if (pid2 == 0) { // child
+                                exit(tlsshd_sslproc::forkmain(clifd));
+                        }
+                        clifd.close();
 
-                        listen.close();
-			exit(tlsshd_sslproc::forkmain(clifd));
-		} else {
+                        if (SIG_ERR == signal(SIGCHLD, SIG_DFL)) {
+                                logger->err("monitor process signal(SIGCHLD) failed: %s", strerror(errno));
+                        }
+
+                        int attempts = 0;
+                        int wstatus;
+                        do {
+                                const pid_t rc = waitpid(pid2, &wstatus, 0);
+                                if (rc == -1) {
+                                        if (attempts++ == 3) {
+                                                exit(1);
+                                        }
+                                        logger->err("waitpid(%d) attempt %d: %s",
+                                                    pid2, attempts, strerror(errno));
+                                        sleep(1);
+                                        continue;
+                                }
+                                if (WIFEXITED(wstatus)) {
+                                        const int exit_status = WEXITSTATUS(wstatus);
+                                        if (exit_status != 0) {
+                                                logger->err("connection handler %d exited with status %d", pid2, WEXITSTATUS(wstatus));
+                                        }
+                                } else if (WIFSIGNALED(wstatus)) {
+                                        logger->err("connection handler %d exited due to signal %d", pid2, WTERMSIG(wstatus));
+                                } else if (WIFSTOPPED(wstatus)) {
+                                        logger->info("connection handler %d stopped by signal %d", pid2, WSTOPSIG(wstatus));
+                                } else if (WIFCONTINUED(wstatus)) {
+                                        logger->info("connection handler %d continued", pid2);
+                                } else {
+                                        logger->err("waitpid returned %d for handler %d, but what does that mean?", wstatus, pid2);
+                                }
+                        } while (!WIFEXITED(wstatus) && !WIFSIGNALED(wstatus));
+                        logger->err("connection handler process %d exited",  pid2);
+                        exit(0);
+                } else { // parent. Continue listening
                         ;
                 }
 	}
