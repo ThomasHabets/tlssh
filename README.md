@@ -1,24 +1,21 @@
 tlssh/README
 
-  By Thomas Habets <thomas@habets.se> 2010-2012
+  By Thomas Habets <thomas@habets.se> 2010-2019
 
 
-What is it?
------------
+# What is it?
 It's like SSH but based on TLS. And you only log in using client
 certificates, never usernames or passwords.
 
 
-Why?
-----
+# Why?
 I often find that OpenSSH is too big, has too many features that can
 subvert security. Yet it doesn't have the features that I want.
 
 I wanted a minimal crypto layer on top of the SSL crypto model.
 
 
-Compared to OpenSSH
--------------------
+# Compared to OpenSSH
 Pros:
 * TCP-MD5
 * Write contents of local file as if I typed it (not done yet, but
@@ -40,19 +37,16 @@ Cons:
   when parsing them is less than 100%
 
 
-Where can I get it?
--------------------
+# Where can I get it?
 http://github.com/ThomasHabets/tlssh
-git clone git://github.com/ThomasHabets/tlssh.git
+`git clone git://github.com/ThomasHabets/tlssh.git`
 
 
-Installing
-----------
-See INSTALL file.
+# Installing
+See the `INSTALL.md` file.
 
 
-Notes
------
+# Notes
 * Support for TCP MD5 in Linux is always on since 2.6.27
 * Cacert.org Class 1 CRL: http://crl.cacert.org/revoke.crl
 * Telnet protocol RFC: http://www.faqs.org/rfcs/rfc854.html
