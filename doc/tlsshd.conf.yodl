@@ -61,4 +61,4 @@ manpageseealso()
     bf(tlsshd(8)), bf(tlssh.conf(5))
 
 manpageauthor()
-    TLSSH was written by Thomas Habets <thomas@habets.pp.se>.
+    TLSSH was written by Thomas Habets <thomas@habets.se>.

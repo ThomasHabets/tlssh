@@ -2,7 +2,7 @@
  * \brief Main tlssh client source file
  *
  * @mainpage TLSSH
- * @author Thomas Habets <thomas@habets.pp.se>
+ * @author Thomas Habets <thomas@habets.se>
  * @defgroup TLSSH TLSSH Client
  */
 /*

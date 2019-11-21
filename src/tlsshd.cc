@@ -2,7 +2,7 @@
 /*
  *  tlsshd
  *
- *   By Thomas Habets <thomas@habets.pp.se> 2010
+ *   By Thomas Habets <thomas@habets.se> 2010
  *
  */
 /**

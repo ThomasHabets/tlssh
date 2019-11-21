@@ -132,7 +132,7 @@ void
 print_version()
 {
         printf("tlssh %s\n"
-               "Copyright (C) 2010 Thomas Habets <thomas@habets.pp.se>\n"
+               "Copyright (C) 2010 Thomas Habets <thomas@habets.se>\n"
                "License 3-clause BSD. Run with --copying to see the whole"
                " license.\n"
                "This is free software: you are free to change and "
