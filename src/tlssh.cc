@@ -663,7 +663,7 @@ certdb_filename()
 bool
 certdb_check()
 {
-        std::auto_ptr<X509Wrap> x509(sock.get_cert());
+        std::unique_ptr<X509Wrap> x509(sock.get_cert());
         std::ifstream f(certdb_filename().c_str());
 
         while (f.good()) {
@@ -704,7 +704,7 @@ do_certdatabase()
                 return;
         }
 
-        std::auto_ptr<X509Wrap> x509(sock.get_cert());
+        std::unique_ptr<X509Wrap> x509(sock.get_cert());
 
         fprintf(stderr,
                 "It appears that you have never logged into this host before"

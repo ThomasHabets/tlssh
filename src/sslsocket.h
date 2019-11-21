@@ -172,7 +172,7 @@ public:
 	void ssl_set_crlfile(const std::string &s);
         void ssl_set_privkey_engine(const std::string &);
 
-	std::auto_ptr<X509Wrap> get_cert();
+        std::unique_ptr<X509Wrap> get_cert();
 
 	void shutdown();
 	void ssl_accept();

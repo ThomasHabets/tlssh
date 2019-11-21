@@ -223,10 +223,10 @@ SSLSocket::SSLSocket(int fd)
  *
  * @return the cert
  */
-std::auto_ptr<X509Wrap>
+std::unique_ptr<X509Wrap>
 SSLSocket::get_cert()
 {
-        return std::auto_ptr<X509Wrap>
+        return std::unique_ptr<X509Wrap>
                 (new X509Wrap(SSLCALL(SSL_get_peer_certificate(ssl))));
 }
 
