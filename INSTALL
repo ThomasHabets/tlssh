@@ -1,67 +1,76 @@
 tlssh/INSTALL
 
 
-Supported systems
------------------
-Linux (main platform is Debian Lenny)
-Solaris (not yet)
-OpenBSD (not yet)
+# Supported systems
+Linux (main platform is Debian stable)
 
 
-Dependencies
-------------
-openssl
+# Dependencies
+openssl 1.1+
 
-On Debian: apt-get install libssl-dev
-
-
-Installing - short version
---------------------------
- ./configure
- make
- make install
-
- mkdir /etc/tlssh
- cp etc/* /etc/tlssh/
-
- Put client-signing CA cert (cert, not private key) in /etc/tlssh/ClientCA.crt.
-
- Install server cert in /etc/tlssh/tlsshd.key and /etc/tlssh/tlssd.crt
-
- /usr/local/sbin/tlsshd
+On Debian: `apt-get install libssl-dev`
 
 
-Creating server cert
---------------------
+# Installing - short version
+
+```
+./configure
+make
+make install
+mkdir /etc/tlssh
+cp etc/* /etc/tlssh/
+```
+
+Put client-signing CA cert (cert, not private key) in /etc/tlssh/ClientCA.crt.
+
+Install server cert in /etc/tlssh/tlsshd.key and /etc/tlssh/tlssd.crt
+
+```
+/usr/local/sbin/tlsshd
+```
+
+# Creating certs
+
+Easiest is to use `easy-rsa`.
+```
+easy-rsa init-pki
+easy-rsa build-server-full shell.example.com nopass
+easy-rsa build-client-full thomas.clients.examle.com
+```
+
+## Real server cert
+
+```
 openssl req -nodes -newkey rsa:2048 -keyout tlsshd.key -out tlsshd.csr
+```
 
 Send tlsshd.csr (NOT tlsshd.key) to your CA to have it signed. You will get
 back tlsshd.crt.
 
 Put tlsshd.key and tlsshd.crt in /etc/tlssh/.
 
+# Configuring
 
-Creating client cert
---------------------
-If you are your own CA (and if you don't know, then you probably are) then
-you need to set up the CA first.
+## Configure server
 
-FIXME: document how
+```
+cp pki/issued/shell.example.com.crt /etc/tlssh/tlsshd.crt
+cp pki/private/shell.example.com.key /etc/tlssh/tlsshd.key
+cp pki/ca.crt /etc/tlssh/ClientCA.crt
+echo ClientDomain client.example.com >> /etc/tlssh/tlsshd.conf
+```
 
-Have user run this command and securely send you the csr:
-  openssl req -nodes -newkey rsa:2048 \
-    -keyout myuser.users.domain.com.key \
-    -out    myuser.users.domain.com.csr
+## Configure client
 
-Verify the CSR authenticity, sign it using FIXME and return the
-resulting crt file to the user.
+```
+mkdir ~/.tlssh/keys
+cp pki/issued/shell.example.com.crt ~/.tlssh/keys/default.crt
+cp pki/private/shell.example.com.key ~/.tlssh/keys/default.key
+cp pki/ca.crt /etc/tlssh/ServerCA.crt    # Unless you use a real server cert.
+```
 
-(alternatively, you can generate the key yourself and send the .key
-and .crt to the user)
+# Hints for compiling on different systems
 
-
-Hints for compiling on different systems
-----------------------------------------
 YMMV. Feedback is welcome.
 
 Solaris:
