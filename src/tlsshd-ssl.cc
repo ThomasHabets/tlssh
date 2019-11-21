@@ -442,7 +442,7 @@ log_logout()
 /**
  * call real forkpty()
  */
-int
+void
 do_forkpty(pid_t *pid, int *fdm)
 {
         char tty_name[PATH_MAX];
