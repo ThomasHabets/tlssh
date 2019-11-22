@@ -66,9 +66,9 @@ SSL_new \
 EL_GETPW_R_POSIX
 EL_GETPW_R_DRAFT
 
-AC_CHECK_MEMBER(struct tcp_md5sig.tcpm_keylen,
-		       [AC_DEFINE([HAVE_TCPMD5], 1,
-		       [Define if you have TCP MD5])],
+AC_CHECK_MEMBER(struct tcp_md5sig.tcpm_prefixlen,
+		       [AC_DEFINE([HAVE_TCPMD5_EXT], 1,
+		       [Define if you have TCP MD5 EXT])],
 		       [],
 		       [[#include <netinet/tcp.h>]])
 

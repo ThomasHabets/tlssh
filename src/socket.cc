@@ -141,6 +141,7 @@ Socket::connect(int af, const std::string &host, const std::string &port)
         err = -1;
         for (p = gai.get_results(); p; p = p->ai_next) {
                 create_socket(p);
+                set_tcp_md5_sock(p->ai_addr, p->ai_addrlen, true);
                 err = ::connect(fd.get(), p->ai_addr, p->ai_addrlen);
                 if (!err) {
                         break;
@@ -150,7 +151,6 @@ Socket::connect(int af, const std::string &host, const std::string &port)
                 THROW(ErrSys, "connect()");
 	}
         connected_af_ = p->ai_addr->sa_family;
-        set_tcp_md5_sock();
 }
 
 int
@@ -190,6 +190,7 @@ Socket::listen(int af, const std::string &host, const std::string &port)
         err = -1;
         for (p = gai.get_results(); p; p = p->ai_next) {
                 create_socket(p);
+                set_tcp_md5_sock(p->ai_addr, p->ai_addrlen, false);
                 set_reuseaddr(true);
 
                 err = bind(fd.get(), p->ai_addr, p->ai_addrlen);
@@ -336,29 +337,39 @@ Socket::set_tcp_md5(const std::string &keystring)
  * @todo This is temporarily disabled. I think this makes Linux crash
  */
 void
-Socket::set_tcp_md5_sock()
+Socket::set_tcp_md5_sock(const struct sockaddr *sa, socklen_t salen, bool fullmatch)
 {
-        return;
-#ifdef HAVE_TCPMD5
-        struct tcp_md5sig md5sig;
-        const std::string key = tcpmd5.substr(0, TCP_MD5SIG_MAXKEYLEN);
-        socklen_t t = sizeof(struct sockaddr_storage);
-
-        memset(&md5sig, 0, sizeof(md5sig));
-        if (getpeername(fd.get(),
-                        (struct sockaddr*)&md5sig.tcpm_addr, &t)) {
-                THROW(ErrSys, "getpeername()");
+        if (tcpmd5.empty()) {
+                return;
         }
+#ifdef HAVE_TCPMD5_EXT
+        struct tcp_md5sig md5sig{};
+
+        int prefixlen = 0;
+        if (fullmatch) {
+                switch (sa->sa_family) {
+                case AF_INET:
+                        prefixlen = 32;
+                        break;
+                case AF_INET6:
+                        prefixlen = 128;
+                        break;
+                default:
+                        THROW(ErrBase, "unknown AF");
+                }
+        }
+
+        const std::string key = tcpmd5.substr(0, TCP_MD5SIG_MAXKEYLEN);
+        memcpy(&md5sig.tcpm_addr, sa, salen);
+        md5sig.tcpm_flags = TCP_MD5SIG_FLAG_PREFIX;
         md5sig.tcpm_keylen = key.size();
+        md5sig.tcpm_prefixlen = prefixlen;
         memcpy(md5sig.tcpm_key, key.data(), md5sig.tcpm_keylen);
         if (-1 == setsockopt(fd.get(),
-                             IPPROTO_TCP, TCP_MD5SIG,
+                             IPPROTO_TCP,
+                             TCP_MD5SIG_EXT,
                              &md5sig, sizeof(md5sig))) {
-                if (ENOENT == errno) {
-                        // when we set no key
-                } else {
-                        THROW(ErrSys, "setsockopt(TCP_MD5SIG)");
-                }
+                THROW(ErrSys, "setsockopt(TCP_MD5SIG_EXT)");
         }
 #endif
 }

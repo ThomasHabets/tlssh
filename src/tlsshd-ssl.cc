@@ -667,7 +667,6 @@ forkmain(FDWrap&fd)
                 sock.set_nodelay(true);
                 sock.set_keepalive(true);
                 sock.set_tcp_md5(options.tcp_md5);
-                sock.set_tcp_md5_sock();
                 try {
                         sock.set_tos(IPTOS_LOWDELAY);
                 } catch (const std::exception &e) {

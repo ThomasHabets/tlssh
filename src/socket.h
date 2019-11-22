@@ -89,7 +89,7 @@ public:
         void set_tos(int tos);
 
         void set_tcp_md5(const std::string &);
-        void set_tcp_md5_sock();
+        void set_tcp_md5_sock(const struct sockaddr *sa, socklen_t salen, bool fullmatch);
 
         std::string get_peer_addr_string() const;
 
