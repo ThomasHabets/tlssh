@@ -29,6 +29,7 @@ Install server cert in `/etc/tlssh/tlsshd.key` and `/etc/tlssh/tlssd.crt`.
 Easiest is to use `easy-rsa`.
 ```
 easy-rsa init-pki
+easy-rsa build-ca
 easy-rsa build-server-full shell.example.com nopass
 easy-rsa build-client-full thomas.clients.examle.com
 ```
