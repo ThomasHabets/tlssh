@@ -1,3 +1,4 @@
 #!/bin/sh
 
-autoreconf -i
+git submodule update --init
+exec autoreconf -i

@@ -1,4 +1,6 @@
 # tlssh/Makefile.am
+SUBDIRS=monotonic_clock
+AM_CXXFLAGS=-I$(top_srcdir)/monotonic_clock/include @AM_CXXFLAGS@
 
 DISTCLEANFILES = *~ *.gcov *.gcda *.gcno
 
@@ -32,6 +34,7 @@ src/tlssh_common.cc \
 src/cfmakeraw.c \
 src/wordexp.c \
 src/gaiwrap.cc
+tlssh_LDADD=$(top_builddir)/monotonic_clock/.libs/libmonotonic_clock.a
 
 tlsshd_SOURCES = \
 src/tlsshd.cc \
@@ -54,6 +57,7 @@ src/logwtmp.c \
 src/wordexp.c \
 src/login_tty.c \
 src/gaiwrap.cc
+tlsshd_LDADD=$(top_builddir)/monotonic_clock/.libs/libmonotonic_clock.a
 
 TESTS=socket_test sslsocket_test
 TEST_FLAGS=-std=gnu++0x

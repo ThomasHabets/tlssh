@@ -12,7 +12,8 @@ AC_CONFIG_SRCDIR([src/tlssh.cc])
 AC_CONFIG_HEADER(config.h)
 AC_CONFIG_SUBDIRS([libopenpty])
 
-PKG_CHECK_MODULES([MONOTONIC_CLOCK], [libmonotonic_clock >= 0])
+AC_CONFIG_SUBDIRS([monotonic_clock])
+AC_SEARCH_LIBS([clock_gettime], [rt])
 
 # Checks for programs.
 AC_PROG_CXX
