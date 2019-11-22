@@ -105,7 +105,7 @@ listen_loop()
 	for (;;) {
 		FDWrap clifd;
                 pid_t pid;
-		socklen_t salen = sizeof(sa); 
+		socklen_t salen = sizeof(sa);
 
 		clifd.set(::accept(listen.getfd(),
                                    (struct sockaddr*)&sa,
@@ -190,7 +190,7 @@ listen_loop()
 /** Print usage info and exit.
  *
  * Called when doing one of:
- * -h option (err = 0) 
+ * -h option (err = 0)
  * --help option (err = 0)
  * invalid options (err != 1)
  */
@@ -405,7 +405,7 @@ main2(int argc, char * const argv[])
                 logger->set_logmask(logger->get_logmask()
                                     | LOG_MASK(LOG_DEBUG));
         }
-        //tlsshd::listen.set_tcp_md5(options.tcp_md5);
+        tlsshd::listen.set_tcp_md5(options.tcp_md5);
 	tlsshd::listen.listen(options.af, options.listen, options.port);
 
         if (options.daemon) {

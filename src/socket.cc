@@ -131,7 +131,6 @@ Socket::connect(int af, const std::string &host, const std::string &port)
 {
 	struct addrinfo hints;
 	int err;
-
 	memset(&hints, 0, sizeof(hints));
         hints.ai_flags = AI_ADDRCONFIG;
 	hints.ai_family = af;
@@ -340,9 +339,9 @@ void
 Socket::set_tcp_md5_sock()
 {
         return;
-#ifdef HAVE_TCP_MD5
+#ifdef HAVE_TCPMD5
         struct tcp_md5sig md5sig;
-        std::string key = tcpmd5.substr(0, TCP_MD5SIG_MAXKEYLEN);
+        const std::string key = tcpmd5.substr(0, TCP_MD5SIG_MAXKEYLEN);
         socklen_t t = sizeof(struct sockaddr_storage);
 
         memset(&md5sig, 0, sizeof(md5sig));

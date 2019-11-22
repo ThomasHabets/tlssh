@@ -783,9 +783,8 @@ main2(int argc, char * const argv[])
 
 	Socket rawsock;
 
-	rawsock.connect(options.af, options.host, options.port);
         rawsock.set_tcp_md5(options.tcp_md5);
-        rawsock.set_tcp_md5_sock();
+	rawsock.connect(options.af, options.host, options.port);
         rawsock.set_nodelay(true);
         rawsock.set_keepalive(true);
         try {
